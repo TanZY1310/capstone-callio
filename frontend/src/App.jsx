@@ -5,8 +5,8 @@ import heroImg from "./assets/hero.png";
 import "./App.css";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 // //Components
-import Register from "./components/Register";
-import Login from "./components/Login";
+import Register from "./components/Authentication/Register";
+import Login from "./components/Authentication/Login";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -15,13 +15,11 @@ function App() {
     <>
       <BrowserRouter>
       <nav>
-        {/* <Link to="/">Home</Link> | {" "} */}
         <Link to="/register">Register</Link> | {" "}
         <Link to="/login">Login</Link> | {" "}
       </nav>
 
       <Routes>
-        {/* <Route path="/" element={} /> */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
       </Routes>
