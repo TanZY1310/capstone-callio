@@ -1,16 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "./assets/vite.svg";
+import heroImg from "./assets/hero.png";
+import "./App.css";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+// //Components
+import Register from "./components/Register";
+import Login from "./components/Login";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
-  return (<>
-      
-  
-  </>)
+  return (
+    <>
+      <BrowserRouter>
+      <nav>
+        {/* <Link to="/">Home</Link> | {" "} */}
+        <Link to="/register">Register</Link> | {" "}
+        <Link to="/login">Login</Link> | {" "}
+      </nav>
+
+      <Routes>
+        {/* <Route path="/" element={} /> */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+      </BrowserRouter>
+    </>
+  );
 }
 
-export default App
+export default App;
