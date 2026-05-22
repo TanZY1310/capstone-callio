@@ -16,12 +16,6 @@ function Login() {
           <h3>Login Page</h3>
         </div>
         <div>
-          <input className="input" type="text" placeholder="John Doe" />
-        </div>
-        <div>
-          <input className="input" type="date" />
-        </div>
-        <div>
           <input className="input" type="text" placeholder="john@mail.com" />
         </div>
         <div>
