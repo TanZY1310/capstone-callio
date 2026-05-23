@@ -8,19 +8,15 @@ import Register from "./components/Authentication/Register";
 import Login from "./components/Authentication/Login";
 
 function App() {
-
   return (
     <>
-      <BrowserRouter>     
-      <nav>
-        <Link to="/register">Register</Link> | {" "}
-        <Link to="/login">Login</Link> | {" "}
-      </nav>
+      <BrowserRouter>
+        <Sidebar />
 
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
+        <Routes>
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
       </BrowserRouter>
     </>
   );

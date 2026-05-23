@@ -1,102 +1,158 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useReducer } from "react";
 import { Link } from "react-router-dom";
 
+import { KeyRound, Mail } from "lucide-react";
+
+const initialState = {
+  username: "",
+  email: "",
+  password: "",
+  role: "",
+  loading: false,
+  loggedIn: false,
+};
+
+function loginReducer(state, action) {
+  switch (action.type) {
+    case "SET_EMAIL":
+      return {
+        ...state,
+        email: action.payload,
+      };
+
+    case "SET_PASSWORD":
+      return {
+        ...state,
+        password: action.payload,
+      };
+
+    case "LOGIN_START":
+      return {
+        ...state,
+        loading: true,
+        loggedIn: false,
+        error: "",
+      };
+
+    case "LOGIN_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        loggedIn: true,
+      };
+
+    case "LOGIN_ERROR":
+      return {
+        ...state,
+        loading: false,
+        loggedIn: true,
+        error: action.payload,
+      };
+
+    default:
+      return state;
+  }
+}
+
 function Login() {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [birthDate, setBirthDate] = useState(new Date());
   const [password, setPassword] = useState("");
+
+  const [state, dispatch] = useReducer(loginReducer, initialState);
+
+  const loginUser = () => {
+    dispatch({ type: "LOGIN_START" });
+
+    setTimeout(() => {
+      if (state.email === "admin@gmail.com" && state.password === "123") {
+        dispatch({ type: "LOGIN_SUCCESS" });
+      } else {
+        dispatch({ type: "LOGIN_ERROR", payload: "Invalid credentials" });
+      }
+    }, 1000);
+  };
+
   return (
     <>
-      <div className="flex flex-col ...">
-        <div>
-          <h2>Welcome Back</h2>
+      <div className="hero bg-base-200 min-h-screen" style={{ backgroundImage: "url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp)" }}>
+        <div className="hero-content flex-col lg:flex-row-reverse">
+          <div className="text-center lg:text-left">
+            {/* <h1 className="text-5xl font-bold">Login Page</h1>
+            <p className="py-6">
+              Enter a description here for login later
+            </p> */}
+          </div>
+          <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+            <div className="card-body">
+              <fieldset className="fieldset">
+                <label className="label">Email</label>
+                <label className="input validator">
+                  <Mail />
+                  <input
+                    type="email"
+                    placeholder="mail@site.com"
+                    required
+                    value={state.email}
+                    onChange={(e) =>
+                      dispatch({ type: "SET_EMAIL", payload: e.target.value })
+                    }
+                  />
+                </label>
+                <div className="validator-hint hidden">
+                  Please enter a valid email address
+                </div>
+                <label className="label">Password</label>
+                <label className="input validator">
+                  <KeyRound />
+                  <input
+                    type="password"
+                    required
+                    placeholder="Password"
+                    // minLength="8"
+                    // pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                    title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
+                    value={state.password}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_PASSWORD",
+                        payload: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <p className="validator-hint hidden">
+                  Must be more than 8 characters, including
+                  <br />
+                  At least one number <br />
+                  At least one lowercase letter <br />
+                  At least one uppercase letter
+                </p>
+                <div>
+                  <Link className="link link-primary link-hover">Forgot password?</Link>
+                </div>
+                <div>
+                  <p>
+                    Do Not Have An Account?
+                    <Link
+                      to="/register"
+                      className="link link-primary link-hover"
+                    >
+                      Register
+                    </Link>
+                  </p>
+                </div>
+                <button className="btn btn-neutral mt-4" onClick={loginUser}>
+                  Login
+                </button>
+              </fieldset>
+            </div>
+          </div>
         </div>
-        <div>
-          <h3>Login Page</h3>
-        </div>
-        <div>
-          <input className="input" type="text" placeholder="john@mail.com" />
-        </div>
-        <div>
-          <label className="input validator">
-            <svg
-              className="h-[1em] opacity-50"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-            >
-              <g
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                strokeWidth="2.5"
-                fill="none"
-                stroke="currentColor"
-              >
-                <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
-                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
-              </g>
-            </svg>
-            <input
-              type="password"
-              required
-              placeholder="Password"
-              minLength="8"
-              pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-              title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
-            />
-          </label>
-          <p className="validator-hint hidden">
-            Must be more than 8 characters, including
-            <br />
-            At least one number <br />
-            At least one lowercase letter <br />
-            At least one uppercase letter
-          </p>
-        </div>
-        <div>
-          <button className="btn btn-primary">Sign Up</button>
-        </div>
-
-        <div>
-          <button className="btn bg-white text-black border-[#e5e5e5]">
-            <svg
-              aria-label="Google logo"
-              width="16"
-              height="16"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-            >
-              <g>
-                <path d="m0 0H512V512H0" fill="#fff"></path>
-                <path
-                  fill="#34a853"
-                  d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341"
-                ></path>
-                <path
-                  fill="#4285f4"
-                  d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57"
-                ></path>
-                <path
-                  fill="#fbbc02"
-                  d="m90 341a208 200 0 010-171l63 49q-12 37 0 73"
-                ></path>
-                <path
-                  fill="#ea4335"
-                  d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55"
-                ></path>
-              </g>
-            </svg>
-            Login with Google
-          </button>
-        </div>
-
-        <p>
-          Create A New Account.
-          <Link to="/register" className="link link-primary">
-            Register
-          </Link>
-        </p>
       </div>
+
+      {state.loading && <p>Loading...</p>}
+      {state.error && <p>{state.error}</p>}
+      {state.loggedIn && <p>Login success</p>}
     </>
   );
 }
