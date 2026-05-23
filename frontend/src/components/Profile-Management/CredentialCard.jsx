@@ -1,3 +1,8 @@
+const agent = {
+  renNumber: 123456,
+  agency: "AIA",
+};
+
 function CredentialCard() {
   return (
     <div>
@@ -5,10 +10,20 @@ function CredentialCard() {
         <legend className="fieldset-legend">Professional Details</legend>
 
         <label className="label">License Number</label>
-        <input type="text" className="input" placeholder="My awesome page" />
+        <input
+          type="text"
+          className="input"
+          placeholder="My awesome page"
+          value={agent.renNumber}
+        />
 
         <label className="label">Agency Branch</label>
-        <input type="text" className="input" placeholder="my-awesome-page" />
+        <input
+          type="text"
+          className="input"
+          placeholder="my-awesome-page"
+          value={agent.agency}
+        />
       </fieldset>
     </div>
   );
