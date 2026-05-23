@@ -1,11 +1,15 @@
 function CredentialCard() {
   return (
     <div>
-      <div className="avatar">
-        <div className="w-24 rounded-xl">
-          <img src="" />
-        </div>
-      </div>
+      <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+        <legend className="fieldset-legend">Professional Details</legend>
+
+        <label className="label">License Number</label>
+        <input type="text" className="input" placeholder="My awesome page" />
+
+        <label className="label">Agency Branch</label>
+        <input type="text" className="input" placeholder="my-awesome-page" />
+      </fieldset>
     </div>
   );
 }
