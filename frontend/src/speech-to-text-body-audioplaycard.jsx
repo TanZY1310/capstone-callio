@@ -11,12 +11,12 @@ function AudioPlaybackCard() {
           <div className="w-full h-[6px] rounded-full bg-[#E0E3E5] opacity-100 overflow-hidden"></div>
           <div className="flex flex-row justify-between items-start w-full h-fit p-0 bg-transparent">
             <div className="flex flex-col justify-start items-start w-fit h-full gap-0 p-0 bg-transparent">
-              <span class="font-mono font-medium text-[12px] leading-[16px] tracking-normal text-left text-[#45464D] w-fit h-fit">
+              <span className="font-mono font-medium text-[12px] leading-[16px] tracking-normal text-left text-[#45464D] w-fit h-fit">
                 {/*  current time */}12:00
               </span>
             </div>
             <div className="flex flex-col justify-start items-start w-fit h-full gap-0 p-0 bg-transparent">
-              <span class="font-mono font-medium text-[12px] leading-[16px] tracking-normal text-left text-[#45464D] w-fit h-fit">
+              <span className="font-mono font-medium text-[12px] leading-[16px] tracking-normal text-left text-[#45464D] w-fit h-fit">
                 {/*  current time */}24:00
               </span>
             </div>
