@@ -5,13 +5,12 @@ function SheetsCard() {
         <legend className="$$fieldset-legend">Google Sheets API</legend>
 
         <label className="$$label">API Key</label>
-        <input type="text" class="$$input" placeholder="My awesome page" />
+        <input type="text" class="$$input" placeholder="API Key" />
 
         <label className="$$label">Spreadsheet ID</label>
-        <input type="text" class="$$input" placeholder="my-awesome-page" />
+        <input type="text" class="$$input" placeholder="Spreadsheet ID" />
 
-        <label className="$$label">Author</label>
-        <input type="text" class="$$input" placeholder="Name" />
+        <button className="btn btn-neutral">🤝Sync Now</button>
       </fieldset>
     </div>
   );
