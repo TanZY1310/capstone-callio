@@ -1,35 +1,39 @@
 // import { useState } from "react";
 import "./App.css";
-import CredentialCard from "./components/Profile-Management/CredentialCard";
-// import Sidebar from "./components/Layout/Sidebar";
-// import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Sidebar from "./components/Layout/Sidebar";
+import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 
 // //Components
-// import Register from "./components/Authentication/Register";
-// import Login from "./components/Authentication/Login";
-import ProfileCard from "./components/Profile-Management/ProfileCard";
-import SheetsCard from "./components/Profile-Management/SheetsCard";
-import SocialCard from "./components/Profile-Management/SocialCard";
+import Register from "./components/Authentication/RegisterForm";
+import Login from "./components/Authentication/LoginForm";
+import ProtectedRoute from "./components/Authentication/ProtectedRoute";
 
 function App() {
+  const [user, setUser] = useState(null);
+  const isAuthenticated = false;
   return (
-    <div>
-      {/* <BrowserRouter>     
-      <nav>
-        <Link to="/register">Register</Link> | {" "}
-        <Link to="/login">Login</Link> | {" "}
-      </nav>
-
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
-      </BrowserRouter> */}
-      <ProfileCard />
-      <CredentialCard />
-      <SheetsCard />
-      <SocialCard />
-    </div>
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/login"
+            element={<Login onLogin={(username) => setUser(username)} />}
+          />
+          <Route
+            path="/"
+            element={
+              user ? <Sidebar user={user} /> : <Navigate to="/login" replace />
+            }
+          />
+          {/* <Route path="/" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Sidebar />
+            </ProtectedRoute>
+          } /> */}
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 
