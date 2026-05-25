@@ -1,8 +1,8 @@
-import AIResponseReview from "./components/AIResponseReview.jsx";
-import ContactInfo from "./components/ContactInfo.jsx";
-import ConvoHistory from "./components/ConvoHistory.jsx";
-import LeadHeader from "./components/LeadHeader.jsx";
-import SyncStatus from "./components/SyncStatus.jsx";
+import AIResponseReview from "./components/LeadWhatsapp/AIResponseReview.jsx";
+import ContactInfo from "./components/LeadWhatsapp/ContactInfo.jsx";
+import ConvoHistory from "./components/LeadWhatsapp/ConvoHistory.jsx";
+import LeadHeader from "./components/LeadWhatsapp/LeadHeader.jsx";
+import SyncStatus from "./components/LeadWhatsapp/SyncStatus.jsx";
 import { useState, useEffect } from "react";
 import users from "./data/dummyData.js"
 
