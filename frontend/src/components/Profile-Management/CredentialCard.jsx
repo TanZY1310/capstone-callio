@@ -6,25 +6,15 @@ function CredentialCard() {
 
   return (
     <div>
-      <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-        <legend className="fieldset-legend">Professional Details</legend>
-
+      <div className="card bg-base-300 border-base-300 rounded-box w-xs border p-4">
+        <h2 className="card-title text-black">Professional Details</h2>
+        <br />
         <label className="label">License Number</label>
-        <input
-          type="text"
-          className="input"
-          placeholder="My awesome page"
-          value={agent.renNumber}
-        />
+        <p className="text-sm text-left">123456</p>
 
         <label className="label">Agency Branch</label>
-        <input
-          type="text"
-          className="input"
-          placeholder="my-awesome-page"
-          value={agent.agency}
-        />
-      </fieldset>
+        <p className="text-sm text-left">AIA</p>
+      </div>
     </div>
   );
 }
