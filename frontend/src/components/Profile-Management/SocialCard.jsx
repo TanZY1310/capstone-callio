@@ -1,15 +1,21 @@
 function SocialCard() {
   return (
     <div>
-      <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-        <legend className="fieldset-legend">WhatsApp Business API</legend>
-
-        <label className="label">Account ID</label>
+      <div className="card bg-red-200 border-base-300 rounded-box w-xs border p-4">
+        <div>
+          <legend className="card-title text-black">
+            WhatsApp Business API📞
+          </legend>
+        </div>
+        <br />
+        <label className="label text-black font-bold text-sm">Account ID</label>
         <input type="text" className="input" placeholder="Enter Business ID" />
 
-        <label className="label">Message Template</label>
+        <label className="label text-black font-bold text-sm">
+          Message Template
+        </label>
         <input type="text" className="input" placeholder="" />
-
+        <br />
         <button
           className="btn"
           onClick={() => document.getElementById("link-account").showModal()}
@@ -28,7 +34,7 @@ function SocialCard() {
             </div>
           </div>
         </dialog>
-      </fieldset>
+      </div>
     </div>
   );
 }
