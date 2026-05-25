@@ -4,7 +4,7 @@ import ConvoHistory from "./components/LeadWhatsapp/ConvoHistory.jsx";
 import LeadHeader from "./components/LeadWhatsapp/LeadHeader.jsx";
 import SyncStatus from "./components/LeadWhatsapp/SyncStatus.jsx";
 import { useState, useEffect } from "react";
-import users from "./data/dummyData.js"
+import users from "./data/dummyData.js";
 
 function LeadDetail() {
   const [showUser, setShowUser] = useState({
@@ -39,11 +39,19 @@ function LeadDetail() {
 
   return (
     <>
-      <LeadHeader user={showUser}/>
-      <ContactInfo user={showUser}/>
-      <SyncStatus />
-      <ConvoHistory />
-      <AIResponseReview />
+      <div className="bg-[#45464D] h-screen">
+        <LeadHeader user={showUser} />
+        <div className="flex flex-row">
+          <div className="basis-1/3">
+            <ContactInfo user={showUser} />
+            <SyncStatus />
+          </div>
+          <div className="basis-2/3">
+            <ConvoHistory />
+            <AIResponseReview />
+          </div>
+        </div>
+      </div>
     </>
   );
 }

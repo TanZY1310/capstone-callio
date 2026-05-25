@@ -9,9 +9,9 @@ function LeadHeader({user}) {
   }
   return (
     <>
-      <div className="flex justify-between items-center pl-18 pt-6 pb-6">
+      <div className="flex justify-between items-center pl-18 pt-6 pb-6 bg-[#FFFFFF]">
         <div className="flex justify-start">
-          <h2>Lead Pipeline - {user.name}</h2>
+          <h2 style={{color:'#000000'}}>Lead Pipeline - {user.name}</h2>
         </div>
 
         <div className="flex justify-end">
