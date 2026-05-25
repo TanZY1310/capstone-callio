@@ -2,7 +2,7 @@ import { useState, useEffect, useReducer } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { KeyRound, Mail } from "lucide-react";
-import sampleUserList from "./SampleUserList";
+import sampleUserList from "../../data/SampleUserList";
 
 const initialState = {
   email: "",
@@ -11,21 +11,29 @@ const initialState = {
   loggedIn: false,
 };
 
+const ACTIONS = {
+  SET_EMAIL: "SET_EMAIL",
+  SET_PASSWORD: "SET_PASSWORD",
+  LOGIN_START: "LOGIN_START",
+  LOGIN_SUCCESS: "LOGIN_SUCCESS",
+  LOGIN_ERROR: "LOGIN_ERROR",
+};
+
 function loginReducer(state, action) {
   switch (action.type) {
-    case "SET_EMAIL":
+    case ACTIONS.SET_EMAIL:
       return {
         ...state,
         email: action.payload,
       };
 
-    case "SET_PASSWORD":
+    case ACTIONS.SET_PASSWORD:
       return {
         ...state,
         password: action.payload,
       };
 
-    case "LOGIN_START":
+    case ACTIONS.LOGIN_START:
       return {
         ...state,
         loading: true,
@@ -33,14 +41,14 @@ function loginReducer(state, action) {
         error: "",
       };
 
-    case "LOGIN_SUCCESS":
+    case ACTIONS.LOGIN_SUCCESS:
       return {
         ...state,
         loading: false,
         loggedIn: true,
       };
 
-    case "LOGIN_ERROR":
+    case ACTIONS.LOGIN_ERROR:
       return {
         ...state,
         loading: false,
