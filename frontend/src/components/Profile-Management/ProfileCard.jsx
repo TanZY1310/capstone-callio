@@ -25,7 +25,7 @@ function ProfileCard() {
         <label className="fieldset-legend">Email Address</label>
         <input
           type="text"
-          className="$$input"
+          className="input"
           placeholder="My awesome page"
           value={user.email}
         />
@@ -33,7 +33,7 @@ function ProfileCard() {
         <label className="fieldset-legend">Phone Number</label>
         <input
           type="text"
-          className="$$input"
+          className="input"
           placeholder="My awesome page"
           value={user.Number}
         />
