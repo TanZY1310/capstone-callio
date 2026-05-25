@@ -53,11 +53,12 @@ function loginReducer(state, action) {
   }
 }
 
-function LoginForm() {
+function LoginForm({ onLogin }) {
   const [state, dispatch] = useReducer(loginReducer, initialState);
+  const navigate = useNavigate();
 
   async function sampleLoginAPI(email, password) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     console.log(email);
     console.log(password);
     console.log(sampleUserList);
@@ -84,6 +85,8 @@ function LoginForm() {
       const data = await sampleLoginAPI(state.email, state.password);
       console.log("Token: ", data.token);
       dispatch({ type: "LOGIN_SUCCESS" });
+      onLogin(state.email);
+      navigate("/");
     } catch (err) {
       dispatch({ type: "LOGIN_ERROR", payload: "Invalid email or password" });
       console.log("Login failed");
@@ -172,15 +175,38 @@ function LoginForm() {
                       </Link>
                     </p>
                   </div>
-                  <button className="btn btn-neutral mt-4" type="submit">
-                    Login
-                  </button>
+                    {state.loading ? (
+                      <button
+                        className="btn btn-neutral mt-4 loading loading-spinner loading-xl bg-white opacity-0.6"
+                        type="disabled"
+                      >
+                        Loading...
+                      </button>
+                    ) : (
+                      <button className="btn btn-neutral mt-4" type="submit">
+                        Login
+                      </button>
+                    )}
                 </fieldset>
               </form>
             </div>
           </div>
         </div>
       </div>
+
+      {state.loading && (
+        <div className="loading loading-spinner loading-xl bg-white opacity-0.6">
+          Loading...
+        </div>
+      )}
+
+      {state.loggedIn && (
+        <div className="toast">
+          <div className="alert alert-info">
+            <span>Login </span>
+          </div>
+        </div>
+      )}
 
       {state.loading && <p>Loading...</p>}
       {state.error && <p>{state.error}</p>}
