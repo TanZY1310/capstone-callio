@@ -1,9 +1,9 @@
 function ProfileCard() {
   return (
     <div>
-      <div class="w-[928px] rounded-xl border border-[#E2E8F0] bg-white/70 p-6 shadow-sm backdrop-blur-md flex items-center justify-between gap-8">
+      <div class="w-232 rounded-xl border border-[#E2E8F0] bg-white/70 p-6 shadow-sm backdrop-blur-md flex items-center justify-between gap-8">
         <div class="flex items-center gap-6">
-          <div class="relative h-20 w-20 flex-shrink-0">
+          <div class="relative h-20 w-20 shrink-0">
             <img
               src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=256&h=256"
               alt="Ahmad Iskandar"
