@@ -1,9 +1,9 @@
-const agent = {
-  renNumber: 123456,
-  agency: "AIA",
-};
-
 function CredentialCard() {
+  const agent = {
+    renNumber: 123456,
+    agency: "AIA",
+  };
+
   return (
     <div>
       <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">

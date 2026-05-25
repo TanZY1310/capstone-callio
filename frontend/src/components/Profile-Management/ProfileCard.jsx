@@ -1,11 +1,10 @@
-const user = {
-  fullName: "izzat",
-  email: "izzat@123",
-  Number: 123456,
-  bio: "",
-};
-
 function ProfileCard() {
+  const user = {
+    fullName: "izzat",
+    email: "izzat@123",
+    Number: 123456,
+    bio: "",
+  };
   return (
     <div>
       <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
@@ -18,7 +17,7 @@ function ProfileCard() {
         <label className="fieldset-legend">Full Name</label>
         <input
           type="text"
-          className="$$input"
+          className="input"
           placeholder="My awesome page"
           value={user.fullName}
         />
