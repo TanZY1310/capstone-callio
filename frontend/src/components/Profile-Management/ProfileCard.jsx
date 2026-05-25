@@ -66,7 +66,7 @@ function ProfileCard() {
           </div>
         </div>
 
-        <div class="flex items-center gap-4 rounded-xl border border-slate-200/60 bg-slate-50/40 p-3 pr-4">
+        {/* <div class="flex items-center gap-4 rounded-xl border border-slate-200/60 bg-slate-50/40 p-3 pr-4">
           <div class="text-right">
             <p class="text-3xs font-semibold uppercase tracking-wider text-slate-400">
               AI Sync Status
@@ -76,7 +76,7 @@ function ProfileCard() {
           <div class="relative flex h-10 w-10 items-center justify-center rounded-lg border-2 border-[#005BB3] bg-white shadow-inner">
             <div class="h-6 w-6 rounded-md bg-[#005BB3]/10"></div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
