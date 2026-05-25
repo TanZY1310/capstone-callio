@@ -9,7 +9,7 @@ import {
   Navigate,
 } from "react-router-dom";
 
-// //Components
+// Include page or component imports here
 import Register from "./components/Authentication/RegisterForm";
 import Login from "./components/Authentication/LoginForm";
 import ProtectedRoute from "./components/Authentication/ProtectedRoute";
@@ -38,7 +38,7 @@ function App() {
             element={isAuthenticated ? <Navigate to="/" replace /> : <Login setUser={setUser} />}
           />
           <Route
-            path="/"
+            path="/*"
             element={
               <ProtectedRoute
                 isAuthenticated={isAuthenticated}
@@ -46,8 +46,13 @@ function App() {
               >
                 <Sidebar setUser={setUser} />
               </ProtectedRoute>
-            }
-          />
+            }>
+              {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
+              {/* <Route index element={<CustomerListings />} />
+              <Route path="speech" element={<SpeechAnalysis />} />
+              <Route path="whatsapp" element={<WhatsApp />} />
+              <Route path="metrics" element={<Metrics />} /> */}
+            </Route>
         </Routes>
       </Router>
     </>
