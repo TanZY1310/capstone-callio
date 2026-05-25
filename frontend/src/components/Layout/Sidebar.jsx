@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import {
   Phone,
@@ -11,27 +11,28 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
-function Sidebar() {
-  const Nav_Items = [
-    { id: 1, label: "Customer Listings", icon: <LayoutDashboard />, path: "" },
-    { id: 2, label: "Speech Analysis", icon: <Mic />, path: "" },
-    {
-      id: 3,
-      label: "WhatsApp Conversation",
-      icon: <Phone />,
-      path: "",
-    },
-    { id: 4, label: "Metrics", icon: <ChartArea />, path: "" },
-  ];
+const Nav_Items = [
+  { id: 1, label: "Customer Listings", icon: <LayoutDashboard />, path: "" },
+  { id: 2, label: "Speech Analysis", icon: <Mic />, path: "/speech" },
+  {
+    id: 3,
+    label: "WhatsApp Conversation",
+    icon: <Phone />,
+    path: "/whatsapp",
+  },
+  { id: 4, label: "Metrics", icon: <ChartArea />, path: "/metrics" },
+];
 
+function Sidebar({ setUser }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("currentUser");
-    navigate('/login')
-  }
+    setUser(null);
+    navigate("/login");
+  };
 
   return (
     <>
@@ -59,8 +60,11 @@ function Sidebar() {
               <div className="px-4">CALLIO</div>
             </div>
             <div className="navbar-end">
-              <button className="btn btn-ghost btn-circle" onClick={handleLogout}>
+              <button className="btn btn-ghost btn-circle">
                 <Settings />
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
+                Logout
               </button>
               <div className="avatar">
                 <div className="w-7 rounded-full">
@@ -86,6 +90,7 @@ function Sidebar() {
                 <li key={item.id}>
                   <NavLink
                     to={item.path}
+                    end={item.path === "/"}
                     className={({ isActive }) =>
                       `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? "active" : ""}`
                     }

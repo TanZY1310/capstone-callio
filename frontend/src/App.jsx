@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import Sidebar from "./components/Layout/Sidebar";
-import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  Navigate,
+} from "react-router-dom";
 
 // //Components
 import Register from "./components/Authentication/RegisterForm";
@@ -14,36 +20,36 @@ function App() {
     return stored ? JSON.parse(stored) : null;
   });
 
-  const currentUser = localStorage.getItem("currentUser");
-  console.log("Current User: ", currentUser);
   console.log("User: ", user);
-
-  let isAuthenticated = false;
-  if (localStorage.getItem('currentUser') != null) {
-    isAuthenticated = true;
-  }
-
-  const handleLogin = (userData) => setUser(userData);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("currentUser");
-    setUser(null);
-  }
+  const isAuthenticated = user !== null;
 
   return (
     <>
-      <BrowserRouter>
+      <Router>
         <Routes>
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Sidebar user={user} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/register"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <Register />
+            }
+          />
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to="/" replace /> : <Login setUser={setUser} />}
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                redirectTo="/login"
+              >
+                <Sidebar setUser={setUser} />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-      </BrowserRouter>
+      </Router>
     </>
   );
 }
