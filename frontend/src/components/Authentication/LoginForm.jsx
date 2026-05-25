@@ -63,14 +63,11 @@ function LoginForm({ onLogin }) {
     console.log(password);
     console.log(sampleUserList);
 
-    for (let i = 0; i < sampleUserList.length; i++) {
-      //If email found in list, match password, else email invalid
-      if (email === sampleUserList[i].email) {
-        if (password === sampleUserList[i].password) {
-          return { token: "sample-token" };
-        }
-      }
-    }
+    const user = sampleUserList.find(u => u.email === email && u.password === password);
+    if (!user) throw new Error("Invalid email or password");
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
+    return { token: "sample-token", user };
 
     throw new Error("Invalid email or password");
   }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
 
 import {
   Phone,
@@ -25,6 +25,13 @@ function Sidebar() {
   ];
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    navigate('/login')
+  }
 
   return (
     <>
@@ -52,7 +59,7 @@ function Sidebar() {
               <div className="px-4">CALLIO</div>
             </div>
             <div className="navbar-end">
-              <button className="btn btn-ghost btn-circle">
+              <button className="btn btn-ghost btn-circle" onClick={handleLogout}>
                 <Settings />
               </button>
               <div className="avatar">
