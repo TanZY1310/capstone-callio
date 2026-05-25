@@ -10,8 +10,7 @@ function SocialCard() {
         <label className="$$label">SpreadSheet ID</label>
         <input type="text" className="$$input" placeholder="my-awesome-page" />
 
-        <label className="$$label">Author</label>
-        <input type="text" className="$$input" placeholder="Name" />
+        <button className="btn btn-neutral">🤝Sync Now</button>
       </fieldset>
     </div>
   );
