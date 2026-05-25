@@ -8,12 +8,10 @@ function SocialCard() {
           </legend>
         </div>
         <br />
-        <label className="label text-black font-bold text-sm">Account ID</label>
+        <label className="label text-sm">Account ID</label>
         <input type="text" className="input" placeholder="Enter Business ID" />
 
-        <label className="label text-black font-bold text-sm">
-          Message Template
-        </label>
+        <label className="label text-sm">Message Template</label>
         <input type="text" className="input" placeholder="" />
         <br />
         <button
