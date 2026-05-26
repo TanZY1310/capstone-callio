@@ -1,10 +1,10 @@
-import AIResponseReview from "./components/LeadWhatsapp/AIResponseReview.jsx";
-import ContactInfo from "./components/LeadWhatsapp/ContactInfo.jsx";
-import ConvoHistory from "./components/LeadWhatsapp/ConvoHistory.jsx";
-import LeadHeader from "./components/LeadWhatsapp/LeadHeader.jsx";
-import SyncStatus from "./components/LeadWhatsapp/SyncStatus.jsx";
+import AIResponseReview from "../components/LeadWhatsapp/AIResponseReview.jsx";
+import ContactInfo from "../components/LeadWhatsapp/ContactInfo.jsx";
+import ConvoHistory from "../components/LeadWhatsapp/ConvoHistory.jsx";
+import LeadHeader from "../components/LeadWhatsapp/LeadHeader.jsx";
+import SyncStatus from "../components/LeadWhatsapp/SyncStatus.jsx";
 import { useState, useEffect } from "react";
-import users from "./data/dummyData.js";
+import users from "../data/dummyData.js";
 
 function LeadDetail() {
   const [showUser, setShowUser] = useState({
