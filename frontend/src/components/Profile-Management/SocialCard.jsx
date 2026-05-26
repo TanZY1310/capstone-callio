@@ -75,7 +75,7 @@ function SocialCard() {
         hover:bg-[#00c864] py-3 text-sm font-medium text-white transition-colors shadow-sm"
           onClick={() => document.getElementById("ws-acc").showModal()}
         >
-          <span class="material-symbols-outlined">change_circle</span>
+          @<span class="material-symbols-outlined">change_circle</span>
           Link Account
         </button>
       </div>
