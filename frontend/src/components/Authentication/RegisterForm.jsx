@@ -2,7 +2,7 @@ import { useState, useEffect, useReducer, isValidElement } from "react";
 import { Link } from "react-router-dom";
 
 import { KeyRound, Mail, ALargeSmall, UserKey } from "lucide-react";
-import sampleUserList from "./SampleUserList";
+import sampleUserList from "../../data/SampleUserList";
 
 const initialState = {
   username: "",
@@ -111,11 +111,9 @@ function RegisterForm() {
     try {
       if (!validateForm()) return;
       dispatch({ type: ACTIONS.SUBMIT, value: true });
-      // const data = await sampleLoginAPI(state.email, state.password);
-      // console.log("Token: ", data.token);
       await sampleRegisterAPI(state);
     } catch (err) {
-      // dispatch({ type: })
+      dispatch({ type: ACTIONS.SET_ERROR, field: "email", msg: "Invalid email",})
     } finally {
     }
   };
