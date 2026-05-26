@@ -18,10 +18,6 @@ import SocialCard from "./components/Profile-Management/SocialCard";
 import SheetsCard from "./components/Profile-Management/SheetsCard";
 import CredentialCard from "./components/Profile-Management/CredentialCard";
 
-const Register = lazy(() => import('./components/Authentication/RegisterForm'));
-const Login = lazy(() => import('./components/Authentication/LoginForm'));
-const ProtectedRoute = lazy(() => import('./components/Authentication/ProtectedRoute'));
-
 function App() {
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("currentUser");
