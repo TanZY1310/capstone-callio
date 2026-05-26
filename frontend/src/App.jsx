@@ -11,22 +11,7 @@ import ProtectedRoute from "./components/Authentication/ProtectedRoute";
 function App() {
   const [user, setUser] = useState(null);
   const isAuthenticated = false;
-  return (
-    <>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login onLogin={ (username ) => setUser(username)} />} />
-          <Route path="/" element={ user ? (<Sidebar user={user} />) : (<Navigate to="/login" replace />) } />
-          {/* <Route path="/" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Sidebar />
-            </ProtectedRoute>
-          } /> */}
-        </Routes>
-      </BrowserRouter>
-    </>
-  );
+  return <></>;
 }
 
 export default App;
