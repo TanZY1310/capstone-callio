@@ -19,8 +19,6 @@ import SheetsCard from "./components/Profile-Management/SheetsCard";
 import CredentialCard from "./components/Profile-Management/CredentialCard";
 
 function App() {
-  const [user, setUser] = useState(null);
-  const isAuthenticated = false;
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("currentUser");
     return stored ? JSON.parse(stored) : null;
@@ -61,10 +59,6 @@ function App() {
             </Route>
         </Routes>
       </Router>
-      <ProfileCard />
-      <SocialCard />
-      <SheetsCard />
-      <CredentialCard />
     </>
   );
 }
