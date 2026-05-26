@@ -5,8 +5,8 @@ function ProfileCard() {
         <div class="flex items-center gap-6">
           <div class="relative h-20 w-20 shrink-0">
             <img
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=256&h=256"
-              alt="Ahmad Iskandar"
+              src=""
+              alt=""
               class="h-full w-full rounded-xl object-cover border border-slate-200"
             />
             <button class="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#005BB3] text-white shadow-sm hover:bg-[#004b94] transition-colors">
