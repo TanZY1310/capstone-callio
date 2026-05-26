@@ -2,7 +2,7 @@ import { useState, useEffect, useReducer } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { KeyRound, Mail } from "lucide-react";
-import sampleUserList from "./SampleUserList";
+import sampleUserList from "../../data/SampleUserList";
 
 const initialState = {
   email: "",
@@ -11,21 +11,29 @@ const initialState = {
   loggedIn: false,
 };
 
+const ACTIONS = {
+  SET_EMAIL: "SET_EMAIL",
+  SET_PASSWORD: "SET_PASSWORD",
+  LOGIN_START: "LOGIN_START",
+  LOGIN_SUCCESS: "LOGIN_SUCCESS",
+  LOGIN_ERROR: "LOGIN_ERROR",
+};
+
 function loginReducer(state, action) {
   switch (action.type) {
-    case "SET_EMAIL":
+    case ACTIONS.SET_EMAIL:
       return {
         ...state,
         email: action.payload,
       };
 
-    case "SET_PASSWORD":
+    case ACTIONS.SET_PASSWORD:
       return {
         ...state,
         password: action.payload,
       };
 
-    case "LOGIN_START":
+    case ACTIONS.LOGIN_START:
       return {
         ...state,
         loading: true,
@@ -33,14 +41,14 @@ function loginReducer(state, action) {
         error: "",
       };
 
-    case "LOGIN_SUCCESS":
+    case ACTIONS.LOGIN_SUCCESS:
       return {
         ...state,
         loading: false,
         loggedIn: true,
       };
 
-    case "LOGIN_ERROR":
+    case ACTIONS.LOGIN_ERROR:
       return {
         ...state,
         loading: false,
@@ -53,7 +61,7 @@ function loginReducer(state, action) {
   }
 }
 
-function LoginForm({ onLogin }) {
+function LoginForm({ setUser }) {
   const [state, dispatch] = useReducer(loginReducer, initialState);
   const navigate = useNavigate();
 
@@ -63,16 +71,13 @@ function LoginForm({ onLogin }) {
     console.log(password);
     console.log(sampleUserList);
 
-    for (let i = 0; i < sampleUserList.length; i++) {
-      //If email found in list, match password, else email invalid
-      if (email === sampleUserList[i].email) {
-        if (password === sampleUserList[i].password) {
-          return { token: "sample-token" };
-        }
-      }
-    }
+    const user = sampleUserList.find(
+      (u) => u.email === email && u.password === password,
+    );
+    if (!user) throw new Error("Invalid email or password");
+    localStorage.setItem("currentUser", JSON.stringify(user));
 
-    throw new Error("Invalid email or password");
+    return { token: "sample-token", user };
   }
 
   const handleSubmit = async (e) => {
@@ -83,9 +88,9 @@ function LoginForm({ onLogin }) {
       //Handle authentication via backend API, Simulate API for now
       //UserList.js will simulate users from db
       const data = await sampleLoginAPI(state.email, state.password);
+      setUser(data.user);
       console.log("Token: ", data.token);
       dispatch({ type: "LOGIN_SUCCESS" });
-      onLogin(state.email);
       navigate("/");
     } catch (err) {
       dispatch({ type: "LOGIN_ERROR", payload: "Invalid email or password" });
@@ -174,43 +179,27 @@ function LoginForm({ onLogin }) {
                         Register
                       </Link>
                     </p>
-                  </div>
-                    {state.loading ? (
-                      <button
-                        className="btn btn-neutral mt-4 loading loading-spinner loading-xl bg-white opacity-0.6"
-                        type="disabled"
-                      >
-                        Loading...
-                      </button>
-                    ) : (
-                      <button className="btn btn-neutral mt-4" type="submit">
-                        Login
-                      </button>
+                    {state.error && (
+                      <div className="alert alert-error text-sm py-2">
+                        {state.error}
+                      </div>
                     )}
+                  </div>
+                  {state.loading ? (
+                    <button className="btn btn-neutral mt-4" disabled>
+                      <span className="loading loading-spinner loading-sm"></span>
+                    </button>
+                  ) : (
+                    <button className="btn btn-neutral mt-4" type="submit">
+                      Login
+                    </button>
+                  )}
                 </fieldset>
               </form>
             </div>
           </div>
         </div>
       </div>
-
-      {state.loading && (
-        <div className="loading loading-spinner loading-xl bg-white opacity-0.6">
-          Loading...
-        </div>
-      )}
-
-      {state.loggedIn && (
-        <div className="toast">
-          <div className="alert alert-info">
-            <span>Login </span>
-          </div>
-        </div>
-      )}
-
-      {state.loading && <p>Loading...</p>}
-      {state.error && <p>{state.error}</p>}
-      {state.loggedIn && <p>Login success</p>}
     </>
   );
 }

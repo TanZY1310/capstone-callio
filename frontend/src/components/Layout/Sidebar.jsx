@@ -1,30 +1,24 @@
 import { useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 
 import {
-  Phone,
   PanelLeftOpen,
   PanelLeftClose,
   Settings,
-  Mic,
-  ChartArea,
-  LayoutDashboard,
 } from "lucide-react";
 
-function Sidebar() {
-  const Nav_Items = [
-    { id: 1, label: "Customer Listings", icon: <LayoutDashboard />, path: "" },
-    { id: 2, label: "Speech Analysis", icon: <Mic />, path: "" },
-    {
-      id: 3,
-      label: "WhatsApp Conversation",
-      icon: <Phone />,
-      path: "",
-    },
-    { id: 4, label: "Metrics", icon: <ChartArea />, path: "" },
-  ];
+import Navigation from "./Navigation";
 
+function Sidebar({ setUser }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    setUser(null);
+    navigate("/login");
+  };
 
   return (
     <>
@@ -55,6 +49,9 @@ function Sidebar() {
               <button className="btn btn-ghost btn-circle">
                 <Settings />
               </button>
+              <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
+                Logout
+              </button>
               <div className="avatar">
                 <div className="w-7 rounded-full">
                   <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" />
@@ -62,8 +59,8 @@ function Sidebar() {
               </div>
             </div>
           </div>
-          {/* Page content here */}
-          <div className="p-4">Page Content</div>
+          {/* Child route / component */}
+          <Outlet />
         </div>
 
         <div className="drawer-side is-drawer-close:overflow-visible">
@@ -73,23 +70,7 @@ function Sidebar() {
             className="drawer-overlay"
           ></label>
           <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-64">
-            {/* Sidebar content here */}
-            <ul className="menu w-full grow">
-              {Nav_Items.map((item) => (
-                <li key={item.id}>
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive }) =>
-                      `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? "active" : ""}`
-                    }
-                    data-tip={item.label}
-                  >
-                    {item.icon}
-                    <span className="is-drawer-close:hidden">{item.label}</span>
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+            <Navigation />
           </div>
         </div>
       </div>
