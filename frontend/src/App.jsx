@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy } from "react";
 import "./App.css";
 import Sidebar from "./components/Layout/Sidebar";
 import {
@@ -10,9 +10,13 @@ import {
 } from "react-router-dom";
 
 // Include page or component imports here
-import Register from "./components/Authentication/RegisterForm";
-import Login from "./components/Authentication/LoginForm";
-import ProtectedRoute from "./components/Authentication/ProtectedRoute";
+// import Register from "./components/Authentication/RegisterForm";
+// import Login from "./components/Authentication/LoginForm";
+// import ProtectedRoute from "./components/Authentication/ProtectedRoute";
+
+const Register = lazy(() => import('./components/Authentication/RegisterForm'));
+const Login = lazy(() => import('./components/Authentication/LoginForm'));
+const ProtectedRoute = lazy(() => import('./components/Authentication/ProtectedRoute'));
 
 function App() {
   const [user, setUser] = useState(() => {
