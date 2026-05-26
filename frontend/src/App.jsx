@@ -17,6 +17,7 @@ import ProfileCard from "./components/Profile-Management/ProfileCard";
 import SocialCard from "./components/Profile-Management/SocialCard";
 import SheetsCard from "./components/Profile-Management/SheetsCard";
 import CredentialCard from "./components/Profile-Management/CredentialCard";
+import HomePage from "./pages/HomePage";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -52,8 +53,8 @@ function App() {
               </ProtectedRoute>
             }>
               {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
-              {/* <Route index element={<CustomerListings />} />
-              <Route path="speech" element={<SpeechAnalysis />} />
+              <Route index element={<HomePage />} />
+              {/* <Route path="speech" element={<SpeechAnalysis />} />
               <Route path="whatsapp" element={<WhatsApp />} />
               <Route path="metrics" element={<Metrics />} /> */}
             </Route>
