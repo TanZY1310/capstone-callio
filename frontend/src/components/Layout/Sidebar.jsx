@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 
 import {
@@ -7,7 +7,9 @@ import {
   Settings,
   LogOut,
   Bell,
-  LayoutDashboard
+  LayoutDashboard,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import Navigation from "./Navigation";
@@ -15,6 +17,18 @@ import Navigation from "./Navigation";
 function Sidebar({ setUser }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const navigate = useNavigate();
+
+  //For Theme Toggle
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light",
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -45,13 +59,21 @@ function Sidebar({ setUser }) {
                 {isDrawerOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
               </button>
             </div>
-            {/* <div className="navbar-center">
-              <div className="px-4">CALLIO</div>
-            </div> */}
             <div className="navbar-end gap-1">
+              {/* Theme toggle */}
+              <button
+                className="btn btn-ghost btn-sm btn-circle"
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+              >
+                {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+              {/* Divider */}
+              <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
               <button className="btn btn-ghost btn-sm btn-circle">
                 <Bell size={18} />
               </button>
+              {/* Divider */}
               <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
               <button className="btn btn-ghost btn-sm btn-circle">
                 <Settings size={18} />
