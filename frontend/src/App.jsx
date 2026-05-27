@@ -1,5 +1,4 @@
 import { useEffect, useState, lazy } from "react";
-import "./App.css";
 import Sidebar from "./components/Layout/Sidebar";
 import {
   BrowserRouter as Router,

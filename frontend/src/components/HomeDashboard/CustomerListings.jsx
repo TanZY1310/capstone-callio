@@ -3,9 +3,9 @@ import { Search, MessageSquare, Mic, ChevronLeft, ChevronRight } from "lucide-re
 import sampleBuyers from "../../data/SampleBuyers"
 
 const statusStyle = {
-  HOT: "text-red-600 font-semibold",
-  WARM: "text-yellow-600 font-semibold",
-  COLD: "text-blue-500 font-semibold",
+  HOT: "text-error font-semibold",
+  WARM: "text-warning font-semibold",
+  COLD: "text-info font-semibold",
 };
 
 const avatarStyle = {
@@ -30,27 +30,27 @@ export default function BuyerDirectory() {
         All Buyers
       </button>
 
-      <div className="bg-white rounded-2xl border border-gray-200">
+      <div className="bg-base-100 rounded-2xl border border-base-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <p className="font-semibold text-sm">Buyer Directory</p>
-            <p className="text-xs text-gray-400">Manage and track all your potential buyers</p>
+            <p className="text-xs text-base-content/40">Manage and track all your potential buyers</p>
           </div>
           <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
             <input
               type="text"
               placeholder="Search buyers by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl w-64 focus:outline-none focus:ring-2 focus:ring-black/10"
+              className="pl-9 pr-4 py-2 text-sm border border-base-200 rounded-xl w-64 focus:outline-none focus:ring-2 focus:ring-black/10"
             />
           </div>
         </div>
 
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-xs text-gray-400 border-b border-gray-100">
+            <tr className="text-xs text-base-content/40 border-b border-gray-100">
               {["Name", "Contact", "Budget", "Location", "Status", "Last Contact", "Actions"].map((h) => (
                 <th key={h} className="px-6 py-3 text-left font-medium">{h}</th>
               ))}
@@ -58,13 +58,13 @@ export default function BuyerDirectory() {
           </thead>
           <tbody>
             {filtered.map((buyer) => (
-              <tr key={buyer.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <tr key={buyer.id} className="border-b border-gray-50 hover:bg-base-200 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${avatarStyle[buyer.initials]}`}>
                       {buyer.initials}
                     </div>
-                    <span className="font-medium text-gray-900">{buyer.name}</span>
+                    <span className="font-medium text-base-content">{buyer.name}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-gray-500">
@@ -92,7 +92,7 @@ export default function BuyerDirectory() {
           </tbody>
         </table>
 
-        <div className="flex items-center justify-between px-6 py-3 text-xs text-gray-400">
+        <div className="flex items-center justify-between px-6 py-3 text-xs text-base-content/40">
           <span>Showing {filtered.length} of {sampleBuyers.length} active buyers</span>
           <div className="flex items-center gap-1">
             <button className="p-1 rounded hover:bg-gray-100"><ChevronLeft size={15} /></button>
