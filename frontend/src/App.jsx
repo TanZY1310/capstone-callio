@@ -10,14 +10,10 @@ import {
 } from "react-router-dom";
 
 // Include page or component imports here
-import Register from "./components/Authentication/RegisterForm";
-import Login from "./components/Authentication/LoginForm";
-import ProtectedRoute from "./components/Authentication/ProtectedRoute";
-import ProfileCard from "./components/Profile-Management/ProfileCard";
-import SocialCard from "./components/Profile-Management/SocialCard";
-import SheetsCard from "./components/Profile-Management/SheetsCard";
-import CredentialCard from "./components/Profile-Management/CredentialCard";
-import HomePage from "./pages/HomePage";
+const Register = lazy(() => import('./components/Authentication/RegisterForm'));
+const Login = lazy(() => import('./components/Authentication/LoginForm'));
+const ProtectedRoute = lazy(() => import('./components/Authentication/ProtectedRoute'));
+const HomePage = lazy(() => import('./pages/HomePage'));
 
 function App() {
   const [user, setUser] = useState(() => {
