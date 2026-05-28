@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 
 import {
   PanelLeftOpen,
   PanelLeftClose,
   Settings,
+  LogOut,
+  Bell,
+  LayoutDashboard,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import Navigation from "./Navigation";
@@ -12,6 +17,18 @@ import Navigation from "./Navigation";
 function Sidebar({ setUser }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const navigate = useNavigate();
+
+  //For Theme Toggle
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light",
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -42,19 +59,33 @@ function Sidebar({ setUser }) {
                 {isDrawerOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
               </button>
             </div>
-            <div className="navbar-center">
-              <div className="px-4">CALLIO</div>
-            </div>
-            <div className="navbar-end">
-              <button className="btn btn-ghost btn-circle">
-                <Settings />
+            <div className="navbar-end gap-1">
+              {/* Theme toggle */}
+              <button
+                className="btn btn-ghost btn-sm btn-circle"
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+              >
+                {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
               </button>
-              <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
-                Logout
+              {/* Divider */}
+              <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
+              <button className="btn btn-ghost btn-sm btn-circle">
+                <Bell size={18} />
               </button>
+              {/* Divider */}
+              <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
+              <button className="btn btn-ghost btn-sm btn-circle">
+                <Settings size={18} />
+              </button>
+              {/* Divider */}
+              <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
               <div className="avatar">
                 <div className="w-7 rounded-full">
-                  <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" />
+                  <img
+                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                    alt="User avatar"
+                  />
                 </div>
               </div>
             </div>
@@ -70,7 +101,27 @@ function Sidebar({ setUser }) {
             className="drawer-overlay"
           ></label>
           <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-64">
+            <div className="flex items-center gap-3 px-4 py-4 w-full border-b border-base-300">
+              <div className="bg-neutral text-neutral-content rounded-lg w-8 h-8 flex items-center justify-center shrink-0">
+                <LayoutDashboard size={16} />
+              </div>
+              <span className="is-drawer-close:hidden font-semibold tracking-wide text-sm">
+                CALLIO
+              </span>
+            </div>
             <Navigation />
+            <ul className="menu w-full p-3">
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+                  data-tip="Logout"
+                >
+                  <LogOut />
+                  <span className="is-drawer-close:hidden">Logout</span>
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
