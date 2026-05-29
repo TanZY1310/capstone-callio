@@ -30,7 +30,7 @@ function LeadDetail() {
   });
 
   useEffect(() => {
-    const user = users.find((u) => u.id === 5);
+    const user = users.find((u) => u.id === 1);
     if (user) {
       setShowUser(user);
     } else {
