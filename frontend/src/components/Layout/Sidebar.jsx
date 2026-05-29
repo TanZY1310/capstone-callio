@@ -20,7 +20,7 @@ function Sidebar({ setUser }) {
 
   //For Theme Toggle
   const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light",
+    () => localStorage.getItem("theme") || "corporate",
   );
 
   useEffect(() => {
@@ -28,7 +28,7 @@ function Sidebar({ setUser }) {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
+  const toggleTheme = () => setTheme((t) => (t === "corporate" ? "business" : "corporate"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -66,7 +66,7 @@ function Sidebar({ setUser }) {
                 onClick={toggleTheme}
                 aria-label="Toggle theme"
               >
-                {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+                {theme === "corporate" ? <Moon size={18} /> : <Sun size={18} />}
               </button>
               {/* Divider */}
               <div className="w-px h-5 bg-base-content opacity-15 mx-1" />

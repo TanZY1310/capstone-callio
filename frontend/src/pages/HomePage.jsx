@@ -1,7 +1,7 @@
-import BuyerDirectory from "../components/HomeDashboard/CustomerListings";
-import Dashboard from "../components/HomeDashboard/Dashboard";
-import IntegrationCards from "../components/HomeDashboard/IntegrationCards";
-import SyncCard from "../components/HomeDashboard/SyncCard";
+import BuyerDirectory from "../components/Home/CustomerListings";
+import Dashboard from "../components/Home/Dashboard";
+import IntegrationCards from "../components/Home/IntegrationCards";
+import SyncCard from "../components/Home/SyncCard";
 
 function HomePage() {
   return (
