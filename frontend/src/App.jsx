@@ -15,6 +15,7 @@ const ProtectedRoute = lazy(() => import('./components/Authentication/ProtectedR
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LeadDetail = lazy(() => import('./pages/LeadDetail'));
 const MainDashboard = lazy(() => import('./pages/MainDashboard'));
+const Speech = lazy(() => import('./pages/Speech'));
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -53,9 +54,7 @@ function App() {
               <Route index element={<HomePage />} />
               <Route path="whatsapp" element={<LeadDetail />} />
               <Route path="metrics" element={<MainDashboard />} />
-              {/* <Route path="speech" element={<SpeechAnalysis />} />
-              <Route path="whatsapp" element={<WhatsApp />} />
-              <Route path="metrics" element={<Metrics />} /> */}
+              <Route path="speech" element={<Speech />} />
             </Route>
         </Routes>
       </Router>
