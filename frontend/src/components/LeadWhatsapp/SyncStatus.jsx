@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 function SyncStatus() {
-  /*simulate API calling and handle the show connected, date, etc.*/
   const [syncStatus, setSyncStatus] = useState({
     googleSheets: { connected: false, lastSync: "" },
     whatsapp: { connected: false, lastSync: "" },
@@ -24,11 +23,8 @@ function SyncStatus() {
       case "both":
         setSyncStatus((prev) => ({
           ...prev,
-          googleSheets: {
-            connected: true,
-            lastSync: `${lastSync}`,
-            whatsapp: { connected: true, lastSync: `${lastSync}` },
-          },
+          googleSheets: { connected: true, lastSync: `${lastSync}` },
+          whatsapp: { connected: true, lastSync: `${lastSync}` },
         }));
         break;
       default:
@@ -37,34 +33,45 @@ function SyncStatus() {
     }
   };
 
-  /*I need conditional rendering to prompt connect / show when is it connnected*/
   return (
-    <>
-      <div className="flex flex-col ml-18 mt-5 w-96 bg-[#FFFFFF] shadow-sm rounded-xl overflow-hidden">
-        <div className="flex justify-between items-center pl-4 pr-4 pt-3 pb-3">
-          <h2 style={{ color: "#000000" }}>Sync Status</h2>
-          <button className="btn btn-xs text-[#57657B]">Refresh</button>
-        </div>
-        <div className="flex flex-col gap-3 p-4">
-          {syncStatus.googleSheets.connected ? (
-            <div className="bg-[#F2F4F6]">Last Sync: {Date.now()}</div>
-          ) : (
-            <div>
-              <p>Sheets Not connected</p>
-              <button className="btn btn-success" onClick = {(e) =>updateSyncStatus('google sheets', Date.now())}>Connect Google Sheets</button>
-            </div>
-          )}
-          {syncStatus.whatsapp.connected ? (
-            <div className="bg-[#F2F4F6]">Last Sync: {Date.now()}</div>
-          ) : (
-            <div>
-              <p>Whatsapp Not connected</p>
-              <button className="btn btn-success" onClick = {(e) => updateSyncStatus('whatsapp', Date.now())}>Connect Whatsapp</button>
-            </div>
-          )}
-        </div>
+    <div className="flex flex-col ml-18 mt-5 w-flex bg-base-100 shadow-sm rounded-xl overflow-hidden">
+      <div className="flex justify-between items-center px-4 py-3">
+        <h2 className="text-base-content">Sync Status</h2>
+        <button className="btn btn-xs text-base-content/50">Refresh</button>
       </div>
-    </>
+      <div className="flex flex-col gap-3 p-4">
+        {syncStatus.googleSheets.connected ? (
+          <div className="bg-base-200 rounded-lg p-3 text-base-content/70">
+            Last Sync: {syncStatus.googleSheets.lastSync}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <p className="text-base-content/70">Sheets not connected</p>
+            <button
+              className="btn btn-success btn-sm"
+              onClick={() => updateSyncStatus("google sheets", Date.now())}
+            >
+              Connect Google Sheets
+            </button>
+          </div>
+        )}
+        {syncStatus.whatsapp.connected ? (
+          <div className="bg-base-200 rounded-lg p-3 text-base-content/70">
+            Last Sync: {syncStatus.whatsapp.lastSync}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <p className="text-base-content/70">WhatsApp not connected</p>
+            <button
+              className="btn btn-success btn-sm"
+              onClick={() => updateSyncStatus("whatsapp", Date.now())}
+            >
+              Connect WhatsApp
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

@@ -5,6 +5,7 @@ import LeadHeader from "../components/LeadWhatsapp/LeadHeader.jsx";
 import SyncStatus from "../components/LeadWhatsapp/SyncStatus.jsx";
 import { useState, useEffect } from "react";
 import users from "../data/dummyData.js";
+import dummyWAHistory from "../data/dummyWAHistory.js";
 
 function LeadDetail() {
   const [showUser, setShowUser] = useState({
@@ -28,31 +29,29 @@ function LeadDetail() {
     ],
   });
 
-  const showUserInfo = (user) => {
-    setShowUser((prev) => user);
-    console.log(`User info:${user}`);
-  };
-
   useEffect(() => {
-    showUserInfo(users.find((user) => user.id === 1));
+    const user = users.find((u) => u.id === 5);
+    if (user) {
+      setShowUser(user);
+    } else {
+      setShowUser(users[0]);
+    }
   }, []);
 
   return (
-    <>
-      <div className="bg-[#45464D] h-screen">
-        <LeadHeader user={showUser} />
-        <div className="flex flex-row">
-          <div className="basis-1/3">
-            <ContactInfo user={showUser} />
-            <SyncStatus />
-          </div>
-          <div className="basis-2/3">
-            <ConvoHistory />
-            <AIResponseReview />
-          </div>
+    <div className="bg-base-200 min-h-screen">
+      <LeadHeader user={showUser} />
+      <div className="flex flex-row">
+        <div className="basis-1/3">
+          <ContactInfo user={showUser} />
+          <SyncStatus />
+        </div>
+        <div className="basis-2/3">
+          <ConvoHistory waHistory={dummyWAHistory} user={showUser} />
+          <AIResponseReview />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
