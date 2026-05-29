@@ -4,12 +4,12 @@ import AgentDashboard from "./AgentDashboard";
 import { useState, useEffect } from "react";
 
 function MainDashboard() {
-  const [user, setUser] = useState("");
+  const [role, setRole] = useState("");
 
   useEffect(() => {
-    const users = "agent";
+    const role = "agent";
 
-    setUser(users);
+    setRole(role);
   }, []);
 
   return (

@@ -33,7 +33,7 @@ function TopCard({ stats }) {
         >
           <div className="card-body">
             <h2
-              className="$$card-title"
+              className="card-title"
               style={{ color: "black", fontSize: "16px" }}
             >
               Total Leads

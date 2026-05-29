@@ -13,8 +13,6 @@ function TeamFunnelCard({ teamData }) {
 
   return (
     <div className="team-funnel">
-      <h2>Team Lead Conversion Funnel</h2>
-
       <div style={{ display: "flex", alignItems: "center", width: "1600px" }}>
         {funnelStages.map((item, index) => (
           <div

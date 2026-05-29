@@ -3,30 +3,6 @@ import { useEffect, useState } from "react";
 function PerformanceCard() {
   const [teamData, setTeamData] = useState([]);
 
-  //   const agents = [
-  //     {
-  //       name: "Sarah Paulson",
-  //       calls: 5,
-  //       leads: 100,
-  //       apps: 5,
-  //       bookings: 50,
-  //     },
-  //     {
-  //       name: "Miu Natasha",
-  //       calls: 10,
-  //       leads: 100,
-  //       apps: 10,
-  //       bookings: 50,
-  //     },
-  //     {
-  //       name: "Lena Lalina",
-  //       calls: 60,
-  //       leads: 500,
-  //       apps: 5,
-  //       bookings: 50,
-  //     },
-  //   ];
-
   useEffect(() => {
     const agents = [
       {

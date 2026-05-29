@@ -12,11 +12,9 @@ function FunnelCard({ data }) {
   const textColors = ["#1e3a8a", "#1e3a8a", "#ffffff", "#ffffff"];
 
   return (
-    <div>
+    <>
       <div className="funnel">
-        <h3>Lead Conversion Funnel</h3>
-
-        <div style={{ display: "flex", alignItems: "center", width: "1600px" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           {funnelStages.map((item, index) => (
             <div
               key={index}
@@ -55,7 +53,7 @@ function FunnelCard({ data }) {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
