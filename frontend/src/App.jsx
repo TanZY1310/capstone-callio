@@ -13,6 +13,8 @@ const Register = lazy(() => import('./components/Authentication/RegisterForm'));
 const Login = lazy(() => import('./components/Authentication/LoginForm'));
 const ProtectedRoute = lazy(() => import('./components/Authentication/ProtectedRoute'));
 const HomePage = lazy(() => import('./pages/HomePage'));
+const LeadDetail = lazy(() => import('./pages/LeadDetail'));
+const MainDashboard = lazy(() => import('./pages/MainDashboard'));
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -49,6 +51,8 @@ function App() {
             }>
               {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
               <Route index element={<HomePage />} />
+              <Route path="whatsapp" element={<LeadDetail />} />
+              <Route path="metrics" element={<MainDashboard />} />
               {/* <Route path="speech" element={<SpeechAnalysis />} />
               <Route path="whatsapp" element={<WhatsApp />} />
               <Route path="metrics" element={<Metrics />} /> */}
