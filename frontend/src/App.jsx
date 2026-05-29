@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import "./App.css";
+import { useEffect, useState, lazy } from "react";
 import Sidebar from "./components/Layout/Sidebar";
 import {
   BrowserRouter as Router,
@@ -10,13 +9,14 @@ import {
 } from "react-router-dom";
 
 // Include page or component imports here
-import Register from "./components/Authentication/RegisterForm";
-import Login from "./components/Authentication/LoginForm";
-import ProtectedRoute from "./components/Authentication/ProtectedRoute";
-import ProfileCard from "./components/Profile-Management/ProfileCard";
-import SocialCard from "./components/Profile-Management/SocialCard";
-import SheetsCard from "./components/Profile-Management/SheetsCard";
-import CredentialCard from "./components/Profile-Management/CredentialCard";
+const Register = lazy(() => import('./components/Authentication/RegisterForm'));
+const Login = lazy(() => import('./components/Authentication/LoginForm'));
+const ProtectedRoute = lazy(() => import('./components/Authentication/ProtectedRoute'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LeadDetail = lazy(() => import('./pages/LeadDetail'));
+const MainDashboard = lazy(() => import('./pages/MainDashboard'));
+const Speech = lazy(() => import('./pages/Speech'));
+
 function App() {
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("currentUser");
@@ -51,18 +51,13 @@ function App() {
               </ProtectedRoute>
             }>
               {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
-              {/* <Route index element={<CustomerListings />} />
-              <Route path="speech" element={<SpeechAnalysis />} />
-              <Route path="whatsapp" element={<WhatsApp />} />
-              <Route path="metrics" element={<Metrics />} /> */}
+              <Route index element={<HomePage />} />
+              <Route path="whatsapp" element={<LeadDetail />} />
+              <Route path="metrics" element={<MainDashboard />} />
+              <Route path="speech" element={<Speech />} />
             </Route>
         </Routes>
       </Router>
-=======
-      <ProfileCard />
-      <SocialCard />
-      <SheetsCard />
-      <CredentialCard />
     </>
   );
 }
