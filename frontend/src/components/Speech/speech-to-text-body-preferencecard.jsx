@@ -1,4 +1,4 @@
-function Preferencecard() {
+function Preferencecard({ data }) {
   return (
     <div className="grid grid-cols-2 gap-6 w-full h-auto p-0">
       {/*top left*/}
@@ -10,12 +10,12 @@ function Preferencecard() {
         </div>
         <div className="flex flex-col items-start gap-0 pt-0 pb-3 px-0 w-full h-fit">
           <span className="font-['Hanken_Grotesk'] font-bold text-[20px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            Return Budget Value
+            {data.budgetValue}
           </span>
         </div>
         <div className="flex flex-col items-start gap-0 p-0 w-full h-fit">
           <span className="font-['Hanken_Grotesk'] font-italic text-[12px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            Flexible limit mentioned
+            {data.budgetNote}
           </span>
         </div>
       </div>
@@ -28,12 +28,12 @@ function Preferencecard() {
         </div>
         <div className="flex flex-col items-start gap-0 pt-0 pb-3 px-0 w-full h-fit">
           <span className="font-['Hanken_Grotesk'] font-bold text-[20px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            Return property rooms desired
+            {data.preferences}
           </span>
         </div>
         <div className="flex flex-col items-start gap-0 p-0 w-full h-fit">
           <span className="font-['Hanken_Grotesk'] font-italic text-[12px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            Return specific Requirement
+            {data.preferenceNote}
           </span>
         </div>
       </div>
@@ -47,17 +47,17 @@ function Preferencecard() {
         <div className="flex flex-row items-center gap-2 w-full h-fit p-0">
           <div className="flex flex-col items-start gap-0 py-1 px-4 w-fit h-[26px] bg-[#D5E3FD] rounded-full">
             <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-              Return Signal 1
+              {data.signals[0]}
             </span>
           </div>
           <div className="flex flex-col items-start gap-0 py-1 px-4 w-fit h-[26px] bg-[#D5E3FD] rounded-full">
             <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-              Return Signal 2
+              {data.signals[1]}
             </span>
           </div>
           <div className="flex flex-col items-start gap-0 py-1 px-4 w-fit h-[26px] bg-[#D5E3FD] rounded-full">
             <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-              Return Signal 3
+              {data.signals[2]}
             </span>
           </div>
         </div>

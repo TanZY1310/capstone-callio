@@ -1,3 +1,4 @@
+import Body from "./speech-to-text-body";
 function Header() {
   return (
     <div className="flex items-center w-full h-[65px] px-4 bg-[#F7F9FB] border border-solid border-[#C6C6CD]">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
+import Speech from "../Speech/Speech-to-text-main";
 
 import {
   Phone,
@@ -14,7 +15,12 @@ import {
 function Sidebar() {
   const Nav_Items = [
     { id: 1, label: "Customer Listings", icon: <LayoutDashboard />, path: "" },
-    { id: 2, label: "Speech Analysis", icon: <Mic />, path: "" },
+    {
+      id: 2,
+      label: "Speech Analysis",
+      icon: <Mic />,
+      path: "/speech",
+    },
     {
       id: 3,
       label: "WhatsApp Conversation",
@@ -63,7 +69,9 @@ function Sidebar() {
             </div>
           </div>
           {/* Page content here */}
-          <div className="p-4">Page Content</div>
+          <div className="p-4">
+            <Speech />
+          </div>
         </div>
 
         <div className="drawer-side is-drawer-close:overflow-visible">

@@ -2,13 +2,15 @@ import AnalysisTab from "./speech-to-text-body-analysistab";
 import BodyHeader from "./speech-to-text-body-header";
 import Preferencecard from "./speech-to-text-body-preferencecard";
 import SpeechAnalysisCard from "./speech-to-text-body-speechanalysiscard";
+import Header from "./speech-to-text-header";
+import { preferenceData } from "./SampleData";
 
 function Body() {
   return (
-    <div className="flex flex-col w-full h-auto p-6 gap-10 items-start justify-start bg-transparent">
+    <div className="flex flex-col w-full min-h-screen p-6 gap-10 items-start bg-white">
       <BodyHeader />
-      <Preferencecard />
-      <SpeechAnalysisCard />
+      <Preferencecard data={preferenceData} />
+      <SpeechAnalysisCard data={preferenceData} />
       {/* <div className="flex flex-row items-center justify-between w-full h-auto p-0 bg-transparent">
         <div className="flex flex-col items-start justify-start w-auto h-auto p-0 gap-0 bg-transparent">
           <div className="flex flex-col items-start justify-start w-full h-auto p-0 gap-0 bg-transparent">
