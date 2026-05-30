@@ -39,16 +39,18 @@ function LeadDetail() {
   }, []);
 
   return (
-    <div className="bg-base-200 min-h-screen">
-      <LeadHeader user={showUser} />
-      <div className="flex flex-row">
-        <div className="basis-1/3">
-          <ContactInfo user={showUser} />
-          <SyncStatus />
-        </div>
-        <div className="basis-2/3">
-          <ConvoHistory waHistory={dummyWAHistory} user={showUser} />
-          <AIResponseReview />
+    <div className="flex h-screen bg-base-200">
+      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+        <LeadHeader user={showUser} />
+        <div className="flex flex-row">
+          <div className="basis-1/3">
+            <ContactInfo user={showUser} />
+            <SyncStatus />
+          </div>
+          <div className="basis-2/3">
+            <ConvoHistory waHistory={dummyWAHistory} user={showUser} />
+            <AIResponseReview />
+          </div>
         </div>
       </div>
     </div>

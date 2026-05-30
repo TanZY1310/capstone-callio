@@ -9,12 +9,13 @@ function Objections() {
   }, []);
 
   return (
-    <div>
-      <h2 style={{ padding: "10px" }}>Primary Objections</h2>
-
-      {issues.map((item) => (
-        <div className="badge badge-outline badge-error">{item}</div>
-      ))}
+    <div className="flex flex-col gap-3 w-full">
+      <h2 className="font-semibold text-base-content">Primary Objections</h2>
+      <div className="flex flex-wrap gap-2">
+        {issues.map((item, index) => (
+          <span key={index} className="badge badge-error badge-outline">{item}</span>
+        ))}
+      </div>
     </div>
   );
 }
