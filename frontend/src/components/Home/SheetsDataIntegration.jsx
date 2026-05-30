@@ -1,6 +1,16 @@
 import { RefreshCw } from "lucide-react";
+import sampleCustomers from "../../data/SampleCustomers";
 
-function SheetsDataIntegration() {
+function SheetsDataIntegration( { onButtonClick }) {
+
+  const handleClick = () => {
+    const customerData = sampleCustomers;
+    console.log("Button sync data has been clicked.")
+    console.log("Customer data from button: " + customerData);
+
+    //Call parent function to send value back to parent component
+    onButtonClick(customerData);
+  }
   return (
     <div className="bg-base-100 rounded-2xl border border-base-200 p-5">
       <div className="flex items-center justify-between mb-4">
@@ -19,7 +29,7 @@ function SheetsDataIntegration() {
         </span>
       </div>
       <div className="flex gap-3">
-        <button className="btn btn-neutral w-full">
+        <button className="btn btn-neutral w-full" onClick={handleClick}>
           <RefreshCw size={15} />
           Sync Data
         </button>

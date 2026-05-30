@@ -1,9 +1,17 @@
+import { useState } from "react";
+
 import CustomerListings from "../components/Home/CustomerListings";
 import SheetsDataIntegration from "../components/Home/SheetsDataIntegration";
 import StatusCards from "../components/Home/StatusCards";
 import Header from "../components/Layout/Header";
 
 function HomePage() {
+  const [customerData, setCustomerData] = useState(null);
+
+  const passData = (customer) => {
+    console.log("Customer data from home page: " + customer);
+    setCustomerData(customer);
+  }
   return (
     <>
       {/* Change background to darker colour */}
@@ -16,9 +24,10 @@ function HomePage() {
               p="Import customer details, manage customers and update status"
             />
           </div>
-
-          <SheetsDataIntegration />
-          <CustomerListings />
+          {/* Pass handler function as prop to button */}
+          <SheetsDataIntegration onButtonClick={passData} />
+          {/* Pass actual state value as prop to table */}
+          <CustomerListings customerData={customerData}/>
           <StatusCards />
         </div>
       </div>
