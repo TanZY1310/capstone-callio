@@ -1,6 +1,6 @@
 import { MessageSquare } from "lucide-react";
 
-export default function IntegrationCards() {
+function StatusCards() {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="bg-base-100 rounded-2xl border border-base-200 p-5 flex items-center justify-between">
@@ -9,7 +9,7 @@ export default function IntegrationCards() {
             <MessageSquare size={16} className="text-success" />
           </div>
           <div>
-            <p className="font-semibold text-sm">WhatsApp Cloud API</p>
+            <p className="font-semibold text-sm text-base-content">WhatsApp Cloud API</p>
             <p className="flex items-center gap-1.5 text-xs text-success mt-0.5">
               <span className="w-1.5 h-1.5 bg-success rounded-full" />
               Connected
@@ -25,7 +25,7 @@ export default function IntegrationCards() {
             <div className="w-4 h-4 bg-success rounded-sm" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Google Sheets Integration</p>
+            <p className="font-semibold text-sm text-base-content">Google Sheets API</p>
             <p className="flex items-center gap-1.5 text-xs text-success mt-0.5">
               <span className="w-1.5 h-1.5 bg-success rounded-full" />
               Auto-syncing
@@ -37,3 +37,5 @@ export default function IntegrationCards() {
     </div>
   );
 }
+
+export default StatusCards;

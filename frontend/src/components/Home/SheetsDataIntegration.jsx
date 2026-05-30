@@ -1,6 +1,6 @@
-import { RefreshCw, Settings } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
-export default function SyncCard() {
+function SheetsDataIntegration() {
   return (
     <div className="bg-base-100 rounded-2xl border border-base-200 p-5">
       <div className="flex items-center justify-between mb-4">
@@ -9,11 +9,11 @@ export default function SyncCard() {
             <div className="w-5 h-5 bg-success rounded-sm" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Google Sheets API</p>
-            <p className="text-xs text-base-content/40">Automated lead export and data syncing.</p>
+            <p className="font-semibold text-sm">Google Sheets Data Transfer</p>
+            <p className="text-xs text-base-content/40">Click on sync data to import data from Google Sheets</p>
           </div>
         </div>
-        <span className="flex items-center gap-1.5 text-xs font-medium text-success bg-success/10px-3 py-1 rounded-full">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-3 py-1 rounded-full">
           <span className="w-1.5 h-1.5 bg-success rounded-full" />
           CONNECTED
         </span>
@@ -27,3 +27,5 @@ export default function SyncCard() {
     </div>
   );
 }
+
+export default SheetsDataIntegration;
