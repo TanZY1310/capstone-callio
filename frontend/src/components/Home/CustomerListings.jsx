@@ -26,15 +26,15 @@ export default function BuyerDirectory() {
 
   return (
     <div>
-      <button className="bg-black text-white text-sm font-medium px-5 py-2 rounded-full mb-4">
-        All Buyers
+      <button className="bg-black text-neutral-content text-sm font-medium px-5 py-2 rounded-full mb-4">
+        All Customers
       </button>
 
       <div className="bg-base-100 rounded-2xl border border-base-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
-            <p className="font-semibold text-sm">Buyer Directory</p>
-            <p className="text-xs text-base-content/40">Manage and track all your potential buyers</p>
+            <p className="font-semibold text-sm">Customer Directory</p>
+            <p className="text-xs text-base-content/40">Manage and track all your potential customers</p>
           </div>
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />

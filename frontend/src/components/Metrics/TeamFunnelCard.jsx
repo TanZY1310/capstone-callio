@@ -1,57 +1,33 @@
-import { useEffect, useState } from "react";
+const FUNNEL_COLORS = [
+  { bg: "bg-blue-100", text: "text-blue-900" },
+  { bg: "bg-blue-300", text: "text-blue-900" },
+  { bg: "bg-blue-500", text: "text-white" },
+  { bg: "bg-blue-900", text: "text-white" },
+];
 
 function TeamFunnelCard({ teamData }) {
   const funnelStages = [
-    { stage: "NEW", value: teamData.sumLeads },
-    { stage: "FOLLOW-UP", value: teamData.sumFollowUps },
+    { stage: "NEW",         value: teamData.sumLeads },
+    { stage: "FOLLOW-UP",   value: teamData.sumFollowUps },
     { stage: "APPOINTMENT", value: teamData.sumApps },
-    { stage: "BOOKING", value: teamData.sumBookings },
+    { stage: "BOOKING",     value: teamData.sumBookings },
   ];
 
-  const colors = ["#dbeafe", "#93c5fd", "#3b82f6", "#1a3a7c"];
-  const textColors = ["#1e3a8a", "#1e3a8a", "#ffffff", "#ffffff"];
-
   return (
-    <div className="team-funnel">
-      <div style={{ display: "flex", alignItems: "center", width: "1600px" }}>
-        {funnelStages.map((item, index) => (
-          <div
-            key={index}
-            style={{ display: "flex", alignItems: "center", flex: 1 }}
-          >
-            {/* Arrow between stages */}
-            {index > 0 && (
-              <span style={{ fontSize: 20, color: "white", padding: "4px" }}>
-                →
-              </span>
-            )}
-
-            {/* Stage block */}
-            <div
-              className={`funnel-stage stage-${index}`}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                padding: "12px",
-                background: colors[index],
-                color: textColors[index],
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 16,
-                }}
-              >
-                {item.stage}
-              </span>
-              <h2 style={{ margin: 0, fontSize: 20, color: "black" }}>
-                {item.value}
-              </h2>
-            </div>
+    <div className="flex items-center w-full">
+      {funnelStages.map((item, index) => (
+        <div key={index} className="flex items-center flex-1">
+          {index > 0 && (
+            <span className="text-base-content/40 px-1 text-xl">→</span>
+          )}
+          <div className={`flex-1 text-center p-3 rounded-lg ${FUNNEL_COLORS[index].bg} ${FUNNEL_COLORS[index].text}`}>
+            <p className="text-xs font-bold tracking-wider">{item.stage}</p>
+            <p className="text-2xl font-bold mt-1">{item.value}</p>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
+
 export default TeamFunnelCard;

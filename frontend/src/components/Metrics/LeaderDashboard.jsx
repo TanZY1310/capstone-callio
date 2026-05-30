@@ -5,6 +5,7 @@ import FunnelCard from "./FunnelCard";
 import TeamFunnelCard from "./TeamFunnelCard";
 import Objections from "./Objections";
 import LeadsByRegion from "./LeadsByRegion";
+import Header from "../Layout/Header";
 
 function LeaderDashboard() {
   const [teamStats, setTeamStats] = useState({});
@@ -37,51 +38,59 @@ function LeaderDashboard() {
   }, []);
 
   return (
-    <div>
-      {/* // Header  */}
-      <div className="navbar bg-base-100 shadow-sm" style={{ color: "white" }}>
-        <h2>Leader Dashboard</h2>
-      </div>
+    <>
+      <div className="flex h-screen bg-base-200">
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+          {/* // Header  */}
+          <Header
+            h1="Leader Dashboard"
+            p="Monitor agent performance and logs"
+          />
 
-      {/* 1. Top Card - Personal Metrics Performance */}
+          {/* 1. Top Card - Personal Metrics Performance */}
 
-      <div className="flex w-full flex-col">
-        <div className="card-body">
-          <div className="card-title">
-            <h2>Personal Performance</h2>
+          <div className="card bg-base-100 border border-base-200 shadow-sm">
+            <div className="card-body gap-4">
+              <h2 className="card-title text-base-content">
+                Personal Performance
+              </h2>
+              <TopCard stats={stats} />
+            </div>
           </div>
-          <TopCard stats={stats} />
-        </div>
 
-        {/* 2. Funnel Card - Metrics Performance Transition*/}
+          {/* 2. Funnel Card - Metrics Performance Transition*/}
 
-        <div className="card-body">
-          <h2 className="card-title">Team Funnel</h2>
-          <TeamFunnelCard teamData={teamStats} />
-        </div>
+          <div className="card bg-base-100 border border-base-200 shadow-sm">
+            <div className="card-body gap-4">
+              <h2 className="card-title text-base-content">Team Funnel</h2>
+              <TeamFunnelCard teamData={teamStats} />
+            </div>
+          </div>
 
-        {/* 3. Team Performance*/}
+          {/* 3. Team Performance*/}
 
-        <div className="card-body">
-          <h2 className="card-title">Agent Performance</h2>
-          <PerformanceCard />
-        </div>
+          <div className="card bg-base-100 border border-base-200 shadow-sm">
+            <div className="card-body gap-4">
+              <h2 className="card-title text-base-content">
+                Agent Performance
+              </h2>
+              <PerformanceCard />
+            </div>
+          </div>
 
-        {/* 4. Bottom Card */}
+          {/* 4. Bottom Card */}
 
-        <div className="card-body">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="card bg-base-300 rounded-box p-5 grid place-items-center">
+            <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
               <Objections />
             </div>
-
-            <div className="card bg-base-300 rounded-box p-5">
+            <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
               <LeadsByRegion />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
