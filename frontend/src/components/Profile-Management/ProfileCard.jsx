@@ -21,7 +21,7 @@ function ProfileCard() {
   };
 
   const triggerFileSelect = () => {
-    // 4. Programmatically click the hidden file input
+    // Programmatically click the hidden file input
     fileInputRef.current.click();
   };
 
