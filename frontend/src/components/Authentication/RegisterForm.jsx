@@ -5,7 +5,6 @@ import { KeyRound, Mail, ALargeSmall, UserKey } from "lucide-react";
 import sampleUserList from "../../data/SampleUserList";
 import { toast } from "sonner";
 
-
 const initialState = {
   username: "",
   role: "",
@@ -22,6 +21,7 @@ const ACTIONS = {
   CLEAR_ERROR: "CLEAR_ERROR",
   SUBMIT: "SUBMIT",
   RESET: "RESET",
+  REGISTER_START: "REGISTER_START",
   REGISTER_SUCCESS: "REGISTER_SUCCESS",
   REGISTER_ERROR: "REGISTER_ERROR",
 };
@@ -51,6 +51,12 @@ function registerReducer(state, action) {
       return {
         ...state,
         isSubmitting: action.value,
+      };
+
+    case ACTIONS.REGISTER_START:
+      return {
+        ...state,
+        loading: true,
       };
 
     case ACTIONS.REGISTER_SUCCESS:
@@ -88,7 +94,7 @@ function RegisterForm() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     console.log(state);
 
-    const emailExists = userList.find(u => u.email === state.email);
+    const emailExists = userList.find((u) => u.email === state.email);
     if (emailExists) throw new Error("Email already registered");
 
     const newUser = {
@@ -133,6 +139,7 @@ function RegisterForm() {
   const handleSubmit = async (e) => {
     //Handle registration via backend API, Simulate API for now
     e.preventDefault();
+    dispatch({ type: ACTIONS.REGISTER_START });
 
     try {
       if (!validateForm()) return;
@@ -141,7 +148,7 @@ function RegisterForm() {
     } catch (err) {
       dispatch({
         type: ACTIONS.REGISTER_ERROR,
-        payload: err.message
+        payload: err.message,
       });
       toast.error(err.message);
     } finally {
@@ -150,98 +157,112 @@ function RegisterForm() {
 
   return (
     <>
-      <div
-        className="hero bg-base-200 min-h-screen"
-        style={{
-          backgroundImage: "url('/building-bg.jpg')",
-        }}
-      >
-        <div className="hero-content flex-col lg:flex-row-reverse">
-          <div className="text-center lg:text-left"></div>
-          <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-            <div className="card-body">
-              <form onSubmit={handleSubmit}>
-                <fieldset className="fieldset">
-                  <label className="label">Username</label>
-                  <label className="input validator">
-                    <ALargeSmall />
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      required
-                      name="username"
-                      value={state.username}
-                      onChange={handleChange}
-                    />
-                  </label>
-                  <label className="label">Role</label>
-                  <label className="label">
-                    <UserKey />
-                    <select
-                      name="role"
-                      className="select"
-                      value={state.role}
-                      onChange={handleChange}
-                    >
-                      <option disabled={true}>Pick a role</option>
-                      <option value="team_lead">Team Lead</option>
-                      <option value="agent">Agent</option>
-                    </select>
-                  </label>
-                  <label className="label">Email</label>
-                  <label className="input validator">
-                    <Mail />
-                    <input
-                      type="email"
-                      placeholder="mail@site.com"
-                      required
-                      name="email"
-                      value={state.email}
-                      onChange={handleChange}
-                    />
-                  </label>
-                  <div className="validator-hint hidden">
-                    Please enter a valid email address
-                  </div>
-                  <label className="label">Password</label>
-                  <label className="input validator">
-                    <KeyRound />
-                    <input
-                      type="password"
-                      required
-                      placeholder="Password"
-                      // minLength="8"
-                      // pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                      title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
-                      name="password"
-                      value={state.password}
-                      onChange={handleChange}
-                    />
-                  </label>
-                  <p className="validator-hint hidden">
-                    Must be more than 8 characters, including
-                    <br />
-                    At least one number <br />
-                    At least one lowercase letter <br />
-                    At least one uppercase letter
+      <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+        {/* Left — branding */}
+        <div
+          className="hidden lg:flex flex-col justify-between p-12 bg-neutral text-neutral-content"
+          style={{
+            backgroundImage: "url('/building-bg.jpg')",
+            backgroundSize: "cover",
+          }}
+        >
+          <span className="font-bold text-2xl">CALLIO</span>
+          <blockquote className="text-lg opacity-80">
+            "Manage your leads and track every conversation."
+          </blockquote>
+        </div>
+
+        {/* Right — form */}
+        <div className="flex items-center justify-center p-8 bg-base-100">
+          <div className="w-full max-w-sm">
+            <form onSubmit={handleSubmit}>
+              <fieldset className="fieldset">
+                <label className="label">Username</label>
+                <label className="input validator">
+                  <ALargeSmall size={15} className="text-base-content/40" />
+                  <input
+                    type="text"
+                    placeholder="John Doe"
+                    required
+                    name="username"
+                    value={state.username}
+                    onChange={handleChange}
+                  />
+                </label>
+                <div className="validator-hint hidden">
+                  Please enter your username
+                </div>
+                <label className="label">Role</label>
+                <label className="input validator">
+                  <UserKey size={15} className="text-base-content/40" />
+                  <select
+                    name="role"
+                    className="select"
+                    value={state.role}
+                    onChange={handleChange}
+                  >
+                    <option disabled={true}>Pick a role</option>
+                    <option value="team_lead">Team Lead</option>
+                    <option value="agent">Agent</option>
+                  </select>
+                </label>
+                <label className="label">Email</label>
+                <label className="input validator">
+                  <Mail size={15} className="text-base-content/40" />
+                  <input
+                    type="email"
+                    placeholder="mail@site.com"
+                    required
+                    name="email"
+                    value={state.email}
+                    onChange={handleChange}
+                  />
+                </label>
+                <div className="validator-hint hidden">
+                  Please enter a valid email address
+                </div>
+                <label className="label">Password</label>
+                <label className="input validator">
+                  <KeyRound size={15} className="text-base-content/40" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="Password"
+                    // minLength="8"
+                    // pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                    title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
+                    name="password"
+                    value={state.password}
+                    onChange={handleChange}
+                  />
+                </label>
+                <p className="validator-hint hidden">
+                  Must be more than 8 characters, including
+                  <br />
+                  At least one number <br />
+                  At least one lowercase letter <br />
+                  At least one uppercase letter
+                </p>
+                <div>
+                  <p>
+                    Already Have An Account?
+                    <Link to="/login" className="link link-primary link-hover">
+                      Sign In
+                    </Link>
                   </p>
-                  <div>
-                    <p>
-                      Already Have An Account?
-                      <Link
-                        to="/login"
-                        className="link link-primary link-hover"
-                      >
-                        Sign In
-                      </Link>
-                    </p>
-                  </div>
-                  <button className="btn btn-neutral mt-4" type="submit">
+                </div>
+                {state.loading ? (
+                  <button className="btn btn-neutral w-full mt-4" disabled>
+                    <span className="loading loading-spinner loading-sm"></span>
+                    Creating Account...
+                  </button>
+                ) : (
+                  <button className="btn btn-neutral w-full mt-4" type="submit">
                     Create New Account
                   </button>
-                </fieldset>
-              </form>
-            </div>
+                )}
+              </fieldset>
+            </form>
           </div>
         </div>
       </div>
