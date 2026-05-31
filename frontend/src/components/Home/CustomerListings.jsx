@@ -152,7 +152,7 @@ function CustomerListings({ customerData }) {
             >
               {statusFilter.map((status) => (
                 <option key={status} value={status}>
-                  {status === "all" ? "All" : status}
+                  {status === "all" ? "All Status" : status}
                 </option>
               ))}
             </select>
@@ -164,10 +164,12 @@ function CustomerListings({ customerData }) {
 
         {loading && (
           <div className="flex justify-center py-12">
-            {/* <span className="loading loading-ring loading-md" /> */}
-            <span className="skeleton skeleton-text">
-              Importing data from Google Sheets...
-            </span>
+            <div className="flex w-200 flex-col gap-4">
+              <div className="skeleton h-10 w-full"></div>
+              <div className="skeleton h-10 w-full"></div>
+              <div className="skeleton h-10 w-full"></div>
+              <div className="skeleton h-10 w-full"></div>
+            </div>
           </div>
         )}
 
@@ -179,12 +181,12 @@ function CustomerListings({ customerData }) {
 
         {!loading && !error && filteredAndSortedCustomers.length === 0 && (
           <div className="text-center py-12 text-base-content/40 text-sm">
-            No customers found. Click Sync Data to import.
+            No customers found. Click on import data From Google Sheets.
           </div>
         )}
 
         {!loading && !error && filteredAndSortedCustomers.length > 0 && (
-          <table className="w-full text-sm">
+          <table className="table w-full text-sm">
             <thead>
               <tr className="text-xs text-base-content/40 border-b border-base-200">
                 {tableHeader.map((eachHeader) => (
