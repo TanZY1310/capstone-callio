@@ -6,7 +6,7 @@ function CredentialCard() {
 
   return (
     <div>
-      <div class="w-160 rounded-xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md m">
+      <div class="w-160 rounded-xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md ml-5 ">
         <div class="mb-6 flex items-center gap-2">
           <h2 class="text-lg font-bold text-slate-900">Professional Details</h2>
         </div>
