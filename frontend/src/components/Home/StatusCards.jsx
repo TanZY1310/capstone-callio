@@ -12,10 +12,10 @@ function StatusCards() {
           <div>
             <p className="font-semibold text-sm text-base-content">WhatsApp Cloud API</p>
             <p className="flex items-center gap-1.5 text-xs text-success mt-0.5">
-              <div className="inline-grid *:[grid-area:1/1]">
-              <div className="status status-success animate-ping"></div>
-              <div className="status status-success"></div>
-            </div> Connected
+              <span className="inline-grid *:[grid-area:1/1]">
+              <span className="status status-success animate-ping"></span>
+              <span className="status status-success"></span>
+            </span> Connected
             </p>
           </div>
         </div>
@@ -30,10 +30,10 @@ function StatusCards() {
           <div>
             <p className="font-semibold text-sm text-base-content">Google Sheets API</p>
             <p className="flex items-center gap-1.5 text-xs text-warning mt-0.5">
-              <div className="inline-grid *:[grid-area:1/1]">
-              <div className="status status-warning animate-ping"></div>
-              <div className="status status-warning"></div>
-            </div> Sync in-progress
+              <span className="inline-grid *:[grid-area:1/1]">
+              <span className="status status-warning animate-ping"></span>
+              <span className="status status-warning"></span>
+            </span> Sync in-progress
             </p>
           </div>
         </div>

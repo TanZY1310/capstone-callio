@@ -7,7 +7,6 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Toaster } from "sonner";
-import UserProfile from "./pages/UserProfile";
 
 // Include page or component imports here
 const Register = lazy(() => import("./components/Authentication/RegisterForm"));
@@ -20,6 +19,7 @@ const LeadDetail = lazy(() => import("./pages/LeadDetail"));
 const MainDashboard = lazy(() => import("./pages/MainDashboard"));
 const Speech = lazy(() => import("./pages/Speech"));
 const Sidebar = lazy(() => import("./components/Layout/Sidebar"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
 
 function App() {
   const [user, setUser] = useState(() => {
