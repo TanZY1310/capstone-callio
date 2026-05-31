@@ -14,7 +14,7 @@ function SocialCard() {
 
     try {
       //simulate API calling
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       if (Math.random() > 0.3) {
         console.log("Linked Succesfully");

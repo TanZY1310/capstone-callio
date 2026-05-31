@@ -1,7 +1,41 @@
+import react, { useState } from "react";
 import { Settings, RefreshCcw } from "lucide-react";
 import sheetsimg from "../../assets/sheets_icon.png";
 
 function SheetsCard() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [notification, setNotification] = useState(false);
+
+  const insert_api = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      //simulate API calling
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      if (Math.random() > 0.3) {
+        console.log("Linked Succesfully");
+        setNotification(true);
+      } else {
+        throw new Error("Account failed to linked, Please try again");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClick = () => {
+    document.getElementById("setting_modal").showModal();
+  };
+
+  const handleSave = () => {
+    insert_api();
+  };
+
   return (
     <div>
       <div className="w-152 h-fit rounded-xl border border-[#C6C6CD] bg-white p-6 shadow-sm flex flex-col gap-5 m-5 mt-1">
@@ -37,7 +71,6 @@ function SheetsCard() {
                 disabled
                 className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2.5 pr-10 text-xs font-mono text-slate-700"
               />
-              <button className="absolute right-3 text-slate-400 hover:text-slate-600"></button>
             </div>
           </div>
 
@@ -77,9 +110,52 @@ function SheetsCard() {
             Sync Now
           </button>
 
-          <button className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm transition-colors">
+          <button
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm transition-colors"
+            onClick={handleClick}
+          >
             <Settings />
           </button>
+          <dialog id="setting_modal" className="modal">
+            <div className="modal-box">
+              <form method="dialog">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                  ✕
+                </button>
+              </form>
+              <div>
+                <h3>Add your API Key...</h3>
+              </div>
+              <div className="flex flex-col gap-1.5 m-4">
+                <label className="text-2xs font-bold uppercase tracking-wider text-slate-400 ">
+                  API Key
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2.5 pr-10 text-xs font-mono text-slate-700"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 m-4">
+                <label className="text-2xs font-bold uppercase tracking-wider text-slate-400">
+                  Spreadsheet ID
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs font-mono text-slate-700"
+                />
+              </div>
+              <div className="flex justify-center items-center">
+                <div>
+                  <button className="btn" onClick={handleSave}>
+                    Add Key
+                  </button>
+                </div>
+              </div>
+            </div>
+          </dialog>
         </div>
       </div>
     </div>
