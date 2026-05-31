@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, Mic, Phone, ChartArea } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 
 const NAV_ITEMS = [
   { id: 1, label: "Customer Listings", icon: <LayoutDashboard />, path: "/" },
@@ -17,7 +18,7 @@ function Navigation() {
             to={item.path}
             end={item.path === "/"}
             className={({ isActive }) =>
-              `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? "active" : ""}`
+              `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? `active ${item.activeColour} font-semibold` : "text-base-content/60"}`
             }
             data-tip={item.label}
           >

@@ -1,52 +1,48 @@
-const sampleBuyers = [
+const sampleCustomers = [
   {
     id: 1,
-    initials: "SC",
     name: "Sarah Chen",
     email: "sarah.chen@email.com",
     phone: "+1 (555) 123-4567",
     budgetMin: "$800K",
     budgetMax: "$1.2M",
     location: "3BR, Modern, Downtown",
-    status: "HOT",
+    status: "No Pickup",
     lastContact: "2026-05-10",
   },
   {
     id: 2,
-    initials: "MR",
     name: "Michael Rodriguez",
     email: "m.rodriguez@email.com",
     phone: "+1 (555) 234-5678",
     budgetMin: "$500K",
     budgetMax: "$750K",
     location: "2BR, Suburban, Good Schools",
-    status: "WARM",
+    status: "Whatsapp",
     lastContact: "2026-05-08",
   },
   {
     id: 3,
-    initials: "ET",
     name: "Emily Thompson",
     email: "emily.t@email.com",
     phone: "+1 (555) 345-6789",
     budgetMin: "$1M",
     budgetMax: "$1.5M",
     location: "4BR, Luxury, Waterfront",
-    status: "COLD",
+    status: "Pending Appointment",
     lastContact: "2026-04-28",
   },
   {
     id: 4,
-    initials: "JW",
     name: "James Wilson",
     email: "jwilson@email.com",
     phone: "+1 (555) 456-7890",
     budgetMin: "$600K",
     budgetMax: "$900K",
     location: "3BR, Family-friendly, Backyard",
-    status: "HOT",
+    status: "Completed",
     lastContact: "2026-05-11",
   },
 ];
 
-export default sampleBuyers;
+export default sampleCustomers;
