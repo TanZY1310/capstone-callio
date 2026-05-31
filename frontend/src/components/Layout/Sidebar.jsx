@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, NavLink } from "react-router-dom";
 
 import {
   PanelLeftOpen,
@@ -28,7 +28,8 @@ function Sidebar({ setUser }) {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === "corporate" ? "business" : "corporate"));
+  const toggleTheme = () =>
+    setTheme((t) => (t === "corporate" ? "business" : "corporate"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -82,10 +83,14 @@ function Sidebar({ setUser }) {
               <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
               <div className="avatar">
                 <div className="w-7 rounded-full transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110">
-                  <img
-                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
-                    alt="User avatar"
-                  />
+                  <NavLink to="/profile">
+                    <button className="btn btn-circle ">
+                      <img
+                        src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                        alt="User avatar"
+                      />
+                    </button>
+                  </NavLink>
                 </div>
               </div>
             </div>

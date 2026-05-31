@@ -7,16 +7,19 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Toaster } from "sonner";
+import UserProfile from "./pages/UserProfile";
 
 // Include page or component imports here
-const Register = lazy(() => import('./components/Authentication/RegisterForm'));
-const Login = lazy(() => import('./components/Authentication/LoginForm'));
-const ProtectedRoute = lazy(() => import('./components/Authentication/ProtectedRoute'));
-const HomePage = lazy(() => import('./pages/HomePage'));
-const LeadDetail = lazy(() => import('./pages/LeadDetail'));
-const MainDashboard = lazy(() => import('./pages/MainDashboard'));
-const Speech = lazy(() => import('./pages/Speech'));
-const Sidebar = lazy(() => import('./components/Layout/Sidebar'))
+const Register = lazy(() => import("./components/Authentication/RegisterForm"));
+const Login = lazy(() => import("./components/Authentication/LoginForm"));
+const ProtectedRoute = lazy(
+  () => import("./components/Authentication/ProtectedRoute"),
+);
+const HomePage = lazy(() => import("./pages/HomePage"));
+const LeadDetail = lazy(() => import("./pages/LeadDetail"));
+const MainDashboard = lazy(() => import("./pages/MainDashboard"));
+const Speech = lazy(() => import("./pages/Speech"));
+const Sidebar = lazy(() => import("./components/Layout/Sidebar"));
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -40,7 +43,13 @@ function App() {
           />
           <Route
             path="/login"
-            element={isAuthenticated ? <Navigate to="/" replace /> : <Login setUser={setUser} />}
+            element={
+              isAuthenticated ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Login setUser={setUser} />
+              )
+            }
           />
           <Route
             path="/*"
@@ -51,13 +60,15 @@ function App() {
               >
                 <Sidebar setUser={setUser} />
               </ProtectedRoute>
-            }>
-              {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
-              <Route index element={<HomePage />} />
-              <Route path="whatsapp" element={<LeadDetail />} />
-              <Route path="metrics" element={<MainDashboard />} />
-              <Route path="speech" element={<Speech />} />
-            </Route>
+            }
+          >
+            {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
+            <Route index element={<HomePage />} />
+            <Route path="whatsapp" element={<LeadDetail />} />
+            <Route path="metrics" element={<MainDashboard />} />
+            <Route path="speech" element={<Speech />} />
+            <Route path="profile" element={<UserProfile />} />
+          </Route>
         </Routes>
       </Router>
     </>
