@@ -1,8 +1,9 @@
-import { useState, useEffect, useReducer } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useReducer, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { KeyRound, Mail } from "lucide-react";
 import sampleUserList from "../../data/SampleUserList";
+import { toast } from "sonner";
 
 const initialState = {
   email: "",
@@ -64,16 +65,29 @@ function loginReducer(state, action) {
 function LoginForm({ setUser }) {
   const [state, dispatch] = useReducer(loginReducer, initialState);
   const navigate = useNavigate();
+  const { state: registerState } = useLocation();
+  const registerUserList = registerState?.updatedUserList;
+  const registeredEmail = registerState?.registeredEmail;
+
+  console.log("Check Register From Login: " + registerState);
+
+  useEffect(() => {
+    if (registeredEmail) {
+      dispatch({ type: ACTIONS.SET_EMAIL, payload: registeredEmail });
+    }
+  }, [registeredEmail]);
 
   async function sampleLoginAPI(email, password) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log(email);
-    console.log(password);
-    console.log(sampleUserList);
 
-    const user = sampleUserList.find(
+    // Temp implement this to combine registerList and userList later when include db change this
+    const combinedUserList = registerUserList ? [...sampleUserList, ...registerUserList] : sampleUserList;
+
+    console.log("Login User List", combinedUserList);
+    const user = combinedUserList.find(
       (u) => u.email === email && u.password === password,
     );
+
     if (!user) throw new Error("Invalid email or password");
     localStorage.setItem("currentUser", JSON.stringify(user));
 
@@ -91,21 +105,20 @@ function LoginForm({ setUser }) {
       setUser(data.user);
       console.log("Token: ", data.token);
       dispatch({ type: "LOGIN_SUCCESS" });
-      navigate("/");
+      toast.success("Login successful!");
+      setTimeout(() => navigate("/"), 3000);
     } catch (err) {
-      dispatch({ type: "LOGIN_ERROR", payload: "Invalid email or password" });
-      console.log("Login failed");
-    } finally {
+      dispatch({ type: "LOGIN_ERROR", payload: err.message });
+      toast.error(err.message);
     }
   };
 
   return (
     <>
       <div
-        className="hero bg-base-200 min-h-screen"
+        className="hero bg-base-200 min-h-screen relative"
         style={{
-          backgroundImage:
-            "url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp)",
+          backgroundImage: "url('/building-bg.jpg')",
         }}
       >
         <div className="hero-content flex-col lg:flex-row-reverse">
@@ -179,15 +192,11 @@ function LoginForm({ setUser }) {
                         Register
                       </Link>
                     </p>
-                    {state.error && (
-                      <div className="alert alert-error text-sm py-2">
-                        {state.error}
-                      </div>
-                    )}
                   </div>
                   {state.loading ? (
                     <button className="btn btn-neutral mt-4" disabled>
                       <span className="loading loading-spinner loading-sm"></span>
+                      Logging in...
                     </button>
                   ) : (
                     <button className="btn btn-neutral mt-4" type="submit">
