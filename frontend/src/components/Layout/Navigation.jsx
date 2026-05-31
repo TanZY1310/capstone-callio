@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, Mic, Phone, ChartArea } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 
 const NAV_ITEMS = [
   { id: 1, label: "Customer Listings",     icon: <LayoutDashboard />, path: "/" },
   { id: 2, label: "Speech Analysis",       icon: <Mic />,             path: "/speech" },
-  { id: 3, label: "WhatsApp Conversation", icon: <Phone />,           path: "/whatsapp" },
+  { id: 3, label: "WhatsApp Conversation", icon: <SiWhatsapp size={24} />,           path: "/whatsapp" },
   { id: 4, label: "Metrics",               icon: <ChartArea />,       path: "/metrics" },
 ];
 
