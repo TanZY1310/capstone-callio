@@ -1,6 +1,33 @@
+import { useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import wsLogo from "../../assets/Whatsapp.png";
+import loadimg from "../../assets/";
 
 function SocialCard() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [notification, setNotification] = useState("");
+  const link = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      //simulate API calling
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      if (Math.random() > 0.3) {
+        console.log("Linked Succesfully");
+        setNotification("Account linked Succesfully");
+      } else {
+        throw new Error("Account failed to linked, Please try again");
+      }
+    } catch (err) {
+      setError(err.mesaage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div>
       <div className="w-152 rounded-2xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md flex flex-col gap-6 m-5 mt-1 ">
@@ -81,6 +108,13 @@ function SocialCard() {
       </div>
       <dialog id="ws-acc" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box">
+          {isLoading && (
+            <div>
+              <DotLottieReact src={loadimg} loop autoplay />
+              <p>Linking Account...</p>
+            </div>
+          )}
+
           <h3 className="font-bold text-lg">WhatsApp Succesfully Linked !</h3>
           <p className="py-4">
             Press ESC key or click the button below to close

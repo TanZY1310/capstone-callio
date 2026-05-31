@@ -1,3 +1,5 @@
+import { Settings, RefreshCcw } from "lucide-react";
+
 function SheetsCard() {
   return (
     <div>
@@ -66,10 +68,15 @@ function SheetsCard() {
 
         <div className="flex gap-2.5 pt-1">
           <button className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#191C1E] py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-black">
+            <span>
+              <RefreshCcw className="" />
+            </span>
             Sync Now
           </button>
 
-          <button className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm transition-colors"></button>
+          <button className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm transition-colors">
+            <Settings />
+          </button>
         </div>
       </div>
     </div>

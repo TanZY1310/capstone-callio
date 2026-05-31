@@ -24,6 +24,7 @@ function ProfileCard() {
     // Programmatically click the hidden file input
     fileInputRef.current.click();
   };
+  console.log(profilePic);
 
   return (
     <div>
