@@ -1,7 +1,7 @@
 function SheetsCard() {
   return (
     <div>
-      <div class="w-152 h-fit rounded-xl border border-[#C6C6CD] bg-white p-6 shadow-sm flex flex-col gap-5">
+      <div class="w-152 h-fit rounded-xl border border-[#C6C6CD] bg-white p-6 shadow-sm flex flex-col gap-5 m-5">
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAF7EE]"></div>

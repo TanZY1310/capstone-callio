@@ -3,7 +3,7 @@ import wsLogo from "../../assets/Whatsapp.png";
 function SocialCard() {
   return (
     <div>
-      <div class="w-152 rounded-2xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md flex flex-col gap-6">
+      <div class="w-152 rounded-2xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md flex flex-col gap-6 m-5 ">
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#E8FBF0]">
@@ -75,7 +75,7 @@ function SocialCard() {
         hover:bg-[#00c864] py-3 text-sm font-medium text-white transition-colors shadow-sm"
           onClick={() => document.getElementById("ws-acc").showModal()}
         >
-          @<span class="material-symbols-outlined">change_circle</span>
+          <span class="material-symbols-outlined">change_circle</span>
           Link Account
         </button>
       </div>
