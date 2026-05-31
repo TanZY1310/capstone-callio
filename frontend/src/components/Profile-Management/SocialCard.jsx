@@ -14,7 +14,7 @@ function SocialCard() {
 
     try {
       //simulate API calling
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (Math.random() > 0.3) {
         console.log("Linked Succesfully");
@@ -32,6 +32,11 @@ function SocialCard() {
   const handleLinkAccount = async () => {
     document.getElementById("ws-acc").showModal();
     await link();
+  };
+
+  const handleClose = () => {
+    setError(null);
+    setNotification(false);
   };
 
   return (
@@ -124,7 +129,7 @@ function SocialCard() {
               <p>Linking Account...</p>
             </div>
           )}
-          {notification && (
+          {notification && !error && (
             <div>
               <h3 className="font-bold text-lg">
                 WhatsApp Succesfully Linked !
@@ -135,10 +140,23 @@ function SocialCard() {
             </div>
           )}
 
+          {/* shows when there's an error */}
+          {error && (
+            <div>
+              <h3 className="font-bold text-lg text-red-500">
+                Linking Failed!
+              </h3>
+              <p className="py-4 text-red-400">{error}</p>
+              <p className="text-sm text-slate-500">Please try again.</p>
+            </div>
+          )}
+
           <div className="modal-action">
             <form method="dialog">
               {/* if there is a button in form, it will close the modal */}
-              <button className="btn">Close</button>
+              <button className="btn" onClick={handleClose}>
+                Close
+              </button>
             </form>
           </div>
         </div>
