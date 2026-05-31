@@ -1,8 +1,10 @@
-import { useState, useEffect, useReducer, isValidElement } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useReducer } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 import { KeyRound, Mail, ALargeSmall, UserKey } from "lucide-react";
 import sampleUserList from "../../data/SampleUserList";
+import { toast } from "sonner";
+
 
 const initialState = {
   username: "",
@@ -12,7 +14,6 @@ const initialState = {
   errors: {},
   isSubmitting: false,
   loading: false,
-  loggedIn: false,
 };
 
 const ACTIONS = {
@@ -21,6 +22,8 @@ const ACTIONS = {
   CLEAR_ERROR: "CLEAR_ERROR",
   SUBMIT: "SUBMIT",
   RESET: "RESET",
+  REGISTER_SUCCESS: "REGISTER_SUCCESS",
+  REGISTER_ERROR: "REGISTER_ERROR",
 };
 
 function registerReducer(state, action) {
@@ -47,7 +50,20 @@ function registerReducer(state, action) {
     case ACTIONS.SUBMIT:
       return {
         ...state,
-        submitting: action.value,
+        isSubmitting: action.value,
+      };
+
+    case ACTIONS.REGISTER_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+      };
+
+    case ACTIONS.REGISTER_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
       };
 
     case ACTIONS.RESET:
@@ -62,24 +78,34 @@ function RegisterForm() {
   const [state, dispatch] = useReducer(registerReducer, initialState);
   const [userList, setUserList] = useState(sampleUserList);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     console.log("There are changes in userList: ", userList);
-  }, [userList])
+  }, [userList]);
 
   async function sampleRegisterAPI(state) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     console.log(state);
 
+    const emailExists = userList.find(u => u.email === state.email);
+    if (emailExists) throw new Error("Email already registered");
+
     const newUser = {
-      id: Date.now(),
+      id: Date.now(), // Change to increment id later
       username: state.username,
       role: state.role,
       email: state.email,
-      password: state.password
+      password: state.password,
     };
 
-    setUserList(prev => [...prev, newUser]);
-    dispatch({ type: ACTIONS.RESET });
+    const updatedUserList = [...userList, newUser];
+    setUserList(updatedUserList);
+    // Pass the  updated registeredUserList to login page
+    toast.success("Account created! Please log in");
+    navigate("/login", {
+      state: { updatedUserList, registeredEmail: state.email },
+    });
   }
 
   const validateForm = () => {
@@ -113,7 +139,11 @@ function RegisterForm() {
       dispatch({ type: ACTIONS.SUBMIT, value: true });
       await sampleRegisterAPI(state);
     } catch (err) {
-      dispatch({ type: ACTIONS.SET_ERROR, field: "email", msg: "Invalid email",})
+      dispatch({
+        type: ACTIONS.REGISTER_ERROR,
+        payload: err.message
+      });
+      toast.error(err.message);
     } finally {
     }
   };
@@ -123,8 +153,7 @@ function RegisterForm() {
       <div
         className="hero bg-base-200 min-h-screen"
         style={{
-          backgroundImage:
-            "url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp)",
+          backgroundImage: "url('/building-bg.jpg')",
         }}
       >
         <div className="hero-content flex-col lg:flex-row-reverse">
@@ -148,7 +177,12 @@ function RegisterForm() {
                   <label className="label">Role</label>
                   <label className="label">
                     <UserKey />
-                    <select name="role" className="select" value={state.role} onChange={handleChange}>
+                    <select
+                      name="role"
+                      className="select"
+                      value={state.role}
+                      onChange={handleChange}
+                    >
                       <option disabled={true}>Pick a role</option>
                       <option value="team_lead">Team Lead</option>
                       <option value="agent">Agent</option>

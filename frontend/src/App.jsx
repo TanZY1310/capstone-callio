@@ -1,5 +1,4 @@
 import { useEffect, useState, lazy } from "react";
-import Sidebar from "./components/Layout/Sidebar";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +6,7 @@ import {
   Link,
   Navigate,
 } from "react-router-dom";
+import { Toaster } from "sonner";
 
 // Include page or component imports here
 const Register = lazy(() => import('./components/Authentication/RegisterForm'));
@@ -16,6 +16,7 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const LeadDetail = lazy(() => import('./pages/LeadDetail'));
 const MainDashboard = lazy(() => import('./pages/MainDashboard'));
 const Speech = lazy(() => import('./pages/Speech'));
+const Sidebar = lazy(() => import('./components/Layout/Sidebar'))
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -29,6 +30,7 @@ function App() {
   return (
     <>
       <Router>
+        <Toaster position="top-right" richColors />
         <Routes>
           <Route
             path="/register"

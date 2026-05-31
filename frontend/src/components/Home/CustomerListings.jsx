@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   MessageSquare,
@@ -31,7 +32,6 @@ const statusList = [
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 const formatDate = (dateStr) => {
-  console.log(dateStr);
   return new Date(dateStr).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
@@ -50,6 +50,7 @@ function CustomerListings({ customerData }) {
     status: "all",
     searchTerm: "",
   });
+  const navigate = useNavigate();
 
   const handleStatusChange = (id, value) => {
     setStatus((prev) => ({ ...prev, [id]: value }));
@@ -111,16 +112,11 @@ function CustomerListings({ customerData }) {
 
   const statusFilter = ["all", ...new Set(customers.map((p) => p.status))];
 
-  const sendCustomerDetails = (e, customerID) => {
-    console.log(e);
-    console.log("The customer id being passed is: " + customerID);
-    if (e == "messageButton") {
-      //Pass the value here and navigate
-      console.log("Passing to WhatsApp Conversation.");
-    }
-
-    if (e == "micButton") {
-      console.log("Passing to Speech Analysis");
+  const sendCustomerDetails = (destination, customer) => {
+    try {
+      navigate(destination, { state: { customer } });
+    } catch (err) {
+      //Display a toast message to display navigation error
     }
   };
 
@@ -248,8 +244,8 @@ function CustomerListings({ customerData }) {
                       <button
                         name="messageButton"
                         className="btn btn-sm btn-ghost text-success border border-success/30 hover:bg-success/10"
-                        onClick={(e) =>
-                          sendCustomerDetails(e.target.name, customer.id)
+                        onClick={() =>
+                          sendCustomerDetails("/whatsapp", customer)
                         }
                       >
                         <MessageSquare size={15} />
@@ -258,7 +254,7 @@ function CustomerListings({ customerData }) {
                         name="micButton"
                         className="btn btn-sm btn-ghost border border-success/30 hover:bg-success/10"
                         onClick={(e) =>
-                          sendCustomerDetails(e.target.name, customer.id)
+                          sendCustomerDetails("/speech", customer)
                         }
                       >
                         <Mic size={15} />
