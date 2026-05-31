@@ -1,12 +1,13 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import wsLogo from "../../assets/Whatsapp.png";
-import loadimg from "../../assets/";
+// import loadimg from "../../assets/loading.lottie";
 
 function SocialCard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [notification, setNotification] = useState("");
+  const [notification, setNotification] = useState(false);
+
   const link = async () => {
     setIsLoading(true);
     setError(null);
@@ -17,15 +18,20 @@ function SocialCard() {
 
       if (Math.random() > 0.3) {
         console.log("Linked Succesfully");
-        setNotification("Account linked Succesfully");
+        setNotification(true);
       } else {
         throw new Error("Account failed to linked, Please try again");
       }
     } catch (err) {
-      setError(err.mesaage);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLinkAccount = async () => {
+    document.getElementById("ws-acc").showModal();
+    await link();
   };
 
   return (
@@ -100,7 +106,7 @@ function SocialCard() {
           className=" flex w-full 
         items-center justify-center gap-2 rounded-lg bg-[#00E676] 
         hover:bg-[#00c864] py-3 text-sm font-medium text-white transition-colors shadow-sm"
-          onClick={() => document.getElementById("ws-acc").showModal()}
+          onClick={handleLinkAccount}
         >
           <span className="material-symbols-outlined">change_circle</span>
           Link Account
@@ -110,15 +116,25 @@ function SocialCard() {
         <div className="modal-box">
           {isLoading && (
             <div>
-              <DotLottieReact src={loadimg} loop autoplay />
+              <DotLottieReact
+                src="https://lottie.host/a3a5b193-163d-4f12-8df5-0f3fa1fdec52/Pw0g1Q51pn.lottie"
+                loop
+                autoplay
+              />
               <p>Linking Account...</p>
             </div>
           )}
+          {notification && (
+            <div>
+              <h3 className="font-bold text-lg">
+                WhatsApp Succesfully Linked !
+              </h3>
+              <p className="py-4">
+                Press ESC key or click the button below to close
+              </p>
+            </div>
+          )}
 
-          <h3 className="font-bold text-lg">WhatsApp Succesfully Linked !</h3>
-          <p className="py-4">
-            Press ESC key or click the button below to close
-          </p>
           <div className="modal-action">
             <form method="dialog">
               {/* if there is a button in form, it will close the modal */}
