@@ -1,4 +1,5 @@
 import { Settings, RefreshCcw } from "lucide-react";
+import sheetsimg from "../../assets/sheets_icon.png";
 
 function SheetsCard() {
   return (
@@ -6,7 +7,9 @@ function SheetsCard() {
       <div className="w-152 h-fit rounded-xl border border-[#C6C6CD] bg-white p-6 shadow-sm flex flex-col gap-5 m-5 mt-1">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAF7EE]"></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAF7EE]">
+              <img src={sheetsimg} />
+            </div>
             <div>
               <h3 className="text-base font-bold text-[#191C1E]">
                 Google Sheets API
