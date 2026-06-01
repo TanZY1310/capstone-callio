@@ -1,0 +1,4 @@
+export const STATUS_NAME = {
+  CONNECTED: "CONNECTED",
+  NOT_CONNECTED: "NOT CONNECTED",
+};

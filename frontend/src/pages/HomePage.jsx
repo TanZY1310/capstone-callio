@@ -4,14 +4,31 @@ import CustomerListings from "../components/Home/CustomerListings";
 import SheetsDataIntegration from "../components/Home/SheetsDataIntegration";
 import StatusCards from "../components/Home/StatusCards";
 import Header from "../components/Layout/Header";
+import { STATUS_NAME } from "../data/constants";
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
+  const [platformStatus, setPlatformStatus] = useState({
+      sheets: {
+        connectionStatus: STATUS_NAME.NOT_CONNECTED,
+        lastSync: null,
+      },
+    });
 
   const passData = (customer) => {
     console.log("Customer data from home page: " + customer);
     setCustomerData(customer);
-  }
+  };
+
+  const handleUpdateStatus = () => {
+    setPlatformStatus((prev) => ({
+      ...prev,
+      sheets: {
+        connectionStatus: STATUS_NAME.CONNECTED,
+        lastSync: Date.now(),
+      },
+    }));
+  };
   return (
     <>
       {/* Change background to darker colour */}
@@ -25,14 +42,14 @@ function HomePage() {
             />
           </div>
           {/* Pass handler function as prop to button */}
+          <StatusCards platformName="sheets" status={platformStatus.sheets} onUpdate={handleUpdateStatus} />
           <SheetsDataIntegration onButtonClick={passData} />
           {/* Pass actual state value as prop to table */}
-          <CustomerListings customerData={customerData}/>
-          <StatusCards />
+          <CustomerListings customerData={customerData} />
+          
         </div>
       </div>
     </>
-    
   );
 }
 

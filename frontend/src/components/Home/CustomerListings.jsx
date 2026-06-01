@@ -181,7 +181,7 @@ function CustomerListings({ customerData }) {
 
         {!loading && !error && filteredAndSortedCustomers.length === 0 && (
           <div className="text-center py-12 text-base-content/40 text-sm">
-            No customers found. Click on import data From Google Sheets.
+            No customers found. Click on Import Data From Google Sheets.
           </div>
         )}
 

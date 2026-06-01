@@ -25,12 +25,6 @@ function SheetsDataIntegration({ onButtonClick }) {
             </p>
           </div>
         </div>
-        <span className="flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-3 py-1 rounded-full">
-          <span className="inline-grid *:[grid-area:1/1]">
-              <span className="status status-success animate-ping"></span>
-              <span className="status status-success"></span>
-            </span> CONNECTED
-        </span>
       </div>
       <div className="flex gap-3">
         <button
