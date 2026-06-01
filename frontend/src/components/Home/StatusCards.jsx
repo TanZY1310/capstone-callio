@@ -2,7 +2,6 @@ import { SiWhatsapp, SiGooglesheets } from "react-icons/si";
 import { STATUS_NAME } from "../../data/constants";
 
 function StatusCards({ platformName, status, onUpdate }) {
-  // Add useEffect here to render last sync date - date.now - when last clicked connect
   const color = status.connectionStatus === STATUS_NAME.CONNECTED ? "success" : "error";
   const colorClasses = {
     success: {
