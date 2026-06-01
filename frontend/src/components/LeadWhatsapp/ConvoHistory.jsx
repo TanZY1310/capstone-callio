@@ -6,7 +6,7 @@ function ConvoHistory({waHistory, user }) {
 
   useEffect(() => {
     const fetchChatHistory = async () => {
-      if (!waHistory || !user) return; // guard clause
+      if (!waHistory || !user || user.id === 0) return; // guard clause
 
       // placeholder for real WA Business API call later
       let waApiUrl = "https://jsonplaceholder.typicode.com/users";
@@ -29,10 +29,10 @@ function ConvoHistory({waHistory, user }) {
   return (
     <div className="flex">
       <div className="grow ml-18 mt-5 mr-20 pl-4 pt-4 card w-full bg-base-100 shadow-sm">
-        <h2 className="text-base-content">WhatsApp Conversation History</h2>
-        <h3 className="text-base-content/50 text-sm">
+        <p className="font-semibold text-sm text-base-content">WhatsApp Conversation History</p>
+        <p className="text-xs text-base-content/40 mt-0.5">
           End-to-end encrypted backup
-        </h3>
+        </p>
 
         {messages.length > 0 ? (
           <div>
@@ -57,7 +57,7 @@ function ConvoHistory({waHistory, user }) {
                 placeholder="Type a message..."
                 className="input input-bordered w-full"
               />
-              <button className="btn btn-success btn-circle">
+              <button className="btn btn-success btn-circle transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" fdprocessedid="ufksnr">
                 <SendHorizontal />
               </button>
             </div>
