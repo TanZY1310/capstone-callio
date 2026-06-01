@@ -7,9 +7,13 @@ function UserProfile() {
   return (
     <div>
       <ProfileCard />
-      <SocialCard />
-      <SheetsCard />
+      <div className="flex flex-row flex-wrap items-start">
+        <SocialCard />
+        <SheetsCard />
+      </div>
       <CredentialCard />
     </div>
   );
 }
+
+export default UserProfile;

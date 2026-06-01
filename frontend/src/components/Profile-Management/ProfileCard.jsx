@@ -1,7 +1,7 @@
 function ProfileCard() {
   return (
     <div>
-      <div class="w-232 rounded-xl border border-[#E2E8F0] bg-white/70 p-6 shadow-sm backdrop-blur-md flex items-center justify-between gap-8">
+      <div class="w-90% rounded-xl border border-[#E2E8F0] bg-white/70 p-6 shadow-sm backdrop-blur-md flex items-center justify-between gap-8 m-5">
         <div class="flex items-center gap-6">
           <div class="relative h-20 w-20 shrink-0">
             <img

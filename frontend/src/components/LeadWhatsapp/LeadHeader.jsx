@@ -1,3 +1,5 @@
+import Header from "../Layout/Header";
+
 function LeadHeader({ user }) {
   const openWhatsapp = (e) => {
     e.preventDefault();
@@ -5,16 +7,25 @@ function LeadHeader({ user }) {
   };
 
   return (
-    <div className="flex justify-between items-center pl-18 pt-6 pb-6 bg-base-100">
-      <div className="flex justify-start">
-        <h2 className="text-base-content">Lead Pipeline - {user.name}</h2>
+    <>
+      <Header
+        h1="WhatsApp Conversation"
+        p="View and chat with customers, AI powered response"
+      />
+      <div className="flex justify-between items-center pl-18 pt-6 pb-6 bg-base-100">
+        <div className="flex justify-start">
+          <h2 className="text-base-content">Lead Pipeline - {user.name}</h2>
+        </div>
+        <div className="flex justify-end">
+          <button
+            className="btn btn-md btn-success mr-4"
+            onClick={openWhatsapp}
+          >
+            Open Whatsapp
+          </button>
+        </div>
       </div>
-      <div className="flex justify-end">
-        <button className="btn btn-md btn-success mr-4" onClick={openWhatsapp}>
-          Open Whatsapp
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 
