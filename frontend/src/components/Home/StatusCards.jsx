@@ -1,6 +1,5 @@
 import { SiWhatsapp, SiGooglesheets } from "react-icons/si";
 import { STATUS_NAME } from "../../data/constants";
-import { useEffect } from "react";
 
 function StatusCards({ platformName, status, onUpdate }) {
   // Add useEffect here to render last sync date - date.now - when last clicked connect

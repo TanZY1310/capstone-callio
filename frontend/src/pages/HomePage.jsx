@@ -9,11 +9,11 @@ import { STATUS_NAME } from "../data/constants";
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
   const [platformStatus, setPlatformStatus] = useState({
-      sheets: {
-        connectionStatus: STATUS_NAME.NOT_CONNECTED,
-        lastSync: null,
-      },
-    });
+    sheets: {
+      connectionStatus: STATUS_NAME.NOT_CONNECTED,
+      lastSync: null,
+    },
+  });
 
   const passData = (customer) => {
     console.log("Customer data from home page: " + customer);
@@ -42,11 +42,18 @@ function HomePage() {
             />
           </div>
           {/* Pass handler function as prop to button */}
-          <StatusCards platformName="sheets" status={platformStatus.sheets} onUpdate={handleUpdateStatus} />
-          <SheetsDataIntegration onButtonClick={passData} />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2">
+              <SheetsDataIntegration onButtonClick={passData} />
+            </div>
+            <StatusCards
+              platformName="sheets"
+              status={platformStatus.sheets}
+              onUpdate={handleUpdateStatus}
+            />
+          </div>
           {/* Pass actual state value as prop to table */}
           <CustomerListings customerData={customerData} />
-          
         </div>
       </div>
     </>

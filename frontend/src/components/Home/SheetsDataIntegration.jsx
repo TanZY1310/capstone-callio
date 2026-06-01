@@ -28,14 +28,14 @@ function SheetsDataIntegration({ onButtonClick }) {
       </div>
       <div className="flex gap-3">
         <button
-          className="btn btn-soft btn-success w-2xl"
+          className="btn btn-soft btn-success flex"
           onClick={handleClick}
         >
           <RefreshCw size={15} />
           Import Data From Google Sheets
         </button>
         <button
-          className="btn btn-soft btn-success w-2xl"
+          className="btn btn-soft btn-success flex"
           // onClick={handleClick}
         >
           <RefreshCw size={15} />
