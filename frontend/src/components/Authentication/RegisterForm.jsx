@@ -151,8 +151,7 @@ function RegisterForm() {
         payload: err.message,
       });
       toast.error(err.message);
-    } finally {
-    }
+    } 
   };
 
   return (
