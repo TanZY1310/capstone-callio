@@ -28,7 +28,7 @@ function LeadHeader({ user, users }) {
             >
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
-                  <div className = "text-lg">{u.name}</div>
+                  {u.name}
                 </option>
               ))}
             </select>

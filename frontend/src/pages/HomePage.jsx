@@ -4,14 +4,49 @@ import CustomerListings from "../components/Home/CustomerListings";
 import SheetsDataIntegration from "../components/Home/SheetsDataIntegration";
 import StatusCards from "../components/Home/StatusCards";
 import Header from "../components/Layout/Header";
+import { STATUS_NAME } from "../data/constants";
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
+  //Status Card
+  const [platformStatus, setPlatformStatus] = useState({
+    sheets: {
+      connectionStatus: STATUS_NAME.NOT_CONNECTED,
+      lastSync: null,
+    },
+  });
+  //Summary Changed Records
+  const [changedRecords, setChangedRecords] = useState([]);
 
-  const passData = (customer) => {
-    console.log("Customer data from home page: " + customer);
-    setCustomerData(customer);
-  }
+  const handleImport = (data) => {
+    setCustomerData(data);
+    setChangedRecords([]); //Reset change records after import
+    //Update status after import
+    handleUpdateStatus();
+  };
+
+  const handleDataChange = (changed) => {
+    setChangedRecords(changed);
+  };
+
+  const handleExport = () => {
+    setChangedRecords([]); //Clear change records after export
+    setPlatformStatus((prev) => ({
+      ...prev,
+      sheets: { ...prev.sheets, lastSync: Date.now() },
+    }));
+  };
+
+  const handleUpdateStatus = () => {
+    setPlatformStatus((prev) => ({
+      ...prev,
+      sheets: {
+        connectionStatus: STATUS_NAME.CONNECTED,
+        lastSync: Date.now(),
+      },
+    }));
+  };
+
   return (
     <>
       {/* Change background to darker colour */}
@@ -25,14 +60,27 @@ function HomePage() {
             />
           </div>
           {/* Pass handler function as prop to button */}
-          <SheetsDataIntegration onButtonClick={passData} />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2">
+              <SheetsDataIntegration
+                onImport={handleImport}
+                changedRecords={changedRecords}
+                onExport={handleExport}
+              />
+            </div>
+            <StatusCards
+              platformName="sheets"
+              status={platformStatus.sheets}
+            />
+          </div>
           {/* Pass actual state value as prop to table */}
-          <CustomerListings customerData={customerData}/>
-          <StatusCards />
+          <CustomerListings
+            customerData={customerData}
+            onDataChange={handleDataChange}
+          />
         </div>
       </div>
     </>
-    
   );
 }
 

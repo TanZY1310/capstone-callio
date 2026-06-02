@@ -2,6 +2,7 @@ import { useState, useReducer, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { KeyRound, Mail, Eye, EyeOff } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import sampleUserList from "../../data/SampleUserList";
 import { toast } from "sonner";
 
@@ -75,7 +76,7 @@ function LoginForm({ setUser }) {
     if (registeredEmail) {
       dispatch({ type: ACTIONS.SET_EMAIL, payload: registeredEmail });
     }
-  }, [registeredEmail]);
+  }, [registeredEmail, registerState]);
 
   async function sampleLoginAPI(email, password) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -101,7 +102,7 @@ function LoginForm({ setUser }) {
     dispatch({ type: ACTIONS.LOGIN_START });
 
     try {
-      //Handle authentication via backend API, Simulate API for now
+      //TODO Handle authentication via backend API, Simulate API for now
       //UserList.js will simulate users from db
       const data = await sampleLoginAPI(state.email, state.password);
       setUser(data.user);
@@ -124,8 +125,7 @@ function LoginForm({ setUser }) {
           style={{
             backgroundImage: "url('/building-bg.jpg')",
             backgroundSize: "cover",
-          }}
-        >
+          }}>
           <span className="font-bold text-2xl">CALLIO</span>
           <blockquote className="text-lg opacity-80">
             {/* "Manage your leads and track every conversation." */}
@@ -185,8 +185,7 @@ function LoginForm({ setUser }) {
                   <button
                     type="button"
                     onClick={() => setShowPassword((p) => !p)}
-                    className="text-base-content/40 hover:text-base-content"
-                  >
+                    className="text-base-content/40 hover:text-base-content">
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </label>
@@ -198,17 +197,22 @@ function LoginForm({ setUser }) {
                   At least one uppercase letter
                 </p>
                 <div>
-                  <Link className="link link-primary link-hover">
+                  <a
+                    className="link link-primary link-hover"
+                    onClick={() =>
+                      document
+                        .getElementById("forgot_password_modal")
+                        .showModal()
+                    }>
                     Forgot password?
-                  </Link>
+                  </a>
                 </div>
                 <div>
                   <p>
                     Do Not Have An Account?
                     <Link
                       to="/register"
-                      className="link link-primary link-hover"
-                    >
+                      className="link link-primary link-hover">
                       Register
                     </Link>
                   </p>
@@ -227,33 +231,7 @@ function LoginForm({ setUser }) {
                   OR CONTINUE WITH
                 </div>
                 <button className="btn btn-outline w-full gap-2" disabled>
-                  <svg
-                    aria-label="Google logo"
-                    width="16"
-                    height="16"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 512 512"
-                  >
-                    <g>
-                      <path d="m0 0H512V512H0" fill="#fff"></path>
-                      <path
-                        fill="#34a853"
-                        d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341"
-                      ></path>
-                      <path
-                        fill="#4285f4"
-                        d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57"
-                      ></path>
-                      <path
-                        fill="#fbbc02"
-                        d="m90 341a208 200 0 010-171l63 49q-12 37 0 73"
-                      ></path>
-                      <path
-                        fill="#ea4335"
-                        d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55"
-                      ></path>
-                    </g>
-                  </svg>
+                  <FcGoogle />
                   Login with Google
                 </button>
               </fieldset>
@@ -261,6 +239,41 @@ function LoginForm({ setUser }) {
           </div>
         </div>
       </div>
+
+      <dialog id="forgot_password_modal" className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Verify Email!</h3>
+          <p className="py-4">
+            Please enter your email to reset your password.
+          </p>
+          <label className="input validator w-full">
+            <Mail size={15} className="text-base-content/40" />
+            <input
+              type="email"
+              placeholder="mail@site.com"
+              required
+              // value={state.email}
+              // onChange={(e) =>
+              //   dispatch({
+              //     type: "SET_EMAIL",
+              //     payload: e.target.value,
+              //   })
+              // }
+            />
+          </label>
+          <div className="validator-hint hidden">
+            Please enter a valid email address
+          </div>
+          <div className="modal-action">
+            <form method="dialog">
+              <div className="flex gap-4">
+                <button className="btn btn-neutral px-4 py-2 rounded">Close</button>
+                <button className="btn btn-neutral px-4 py-2 rounded">Reset Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </>
   );
 }
