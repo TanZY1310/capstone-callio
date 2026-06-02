@@ -87,12 +87,9 @@ function StatusCards({ platformName, status, onUpdate }) {
             </div>
           </div>
           {status.connectionStatus === STATUS_NAME.NOT_CONNECTED ? (
-            <button
-              className="btn btn-success btn-sm"
-              onClick={() => onUpdate()}
-            >
-              Connect Google Sheets
-            </button>
+            <span className="text-xs text-base-content/40">
+              Last Sync: -
+            </span>
           ) : (
             <span className="text-xs text-base-content/40">
               Last Sync: {new Date(status.lastSync).toLocaleTimeString()}
