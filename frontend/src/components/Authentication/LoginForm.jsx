@@ -75,7 +75,7 @@ function LoginForm({ setUser }) {
     if (registeredEmail) {
       dispatch({ type: ACTIONS.SET_EMAIL, payload: registeredEmail });
     }
-  }, [registeredEmail]);
+  }, [registeredEmail, registerState]);
 
   async function sampleLoginAPI(email, password) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
