@@ -7,31 +7,12 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
-const tableHeader = [
-  { id: 1, name: "Name" },
-  { id: 2, name: "Contact" },
-  { id: 3, name: "Budget" },
-  { id: 4, name: "Location" },
-  { id: 5, name: "Status" },
-  { id: 6, name: "Last Contact" },
-  { id: 7, name: "Actions" },
-  { id: 8, name: "Remarks" },
-];
-
-const statusList = [
-  { id: 1, name: "No Pickup" },
-  { id: 2, name: "Bonding / Might Keep In Touch" },
-  { id: 3, name: "Not Interested" },
-  { id: 4, name: "WhatsApp" },
-  { id: 5, name: "Stop Following Up" },
-  { id: 6, name: "Pending Appointment" },
-  { id: 7, name: "Appointment" },
-  { id: 8, name: "Booking" },
-  { id: 9, name: "Completed" },
-].sort((a, b) => a.name.localeCompare(b.name));
+import { toast } from "sonner";
+import { statusList } from "../../data/statusList";
+import { tableHeader } from "../../data/tableHeader";
 
 const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
   return new Date(dateStr).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
@@ -39,8 +20,9 @@ const formatDate = (dateStr) => {
   });
 };
 
-function CustomerListings({ customerData }) {
+function CustomerListings({ customerData, onDataChange }) {
   const [customers, setCustomers] = useState([]);
+  const [originalStatus, setOriginalStatus] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   //Status value map with customer.status
@@ -53,7 +35,17 @@ function CustomerListings({ customerData }) {
   const navigate = useNavigate();
 
   const handleStatusChange = (id, value) => {
-    setStatus((prev) => ({ ...prev, [id]: value }));
+    // setStatus((prev) => ({ ...prev, [id]: value }));
+    const updatedStatus = { ...status, [id]: value };
+    setStatus(updatedStatus);
+
+    const changed = customers.filter((c) => updatedStatus[c.id] !== originalStatus[c.id]).map((c) => ({
+      ...c, originalStatus: originalStatus[c.id], newStatus: updatedStatus[c.id],
+    }));
+
+    console.log("Changed Value", changed);
+
+    onDataChange?.(changed);
   };
 
   // Whenever there are changes in customerData, assuming from button sync data, the use effect below will run
@@ -65,14 +57,17 @@ function CustomerListings({ customerData }) {
       console.log("Function syncData has started");
       setLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log("CustomerData in syncData: " + customerData);
         setCustomers(customerData);
+        const statusMap = Object.fromEntries(customerData.map((b) => [b.id, b.status]))
         setStatus(
-          Object.fromEntries(customerData.map((b) => [b.id, b.status])),
+          statusMap
         );
+        setOriginalStatus(statusMap);
       } catch (err) {
         setError("Failed to fetch data");
+        console.log(err.message);
       } finally {
         setLoading(false);
       }
@@ -94,7 +89,7 @@ function CustomerListings({ customerData }) {
       return matchesStatus && matchesSearch;
     });
 
-    // Sort filtered results by date (later)
+    // TODO: Sort filtered results by date (later)
 
     return filtered;
   }, [filters, customers]);
@@ -117,6 +112,7 @@ function CustomerListings({ customerData }) {
       navigate(destination, { state: { customer } });
     } catch (err) {
       //Display a toast message to display navigation error
+      toast.error(err.message);
     }
   };
 
@@ -181,7 +177,7 @@ function CustomerListings({ customerData }) {
 
         {!loading && !error && filteredAndSortedCustomers.length === 0 && (
           <div className="text-center py-12 text-base-content/40 text-sm">
-            No customers found. Click on Import Data From Google Sheets.
+            No customers found. Click on Import From Google Sheets.
           </div>
         )}
 
@@ -225,7 +221,11 @@ function CustomerListings({ customerData }) {
                   <td>
                     <select
                       name="status"
-                      className="select select-bordered select-sm w-full"
+                      className={`select select-bordered select-sm w-full ${
+                        status[customer.id] !== originalStatus[customer.id]
+                          ? "border-warning text-warning"
+                          : ""
+                      }`}
                       value={status[customer.id]}
                       onChange={(e) =>
                         handleStatusChange(customer.id, e.target.value)
@@ -255,7 +255,7 @@ function CustomerListings({ customerData }) {
                       <button
                         name="micButton"
                         className="btn btn-sm btn-ghost border border-success/30 hover:bg-success/10"
-                        onClick={(e) =>
+                        onClick={() =>
                           sendCustomerDetails("/speech", customer)
                         }
                       >

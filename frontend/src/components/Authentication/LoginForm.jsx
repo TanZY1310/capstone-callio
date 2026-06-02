@@ -101,7 +101,7 @@ function LoginForm({ setUser }) {
     dispatch({ type: ACTIONS.LOGIN_START });
 
     try {
-      //Handle authentication via backend API, Simulate API for now
+      //TODO Handle authentication via backend API, Simulate API for now
       //UserList.js will simulate users from db
       const data = await sampleLoginAPI(state.email, state.password);
       setUser(data.user);

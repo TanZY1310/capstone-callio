@@ -137,7 +137,7 @@ function RegisterForm() {
   };
 
   const handleSubmit = async (e) => {
-    //Handle registration via backend API, Simulate API for now
+    // TODO Handle registration via backend API, Simulate API for now
     e.preventDefault();
     dispatch({ type: ACTIONS.REGISTER_START });
 
