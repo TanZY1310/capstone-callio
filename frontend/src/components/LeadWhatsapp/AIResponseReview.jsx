@@ -1,13 +1,56 @@
-function AIResponseReview() {
+import { useState, useEffect } from "react";
+
+function AIResponseReview({ aiResponse, user }) {
+  const [responses, setResponses] = useState([]);
+
+  // ⦁	AI Powered Response -
+  // enable messages shown using dummyAIResponse.js as source,
+  // enable edit & confirm and for stuff to show in ConvoHistory.jsx upon confirming
+
+  useEffect(() => {
+    // assuming API fetching is done outside of this component for now
+    // due to the fact that we pass in dummy AI response
+    const updateResponse = async () => {
+      if (!aiResponse || !user || user.id === 0) return; // guard clause
+
+      console.log(`user id is ${user.id}`);
+      const properUser = aiResponse.find(
+        (response) => response.userID === user.id,
+      );
+      const properResponse = properUser?.responses ?? [];
+      console.log(`properResponse looks like ${properResponse}`);
+      setResponses((prev) => [...prev, ...properResponse]);
+    };
+
+    updateResponse();
+  }, [user]);
+
   return (
     <div className="flex">
       <div className="grow ml-18 mt-5 mr-20 pl-4 pt-4 card w-full bg-base-100 shadow-sm">
-        <h2 className="text-base-content">AI Powered Response</h2>
-        <h3 className="text-base-content/50 text-sm">
-          Suggested response flow based on information fed and the call transcribed. Send upon confirmation.
-        </h3>
+        <p className="font-semibold text-sm text-base-content">AI Powered Response</p>
+        <p className="text-xs text-base-content/40 mt-0.5">
+          Suggested response flow based on information fed and the call
+          transcribed. Send upon confirmation.
+        </p>
 
-        <div className="py-4">
+        {responses.length > 0 ? (
+          <div>
+            {responses.map((response) => (
+              <div key={response.id} className="chat chat-end">
+                <div className="w-10 rounded-full"></div>
+                <div className="chat-bubble chat-bubble-primary opacity-70">
+                  {response.content}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <p>No AI Response configured for this client yet.</p>
+          </div>
+        )}
+        {/* <div className="py-4">
           <div className="chat chat-end">
             <div className="chat-image avatar">
               <div className="w-10 rounded-full">
@@ -37,13 +80,12 @@ function AIResponseReview() {
               Me
               <time className="text-xs opacity-50 ml-1">09:45</time>
             </div>
-            <div className="chat-bubble chat-bubble-primary opacity-70">message 2 here</div>
-          </div>
-        </div>
+            <div` className="chat-bubble chat-bubble-primary opacity-70">message 2 here</div>
+          </div>        </div> */}
 
         <div className="flex justify-end gap-3 p-4 border-t border-base-300">
-          <button className="btn btn-neutral">Edit</button>
-          <button className="btn btn-success">Confirm</button>
+          <button className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" fdprocessedid="ufksnr">Edit</button>
+          <button className="btn btn-success transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" fdprocessedid="ufksnr">Confirm</button>
         </div>
       </div>
     </div>

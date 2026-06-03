@@ -29,14 +29,19 @@ function LeadsByRegion() {
     { district: "Kajang", value: 0 },
   ]);
 
+  const [totalCall, setTotalCall] = useState(0);
+
   useEffect(() => {
     const data = [
       { district: "Bangsar", value: 40 },
-      { district: "Cheras", value: 100 },
-      { district: "Puchong", value: 10 },
-      { district: "Kajang", value: 200 },
+      { district: "Cheras", value: 60 },
+      { district: "Puchong", value: 20 },
+      { district: "Kajang", value: 80 },
     ];
+
+    const total = 200;
     setLeadsRegion(data);
+    setTotalCall(total);
   }, []);
 
   // define your data into chart
@@ -53,7 +58,13 @@ function LeadsByRegion() {
 
   // define your chart styling
   const chartOptions = {
+    maintainAspectRatio: false,
     indexAxis: "y", // this is the part that makes the chart horizontal
+    scales: {
+      x: { grid: { display: false } },
+
+      y: { grid: { display: false } },
+    },
     elements: {
       bar: {
         borderWidth: 2,
@@ -61,16 +72,11 @@ function LeadsByRegion() {
     },
     responsive: true,
     plugins: {
-      legend: { display: true },
+      legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (item) => `${item.label} - ${item.raw}%`,
+          label: (item) => `${item.label} - ${item.raw}`,
         },
-      },
-
-      title: {
-        display: true,
-        text: "Leads By Region",
       },
     },
   };
