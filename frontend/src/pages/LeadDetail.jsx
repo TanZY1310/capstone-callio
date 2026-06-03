@@ -66,17 +66,19 @@ function LeadDetail() {
         <div className="flex flex-row">
           <div className="basis-1/3">
             <ContactInfo user={showUser} users={users} />
-            <StatusCards
-              platformName="whatsapp"
-              status={platformStatus.whatsapp}
-              onUpdate={handleUpdateStatus}
-            />
+            <div className ="mt-6">
+              <StatusCards
+                platformName="whatsapp"
+                status={platformStatus.whatsapp}
+                onUpdate={handleUpdateStatus}
+              />
+            </div>
           </div>
           <div className="basis-2/3">
             <ConvoHistory waHistory={dummyWAHistory} user={showUser} />
           </div>
         </div>
-        <AIResponseReview aiResponse={dummyAIResponse} user={showUser} />
+          <AIResponseReview aiResponse={dummyAIResponse} user={showUser} />
       </div>
     </div>
   );

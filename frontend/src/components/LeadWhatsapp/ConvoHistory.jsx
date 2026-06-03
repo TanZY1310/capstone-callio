@@ -28,7 +28,7 @@ function ConvoHistory({waHistory, user }) {
 
   return (
     <div className="flex">
-      <div className="grow ml-18 mt-5 mr-20 pl-4 pt-4 card w-full bg-base-100 shadow-sm">
+      <div className="grow  rounded-2xl ml-18 mt-5 mr-20 p-4 card w-full bg-base-100 shadow-sm">
         <p className="font-semibold text-sm text-base-content">WhatsApp Conversation History</p>
         <p className="text-xs text-base-content/40 mt-0.5">
           End-to-end encrypted backup
