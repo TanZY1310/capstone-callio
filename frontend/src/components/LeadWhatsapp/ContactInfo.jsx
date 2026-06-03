@@ -6,7 +6,7 @@ function ContactInfo({ user }) {
   };
 
   return (
-    <div className="flex flex-col justify-start ml-18 mt-5 pl-4 pt-4 card w-flex bg-base-100 shadow-sm">
+    <div className="flex flex-col rounded-2xl justify-start mt-5 p-4 card w-flex bg-base-100 shadow-sm">
       <p className="font-semibold text-sm text-base-content">
         Contact Information
       </p>

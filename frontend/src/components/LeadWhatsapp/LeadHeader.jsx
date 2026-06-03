@@ -13,7 +13,7 @@ function LeadHeader({ user, users }) {
         p="View and chat with customers, AI powered response"
       />
 
-      <div className="flex justify-between items-center pl-18 pt-6 pb-6 bg-base-100">
+      <div className="flex justify-between items-center  rounded-2xl pl-8 pt-6 pb-6 bg-base-100">
         <div className="flex justify-start items-center gap-2">
           <p className="font-semibold text-sm text-base-content">
             Lead Pipeline 
