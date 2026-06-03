@@ -9,10 +9,13 @@ import transcriptionData from "./TrancriptionData";
 import SentimentData from "./SentimentData";
 import NextActionData from "./NextActionData";
 import ProgressBar from "./speech-to-text-body-progressbar";
+import { useLocation } from "react-router-dom";
 
 function SpeechAnalysisCard({ data }) {
   // Setting the default tab to "transcription" so it isn't empty on load
   const [activeTab, setActiveTab] = useState("transcription");
+  const { state } = useLocation();
+  const customer = state?.customer;
 
   return (
     <div className="w-full p-0">
@@ -26,7 +29,7 @@ function SpeechAnalysisCard({ data }) {
             </button>
           </div>
 
-          <CustomerInfoCard data={data} />
+          <CustomerInfoCard data={data} customer={customer}/>
 
           {/* Note: Ensure AudioPlaybackCard width inside its component is either w-full or matches this container's narrow width */}
           <AudioPlaybackCard data={data} />
