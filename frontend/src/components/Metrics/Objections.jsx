@@ -4,18 +4,23 @@ function Objections() {
   const [issues, setIssues] = useState([]);
 
   useEffect(() => {
-    const data = ["Too Expensive", "Not Interested", "Wrong Area"];
+    const data = [
+      "Too Expensive",
+      "Not Interested",
+      "Wrong Area",
+      "Call Back Later",
+      "Wrong Number",
+    ];
     setIssues(data);
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 w-full">
-      <h2 className="font-semibold text-base-content">Primary Objections</h2>
-      <div className="flex flex-wrap gap-2">
-        {issues.map((item, index) => (
-          <span key={index} className="badge badge-error badge-outline">{item}</span>
-        ))}
-      </div>
+    <div className="flex flex-col gap-2 w-full">
+      {issues.map((item, index) => (
+        <span key={index} className="badge badge-soft badge-error">
+          {item}
+        </span>
+      ))}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import TopCard from "./TopCard";
 import FunnelCard from "./FunnelCard";
 import LeadsByRegion from "./LeadsByRegion";
 import BudgetBreakdown from "./BudgetBreakdown";
+import CallUpload from "./CallUpload";
 import { data } from "react-router-dom";
 import Header from "../Layout/Header";
 
@@ -43,12 +44,24 @@ function AgentDashboard() {
 
           {/* 2. Funnel Card - Metrics Performance Transition*/}
 
-          <div className="card bg-base-100 border border-base-200 shadow-sm">
+          {/* <div className="card bg-base-100 border border-base-200 shadow-sm">
             <div className="card-body gap-4">
               <h2 className="card-title text-base-content">
                 Lead Conversion Funnel
               </h2>
               <FunnelCard data={stats} />
+            </div>
+          </div> */}
+
+          <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+            <div className="card-body">
+              <h2 className="card-title text-base-content">
+                Weekly Call Volume
+              </h2>
+              <h3 className="card-title text-base-content">
+                Monday - Friday (Current Week)
+              </h3>
+              <CallUpload />
             </div>
           </div>
 
@@ -56,9 +69,14 @@ function AgentDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+              <h2 className="card-title text-base-content">
+                Lead Budget Breakdown
+              </h2>
               <BudgetBreakdown />
             </div>
+
             <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+              <h2 className="card-title text-base-content">Region Breakdown</h2>
               <LeadsByRegion />
             </div>
           </div>
