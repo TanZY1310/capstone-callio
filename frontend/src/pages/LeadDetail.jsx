@@ -42,11 +42,11 @@ function LeadDetail() {
 
   useEffect(() => {
     const customer = state?.customer;
-    const user = customer ? users.find((u) => u.id === customer.id) : users[0];
+    const customerFound = customer ? users.find((u) => u.id === customer.id) : users[0];
     console.log("customer", customer);
-    console.log("user", user)
+    console.log("user", customerFound)
 
-    setShowUser(user ?? users[0]);
+    setShowUser(customerFound ?? users[0]);
   }, [state]);
 
   const handleUpdateStatus = () => {

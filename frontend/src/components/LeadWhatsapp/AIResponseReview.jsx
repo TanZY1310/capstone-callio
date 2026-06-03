@@ -27,8 +27,10 @@ function AIResponseReview({ aiResponse, user }) {
 
   return (
     <div className="flex">
-      <div className="  rounded-2xl grow ml-18 mt-5 mr-20 p-4 card w-full bg-base-100 shadow-sm">
-        <p className="font-semibold text-sm text-base-content">AI Powered Response</p>
+      <div className="  rounded-2xl grow mt-5 p-4 card w-full bg-base-100 shadow-sm">
+        <p className="font-semibold text-sm text-base-content">
+          AI Powered Response
+        </p>
         <p className="text-xs text-base-content/40 mt-0.5">
           Suggested response flow based on information fed and the call
           transcribed. Send upon confirmation.
@@ -37,10 +39,27 @@ function AIResponseReview({ aiResponse, user }) {
         {responses.length > 0 ? (
           <div>
             {responses.map((response) => (
-              <div key={response.id} className="chat chat-end">
-                <div className="w-10 rounded-full"></div>
-                <div className="chat-bubble chat-bubble-primary opacity-70">
-                  {response.content}
+              <div className = "flex">
+                <div className="basis-7/8">
+                  <div key={response.id} className="chat chat-end">
+                    <div className="chat-bubble chat-bubble-primary opacity-70 p-2">
+                      {response.content}
+                    </div>
+                  </div>
+                </div>
+                <div className="basis-1/8 flex justify-end gap-3 p-2">
+                  <button
+                    className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+                    fdprocessedid="ufksnr"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-success transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+                    fdprocessedid="ufksnr"
+                  >
+                    Confirm
+                  </button>
                 </div>
               </div>
             ))}
@@ -50,43 +69,6 @@ function AIResponseReview({ aiResponse, user }) {
             <p>No AI Response configured for this client yet.</p>
           </div>
         )}
-        {/* <div className="py-4">
-          <div className="chat chat-end">
-            <div className="chat-image avatar">
-              <div className="w-10 rounded-full">
-                <img
-                  alt="Me"
-                  src="https://img.daisyui.com/images/profile/demo/anakeen@192.webp"
-                />
-              </div>
-            </div>
-            <div className="chat-header text-base-content">
-              Me
-              <time className="text-xs opacity-50 ml-1">09:45</time>
-            </div>
-            <div className="chat-bubble chat-bubble-primary opacity-70">message 1 here</div>
-          </div>
-
-          <div className="chat chat-end">
-            <div className="chat-image avatar">
-              <div className="w-10 rounded-full">
-                <img
-                  alt="Me"
-                  src="https://img.daisyui.com/images/profile/demo/anakeen@192.webp"
-                />
-              </div>
-            </div>
-            <div className="chat-header text-base-content">
-              Me
-              <time className="text-xs opacity-50 ml-1">09:45</time>
-            </div>
-            <div` className="chat-bubble chat-bubble-primary opacity-70">message 2 here</div>
-          </div>        </div> */}
-
-        <div className="flex justify-end gap-3 p-4 border-t border-base-300">
-          <button className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" fdprocessedid="ufksnr">Edit</button>
-          <button className="btn btn-success transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" fdprocessedid="ufksnr">Confirm</button>
-        </div>
       </div>
     </div>
   );
