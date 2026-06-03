@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Mic, Phone, ChartArea } from "lucide-react";
+import { LayoutDashboard, Mic, ChartArea } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 
 const NAV_ITEMS = [
-  { id: 1, label: "Customer Listings",     icon: <LayoutDashboard />, path: "/" },
-  { id: 2, label: "Speech Analysis",       icon: <Mic />,             path: "/speech" },
-  { id: 3, label: "WhatsApp Conversation", icon: <Phone />,           path: "/whatsapp" },
-  { id: 4, label: "Metrics",               icon: <ChartArea />,       path: "/metrics" },
+  { id: 1, label: "Customer Listings", icon: <LayoutDashboard />, path: "/", activeColour: "text-blue-500" },
+  { id: 2, label: "Speech Analysis", icon: <Mic />, path: "/speech", activeColour: "text-yellow-500" },
+  { id: 3, label: "WhatsApp Conversation", icon: <SiWhatsapp size={24} />, path: "/whatsapp", activeColour: "text-green-500" },
+  { id: 4, label: "Metrics", icon: <ChartArea />, path: "/metrics", activeColour: "text-purple-500" },
 ];
 
 function Navigation() {
@@ -17,7 +18,7 @@ function Navigation() {
             to={item.path}
             end={item.path === "/"}
             className={({ isActive }) =>
-              `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? "active" : ""}`
+              `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? `active ${item.activeColour} font-semibold` : "text-base-content/60"}`
             }
             data-tip={item.label}
           >

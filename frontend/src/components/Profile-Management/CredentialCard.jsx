@@ -6,17 +6,42 @@ function CredentialCard() {
 
   return (
     <div>
-      <div className="card bg-base-300 border-base-300 rounded-box w-xs border p-4">
-        <h2 className="card-title text-black">Professional Details</h2>
-        <br />
-        <label className="label">License Number</label>
-        <p className="text-sm text-left">123456</p>
+      <div class="w-160 rounded-xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md ml-5 ">
+        <div class="mb-6 flex items-center gap-2">
+          <h2 class="text-lg font-bold text-slate-900">Professional Details</h2>
+        </div>
 
-        <label className="label">Agency Branch</label>
-        <p className="text-sm text-left">AIA</p>
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label class="mb-1 block text-xs text-slate-400" for="license">
+              License Number (REN)
+            </label>
+            <input
+              type="text"
+              id="license"
+              value="REN 12345"
+              disabled
+              class="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs text-slate-400" for="branch">
+              Agency Branch
+            </label>
+            <input
+              type="text"
+              id="branch"
+              value="IQI Global - Klang Valley"
+              disabled
+              class="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 export default CredentialCard;
+//

@@ -5,6 +5,10 @@ import FunnelCard from "./FunnelCard";
 import TeamFunnelCard from "./TeamFunnelCard";
 import Objections from "./Objections";
 import LeadsByRegion from "./LeadsByRegion";
+import Header from "../Layout/Header";
+import { AlignRight } from "lucide-react";
+import CallUpload from "./CallUpload";
+import BudgetBreakdown from "./BudgetBreakdown";
 
 function LeaderDashboard() {
   const [teamStats, setTeamStats] = useState({});
@@ -37,51 +41,103 @@ function LeaderDashboard() {
   }, []);
 
   return (
-    <div>
-      {/* // Header  */}
-      <div className="navbar bg-base-100 shadow-sm" style={{ color: "white" }}>
-        <h2>Leader Dashboard</h2>
-      </div>
+    <>
+      <div className="flex h-screen bg-base-200">
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+          {/* // Header  */}
+          <Header
+            h1="Leader Dashboard"
+            p="Monitor agent performance and logs"
+          />
 
-      {/* 1. Top Card - Personal Metrics Performance */}
+          {/* 1. Top Card - Personal Metrics Performance */}
 
-      <div className="flex w-full flex-col">
-        <div className="card-body">
-          <div className="card-title">
-            <h2>Personal Performance</h2>
-          </div>
           <TopCard stats={stats} />
-        </div>
 
-        {/* 2. Funnel Card - Metrics Performance Transition*/}
+          {/* 2. Funnel Card - Metrics Performance Transition*/}
 
-        <div className="card-body">
-          <h2 className="card-title">Team Funnel</h2>
-          <TeamFunnelCard teamData={teamStats} />
-        </div>
+          {/* <div className="card bg-base-100 border border-base-200 shadow-sm">
+            <div className="card-body gap-4">
+              <h2 className="card-title text-base-content">Team Funnel</h2>
+              <TeamFunnelCard teamData={teamStats} />
+            </div>
+          </div> */}
 
-        {/* 3. Team Performance*/}
+          <div className="card bg-base-100 border border-base-200 shadow-sm">
+            <div className="card-body">
+              <h2 className="card-title text-base-content">
+                Team Call Activity
+              </h2>
+              <h3 className="card-title text-base-content">
+                Monday - Friday (Current Week)
+              </h3>
+              <CallUpload />
+            </div>
+          </div>
 
-        <div className="card-body">
-          <h2 className="card-title">Agent Performance</h2>
-          <PerformanceCard />
-        </div>
+          {/* 3. Team Performance*/}
 
-        {/* 4. Bottom Card */}
+          <div className="card bg-base-100 border border-base-200 shadow-sm">
+            <div className="card-body gap-4">
+              <h2 className="card-title text-base-content">
+                Agent Activity Summary
+              </h2>
+              <label
+                className="input input-sm"
+                style={{ position: AlignRight }}
+              >
+                <svg
+                  className="h-[1em] opacity-50"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                >
+                  <g
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="2.5"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                  </g>
+                </svg>
+                <input type="search" className="grow" placeholder="Search" />
+              </label>
+              <PerformanceCard />
+            </div>
+          </div>
 
-        <div className="card-body">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="card bg-base-300 rounded-box p-5 grid place-items-center">
+          {/* 4. Bottom Card */}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+              <h2 className="card-title text-base-content">
+                Team Budget Breakdown
+              </h2>
+              <BudgetBreakdown />
+            </div>
+
+            <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+              <h2
+                className="card-title text-base-content"
+                style={{ padding: "5px" }}
+              >
+                Top Objections
+              </h2>
               <Objections />
             </div>
 
-            <div className="card bg-base-300 rounded-box p-5">
+            <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+              <h2 className="card-title text-base-content">
+                Regions Team Breakdown
+              </h2>
               <LeadsByRegion />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
