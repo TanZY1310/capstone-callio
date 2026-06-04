@@ -1,29 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-function AIResponseReview({ aiResponse, user }) {
-  const [responses, setResponses] = useState([]);
-
+function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
   // ⦁	AI Powered Response -
   // enable messages shown using dummyAIResponse.js as source,
   // enable edit & confirm and for stuff to show in ConvoHistory.jsx upon confirming
+  // track which response is being edited and its current text
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+  // Called by AIResponseReview Edit button
+  const handleEdit = (id, content) => {
+    setEditingId(id);
+    setEditText(content);
+  };
 
-  useEffect(() => {
-    // assuming API fetching is done outside of this component for now
-    // due to the fact that we pass in dummy AI response
-    const updateResponse = async () => {
-      if (!aiResponse || !user || user.id === 0) return; // guard clause
-
-      console.log(`user id is ${user.id}`);
-      const properUser = aiResponse.find(
-        (response) => response.userID === user.id,
-      );
-      const properResponse = properUser?.responses ?? [];
-      console.log(`properResponse looks like ${properResponse}`);
-      setResponses((prev) => [...prev, ...properResponse]);
-    };
-
-    updateResponse();
-  }, [user]);
+  const handleSave = (id) => {
+    // update responses in parent via onEdit prop
+    onEdit(id, editText);
+    setEditingId(null);
+    setEditText("");
+  };
 
   return (
     <div className="flex">
@@ -36,33 +31,47 @@ function AIResponseReview({ aiResponse, user }) {
           transcribed. Send upon confirmation.
         </p>
 
-        {responses.length > 0 ? (
+        {aiResponses.length > 0 ? (
           <div>
-            {responses.map((response) => (
-              <div className = "flex">
-                <div className="basis-7/8">
-                  <div key={response.id} className="chat chat-end">
-                    <div className="chat-bubble chat-bubble-primary opacity-70 p-2">
-                      {response.content}
-                    </div>
+            {aiResponses.map((response) => {
+              const isEditing = editingId === response.id;
+              return (
+                <div key={response.id} className="flex">
+                  <div className="basis-7/8">
+                    {isEditing ? (
+                      <input
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded" 
+
+                      />
+                    ) : (
+                      <div className="chat-bubble chat-bubble-primary opacity-70 p-2 m-1">
+                        {response.content}
+                      </div>
+                    )}
+                  </div>
+                  <div className="basis-1/8 flex justify-end gap-3 p-2">
+                    <button
+                      className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+                      onClick={() =>
+                        isEditing
+                          ? handleSave(response.id)
+                          : handleEdit(response.id, response.content)
+                      }
+                    >
+                      {isEditing ? "Save" : "Edit"}
+                    </button>
+                    <button
+                      className="btn btn-success transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+                      onClick={() => onConfirm(response.content)}
+                    >
+                      Confirm
+                    </button>
                   </div>
                 </div>
-                <div className="basis-1/8 flex justify-end gap-3 p-2">
-                  <button
-                    className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
-                    fdprocessedid="ufksnr"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-success transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
-                    fdprocessedid="ufksnr"
-                  >
-                    Confirm
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div>
