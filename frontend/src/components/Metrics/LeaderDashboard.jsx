@@ -56,6 +56,8 @@ function LeaderDashboard() {
 
           {/* 1. Top Card - Personal Metrics Performance */}
 
+          <h1 className="font-sans ... text-2xl font-bold">My Dashboard</h1>
+
           <TopCard dummyAgentData={dummyAgentData} />
 
           {/* 2. Bar Chart Card - Call Upload*/}
@@ -64,20 +66,36 @@ function LeaderDashboard() {
 
           {/* 3. Team Performance*/}
 
+          <h1 className="font-sans ... text-2xl font-bold">Agents Overview</h1>
+
           <PerformanceCard dummyAgentPerformance={dummyAgentPerformance} />
 
           {/* 4. Bottom Card */}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* <h2 className="card-title text-base-content">
-                Team Budget Breakdown
-              </h2>  */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* <!-- Main content spanning 2 columns --> */}
+            <div className="col-span-2 card  bg-base-100 ">
+              <BudgetBreakdown />
+            </div>
+
+            {/* <!-- Main content spanning 2 columns --> */}
+            <div className="col-span-2 card  bg-base-100">
+              <LeadsByRegion />
+            </div>
+
+            {/* <!-- Sidebar spanning 1 column --> */}
+            <div className="col-span-1 card bg-base-100 ">
+              <Objections />
+            </div>
+          </div>
+
+          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <BudgetBreakdown />
 
             <Objections />
 
             <LeadsByRegion />
-          </div>
+          </div> */}
         </div>
       </div>
     </>

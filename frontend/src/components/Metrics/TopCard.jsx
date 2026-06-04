@@ -24,7 +24,6 @@ function TopCard({ dummyAgentData }) {
             </div>
             <div className="stat-title">Total Leads</div>
             <div className="stat-value">{dummyAgentData.leads}</div>
-            {/* <div className="stat-desc">↗︎ 400 (22%)</div> */}
           </div>
 
           {/* 2. Total Calls */}

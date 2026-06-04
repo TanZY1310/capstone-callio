@@ -45,9 +45,9 @@ function PerformanceCard({ dummyAgentPerformance }) {
           />
         </label>
 
-        <table className="table table-zebra w-full">
+        <table className="table w-full">
           <thead>
-            <tr className="text-base-content/60 text-xs uppercase">
+            <tr className="text-base-content/60 text-xs uppercase bg-base-300">
               <th>ID</th>
               <th>Agent Name</th>
               <th>Calls</th>

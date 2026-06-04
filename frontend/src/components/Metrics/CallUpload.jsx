@@ -73,7 +73,7 @@ function CallUpload() {
         <p className="text-xs text-base-content/50">
           Monday - Friday (Current Week)
         </p>
-        <div>
+        <div style={{ height: "300px" }}>
           <Bar data={barChart} options={chartOptions} />
         </div>
       </div>

@@ -15,17 +15,20 @@ function Objections() {
   }, []);
 
   return (
-    <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+    <div className="card bg-base-100   p-5">
       <h2 className="card-title text-base-content" style={{ padding: "5px" }}>
         Top Objections
       </h2>
-      <div className="flex flex-col gap-2 w-full">
-        {issues.map((item, index) => (
-          <span key={index} className="badge badge-lg badge-soft badge-error">
-            {item}
-          </span>
-        ))}
-      </div>
+
+      {issues.map((item, index) => (
+        <div
+          key={index}
+          className="badge badge-md badge-soft badge-error"
+          style={{ marginBottom: "10px" }}
+        >
+          {item}
+        </div>
+      ))}
     </div>
   );
 }

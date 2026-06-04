@@ -49,7 +49,7 @@ function BudgetBreakdown() {
 
   const chartOptions = {
     maintainAspectRatio: false,
-    cutout: "50%",
+    cutout: "70%",
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -72,11 +72,11 @@ function BudgetBreakdown() {
         Team Budget Breakdown
       </h2>
 
-      <div style={{ padding: "20px" }}>
+      <div>
         <Doughnut data={chartPieAgent} options={chartOptions} />
       </div>
 
-      <ul className="flex flex-col gap-3 text-sm w-full">
+      <ul className="flex flex-col gap-3 text-md w-full">
         {budgetData.map((item) => (
           <li key={item.cost} className="flex items-center gap-2">
             <span
@@ -88,6 +88,27 @@ function BudgetBreakdown() {
           </li>
         ))}
       </ul>
+
+      {/* <div className="card card-side bg-base-100 ">
+        <div>
+          <Doughnut data={chartPieAgent} options={chartOptions} />
+        </div>
+
+        <div className="card-body">
+          <ul>
+            {budgetData.map((item) => (
+              <li key={item.cost} className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-full shrink-0"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-base-content/70 flex-1">{item.cost}</span>
+                <span className="font-semibold">{item.value}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div> */}
     </div>
   );
 }

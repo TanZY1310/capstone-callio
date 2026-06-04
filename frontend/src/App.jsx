@@ -1,14 +1,11 @@
-import { useEffect, useState, lazy } from "react";
+import { useState, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Link,
   Navigate,
 } from "react-router-dom";
 import { Toaster } from "sonner";
-import TopCard from "./components/Metrics/TopCard";
-import LeaderDashboard from "./components/Metrics/LeaderDashboard";
 
 // Include page or component imports here
 const Register = lazy(() => import("./components/Authentication/RegisterForm"));
@@ -34,7 +31,45 @@ function App() {
 
   return (
     <>
-      <LeaderDashboard />
+      <Router>
+        <Toaster position="top-right" richColors />
+        <Routes>
+          <Route
+            path="/register"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <Register />
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Login setUser={setUser} />
+              )
+            }
+          />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                redirectTo="/login"
+              >
+                <Sidebar setUser={setUser} />
+              </ProtectedRoute>
+            }
+          >
+            {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
+            <Route index element={<HomePage />} />
+            <Route path="whatsapp" element={<LeadDetail />} />
+            <Route path="metrics" element={<MainDashboard />} />
+            <Route path="speech" element={<Speech />} />
+            <Route path="profile" element={<UserProfile />} />
+          </Route>
+        </Routes>
+      </Router>
     </>
   );
 }
