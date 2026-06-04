@@ -68,6 +68,8 @@ function App() {
             <Route path="metrics" element={<MainDashboard />} />
             <Route path="speech" element={<Speech />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="profile/*" element={<UserProfile />} />
+
           </Route>
         </Routes>
       </Router>
