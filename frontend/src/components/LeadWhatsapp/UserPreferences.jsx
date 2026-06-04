@@ -8,7 +8,7 @@ export default function UserPreferences(preferences) {
     const plainText = contentRef.current.innerText;
     console.log('Saved text:', plainText);
     
-    // Perform your submit or state update logic here
+    // Perform your submit or state update logic here, which is not done just yet cuz no GSheets
   };
 
   return (
