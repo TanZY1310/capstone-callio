@@ -1,6 +1,6 @@
 function TranscriptionTab({ data }) {
   return (
-    <div className="card bg-base-100 border border-base-200  w-full max-w-[800px] ml-60">
+    <div className="card bg-base-100 border border-base-200  w-full max-w-[1100px] ml-60">
       <div className="card-body gap-6">
         <div className="flex flex-col gap-1">
           <h2 className="card-title text-base-content">Call Transcription</h2>
