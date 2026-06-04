@@ -84,8 +84,14 @@ function LeadsByRegion() {
   // Rendering
 
   return (
-    <div>
-      <Bar data={chartBarAgent} options={chartOptions} />
+    <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+      <h2 className="card-title text-base-content " style={{ padding: "5px" }}>
+        Regions Team Breakdown
+      </h2>
+
+      <div>
+        <Bar data={chartBarAgent} options={chartOptions} />
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import BudgetBreakdown from "./BudgetBreakdown";
 import CallUpload from "./CallUpload";
 import { data } from "react-router-dom";
 import Header from "../Layout/Header";
+import Objections from "./Objections";
 
 function AgentDashboard() {
   const [stats, setStats] = useState({
@@ -42,7 +43,7 @@ function AgentDashboard() {
 
           <TopCard stats={stats} />
 
-          {/* 2. Funnel Card - Metrics Performance Transition*/}
+          {/* 2. Bar Chart Card - Call Upload Activity*/}
 
           {/* <div className="card bg-base-100 border border-base-200 shadow-sm">
             <div className="card-body gap-4">
@@ -53,21 +54,20 @@ function AgentDashboard() {
             </div>
           </div> */}
 
-          <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+          <div className="card bg-base-100 border border-base-200 shadow-sm">
             <div className="card-body">
               <h2 className="card-title text-base-content">
                 Weekly Call Volume
               </h2>
-              <h3 className="card-title text-base-content">
-                Monday - Friday (Current Week)
-              </h3>
+              <p>Monday - Friday (Current Week)</p>
+
               <CallUpload />
             </div>
           </div>
 
           {/* 3. Divider Part - LeadsByRegion + Leads Budget Breakdown*/}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
               <h2 className="card-title text-base-content">
                 Lead Budget Breakdown
@@ -78,6 +78,16 @@ function AgentDashboard() {
             <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
               <h2 className="card-title text-base-content">Region Breakdown</h2>
               <LeadsByRegion />
+            </div>
+
+            <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+              <h2
+                className="card-title text-base-content"
+                // style={{ padding: "5px" }}
+              >
+                Top Objections
+              </h2>
+              <Objections />
             </div>
           </div>
         </div>

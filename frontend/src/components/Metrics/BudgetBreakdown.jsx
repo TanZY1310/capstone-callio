@@ -67,13 +67,15 @@ function BudgetBreakdown() {
   // Step 6: Render using state data
 
   return (
-    <div className="flex items-center gap-6" style={{ padding: "20px" }}>
-      {/* Donut with center label */}
-      <div className="relative w-36 h-36 shrink-0">
+    <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+      <h2 className="card-title text-base-content" style={{ padding: "5px" }}>
+        Team Budget Breakdown
+      </h2>
+
+      <div style={{ padding: "20px" }}>
         <Doughnut data={chartPieAgent} options={chartOptions} />
       </div>
 
-      {/* Manual legend */}
       <ul className="flex flex-col gap-3 text-sm w-full">
         {budgetData.map((item) => (
           <li key={item.cost} className="flex items-center gap-2">
