@@ -1,69 +1,38 @@
 function Preferencecard({ data }) {
   return (
-    <div className="grid grid-cols-2 gap-6 w-full h-auto p-0">
-      {/*top left*/}
-      <div className="flex flex-col items-start gap-1 p-4 w-full h-fit bg-white border border-[#C6C6CD] rounded-[12px]">
-        <div className="flex flex-row items-center gap-2 w-full h-fit p-0">
-          <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-            💵 Extracted Budget
-          </span>
-        </div>
-        <div className="flex flex-col items-start gap-0 pt-0 pb-3 px-0 w-full h-fit">
-          <span className="font-['Hanken_Grotesk'] font-bold text-[20px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            {data.budgetValue}
-          </span>
-        </div>
-        <div className="flex flex-col items-start gap-0 p-0 w-full h-fit">
-          <span className="font-['Hanken_Grotesk'] font-italic text-[12px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            {data.budgetNote}
-          </span>
+    <div className="grid grid-cols-2 gap-6 w-full">
+      {/* Budget */}
+      <div className="card bg-base-100 border border-base-200">
+        <div className="card-body gap-2 p-4">
+          <span className="text-xs font-bold text-base-content/60">💵 Extracted Budget</span>
+          <span className="text-xl font-bold text-base-content">{data.budgetValue}</span>
+          <span className="text-xs italic text-base-content/60">{data.budgetNote}</span>
         </div>
       </div>
-      {/*top right*/}
-      <div className="flex flex-col items-end gap-1 p-4 w-full h-fit bg-white border border-[#C6C6CD] rounded-[12px]">
-        <div className="flex flex-row items-center gap-2 w-full h-fit p-0">
-          <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-            🏠Preferences
-          </span>
-        </div>
-        <div className="flex flex-col items-start gap-0 pt-0 pb-3 px-0 w-full h-fit">
-          <span className="font-['Hanken_Grotesk'] font-bold text-[20px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            {data.preferences}
-          </span>
-        </div>
-        <div className="flex flex-col items-start gap-0 p-0 w-full h-fit">
-          <span className="font-['Hanken_Grotesk'] font-italic text-[12px] leading-[16px] tracking-[0.6px] text-[#191C1E]">
-            {data.preferenceNote}
-          </span>
+
+      {/* Preferences */}
+      <div className="card bg-base-100 border border-base-200">
+        <div className="card-body gap-2 p-4">
+          <span className="text-xs font-bold text-base-content/60">🏠 Preferences</span>
+          <span className="text-xl font-bold text-base-content">{data.preferences}</span>
+          <span className="text-xs italic text-base-content/60">{data.preferenceNote}</span>
         </div>
       </div>
-      {/*bottom*/}
-      <div className="col-span-2 flex flex-col items-start gap-4 p-4 w-full h-fit bg-white border border-[#C6C6CD] rounded-[12px]">
-        <div className="flex flex-row items-center gap-2 w-full h-fit p-0">
-          <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-            ❗ High Urgency Signal
-          </span>
-        </div>
-        <div className="flex flex-row items-center gap-2 w-full h-fit p-0">
-          <div className="flex flex-col items-start gap-0 py-1 px-4 w-fit h-[26px] bg-[#D5E3FD] rounded-full">
-            <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-              {data.signals[0]}
-            </span>
-          </div>
-          <div className="flex flex-col items-start gap-0 py-1 px-4 w-fit h-[26px] bg-[#D5E3FD] rounded-full">
-            <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-              {data.signals[1]}
-            </span>
-          </div>
-          <div className="flex flex-col items-start gap-0 py-1 px-4 w-fit h-[26px] bg-[#D5E3FD] rounded-full">
-            <span className="font-['Hanken_Grotesk'] font-bold text-[12px] leading-[16px] tracking-[0.6px] text-[#45464D] w-fit h-fit">
-              {data.signals[2]}
-            </span>
+
+      {/* Urgency Signals */}
+      <div className="card col-span-2 bg-base-100 border border-base-200">
+        <div className="card-body gap-4 p-4">
+          <span className="text-xs font-bold text-base-content/60">❗ High Urgency Signal</span>
+          <div className="flex flex-row flex-wrap gap-2">
+            {data.signals.map((signal, i) => (
+              <span key={i} className="badge bg-info/20 text-info-content border-none px-4 py-3 rounded-full text-xs font-bold">
+                {signal}
+              </span>
+            ))}
           </div>
         </div>
       </div>
     </div>
   );
 }
-
 export default Preferencecard;

@@ -1,90 +1,63 @@
-import { useState } from "react";
+import { MdCall } from "react-icons/md";
+import { IoPersonSharp } from "react-icons/io5";
+import { IoChatboxEllipsesSharp } from "react-icons/io5";
+import { TiTick } from "react-icons/ti";
 
-function TopCard({ stats }) {
+const METRIC_CARDS = [
+  { label: "Total Leads", key: "leads" },
+  { label: "Total Calls Today", key: "calls" },
+
+  { label: "Pending Follow-Ups", key: "pendingFollowUps" },
+  { label: "Appointment Set", key: "appointments" },
+];
+
+function TopCard({ dummyAgentData }) {
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 gap-2">
-        <div
-          className="card w-96 bg-base-100 card-md shadow-sm"
-          style={{
-            backgroundColor: "white",
-            height: "100px",
-            width: "400px",
-          }}
-        >
-          <div className="card-body">
-            <h2
-              className="card-title"
-              style={{ color: "black", fontSize: "16px" }}
-            >
-              Total Calls Today
-            </h2>
-            <p style={{ fontSize: "24px", color: "black" }}>{stats.calls}</p>
-          </div>
-        </div>
+    <>
+      <div className="card bg-base-100 border border-base-200 shadow-sm">
+        {/* 1. Total Leads */}
 
-        <div
-          className="card w-96 bg-base-100 card-md shadow-sm"
-          style={{
-            backgroundColor: "white",
-            height: "100px",
-            width: "400px",
-          }}
-        >
-          <div className="card-body">
-            <h2
-              className="card-title"
-              style={{ color: "black", fontSize: "16px" }}
-            >
-              Total Leads
-            </h2>
-            <p style={{ fontSize: "24px", color: "black" }}>{stats.leads}</p>
+        <div className="stats shadow">
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <IoPersonSharp size={32} />
+            </div>
+            <div className="stat-title">Total Leads</div>
+            <div className="stat-value">{dummyAgentData.leads}</div>
           </div>
-        </div>
 
-        <div
-          className="card w-96 bg-base-100 card-md shadow-sm"
-          style={{
-            backgroundColor: "white",
-            height: "100px",
-            width: "400px",
-          }}
-        >
-          <div className="card-body">
-            <h2
-              className="$$card-title"
-              style={{ color: "black", fontSize: "16px" }}
-            >
-              Pending Follow-Ups
-            </h2>
-            <p style={{ fontSize: "24px", color: "black" }}>
-              {stats.pendingFollowUps}
-            </p>
+          {/* 2. Total Calls */}
+
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <MdCall size={32} />
+            </div>
+            <div className="stat-title">Total Calls Today</div>
+            <div className="stat-value">{dummyAgentData.calls}</div>
           </div>
-        </div>
 
-        <div
-          className="card w-96 bg-base-100 card-md shadow-sm"
-          style={{
-            backgroundColor: "white",
-            height: "100px",
-            width: "400px",
-          }}
-        >
-          <div className="card-body">
-            <h2
-              className="card-title"
-              style={{ color: "black", fontSize: "16px" }}
-            >
-              Appointment Set
-            </h2>
-            <p style={{ fontSize: "24px", color: "black" }}>
-              {stats.appointments}
-            </p>
+          {/* 3. Pending Follow-ups */}
+
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <IoChatboxEllipsesSharp size={32} />
+            </div>
+            <div className="stat-title">Pending Follow-Ups</div>
+            <div className="stat-value">{dummyAgentData.followUps}</div>
+          </div>
+
+          {/* 4. Booking confirmed */}
+
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <TiTick size={32} />
+            </div>
+            <div className="stat-title">Appoinment Sets</div>
+            <div className="stat-value">{dummyAgentData.appointments}</div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

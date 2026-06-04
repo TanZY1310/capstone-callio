@@ -9,6 +9,7 @@ import {
 } from "chart.js";
 import { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
+import { MdWidthFull } from "react-icons/md";
 
 // Step 1 — Register the parts of Chart.js you are using
 // Without this, the chart will not render at all
@@ -27,16 +28,23 @@ function LeadsByRegion() {
     { district: "Cheras", value: 0 },
     { district: "Puchong", value: 0 },
     { district: "Kajang", value: 0 },
+    { district: "KL City", value: 0 },
   ]);
+
+  const [totalCall, setTotalCall] = useState(0);
 
   useEffect(() => {
     const data = [
       { district: "Bangsar", value: 40 },
-      { district: "Cheras", value: 100 },
-      { district: "Puchong", value: 10 },
-      { district: "Kajang", value: 200 },
+      { district: "Cheras", value: 60 },
+      { district: "Puchong", value: 20 },
+      { district: "Kajang", value: 80 },
+      { district: "KL City", value: 10 },
     ];
+
+    const total = 200;
     setLeadsRegion(data);
+    setTotalCall(total);
   }, []);
 
   // define your data into chart
@@ -53,7 +61,13 @@ function LeadsByRegion() {
 
   // define your chart styling
   const chartOptions = {
+    maintainAspectRatio: false,
     indexAxis: "y", // this is the part that makes the chart horizontal
+    scales: {
+      x: { grid: { display: true } },
+
+      y: { grid: { display: false } },
+    },
     elements: {
       bar: {
         borderWidth: 2,
@@ -61,16 +75,11 @@ function LeadsByRegion() {
     },
     responsive: true,
     plugins: {
-      legend: { display: true },
+      legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (item) => `${item.label} - ${item.raw}%`,
+          label: (item) => `${item.label} - ${item.raw}`,
         },
-      },
-
-      title: {
-        display: true,
-        text: "Leads By Region",
       },
     },
   };
@@ -78,8 +87,15 @@ function LeadsByRegion() {
   // Rendering
 
   return (
-    <div>
-      <Bar data={chartBarAgent} options={chartOptions} />
+    // <div className="card bg-base-100 border border-base-200 shadow-sm p-6">
+    <div className="card bg-base-100  p-6">
+      <h2 className="card-title text-base-content" style={{ padding: "5px" }}>
+        Team Regions Breakdown
+      </h2>
+
+      <div style={{ height: "200px" }}>
+        <Bar data={chartBarAgent} options={chartOptions} />
+      </div>
     </div>
   );
 }

@@ -1,23 +1,39 @@
+import { AudioLines } from "lucide-react";
+import Header from "../Layout/Header";
+import { useRef } from "react";
+
 function BodyHeader() {
+  const fileInputRef = useRef(null);
+
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.targer.file[0];
+    console.log("Selected file:", file);
+  };
+
   return (
-    <div className="flex flex-row items-center justify-between w-full h-auto p-0 bg-transparent">
-      <div className="flex flex-col items-start justify-start w-auto h-auto p-0 gap-0 bg-transparent">
-        <div className="flex flex-col items-start justify-start w-full h-auto p-0 gap-0 bg-transparent">
-          <span className="font-['Hanken_Grotesk'] font-bold text-[36px] leading-[44px] tracking-[-0.72px] text-[#191C1E] inline-block h-auto w-auto">
-            Audio Intelligence
-          </span>
-        </div>
-        <div className="flex flex-col items-start justify-start w-full h-auto p-0 gap-0 bg-transparent">
-          <span className="font-['Hanken_Grotesk'] font-normal text-[16px] leading-[24px] tracking-normal text-[#45464D] inline-block w-auto h-auto">
-            Analyze buyer conversation and extract automated insights
-          </span>
-        </div>
+    <div className="flex flex-row items-center justify-between w-full">
+      <div className="flex flex-col gap-1">
+        <Header
+          h1="Audio Intelligence"
+          p="Analyze buyer conversation and extract automated insights"
+        />
       </div>
-      <div className="flex flex-row items-center justify-start w-auto h-[56px] px-6 py-4 gap-[8px] bg-black rounded-lg shadow-md">
-        <button className="font-['Hanken_Grotesk'] font-normal text-[16px] leading-[24px] tracking-normal text-white text-center w-fit h-fit">
-          ၊၊||၊ Upload New Audio
-        </button>
-      </div>
+      <button onClick={handleUploadClick} className="btn btn-neutral gap-2">
+        <AudioLines />
+        Upload New Audio
+      </button>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="audio/*"
+        onChange={handleFileChange}
+      />
     </div>
   );
 }

@@ -1,30 +1,25 @@
-import React from "react";
-
-// 1. Make sure you accept { setActiveTab } inside the function arguments here
 function AnalysisTab({ setActiveTab }) {
+  const tabs = [
+    { label: "Transcription", value: "transcription" },
+    { label: "Sentiment", value: "sentiment" },
+    { label: "Next Action", value: "next_action" },
+  ];
+
   return (
-    <div className="flex flex-row justify-start items-center w-[926.33px] h-fit gap-3 p-0 bg-transparent mt-6">
-      <button
-        // 2. Change 'navigate("/TranscriptionTab")' to 'setActiveTab("transcription")'
-        onClick={() => setActiveTab("transcription")}
-        className="flex items-center justify-center w-fit h-fit pt-0 pr-0 pb-0 pl-3 border-2 border-black bg-black shadow-md font-sans font-bold text-[14px] leading-[20px] text-white rounded-md transition-all hover:bg-neutral-800"
-      >
-        Transcription
-      </button>
-
-      <button
-        onClick={() => setActiveTab("sentiment")}
-        className="flex items-center justify-center w-fit h-fit pt-0 pr-0 pb-0 pl-3 border-2 border-black bg-black shadow-md font-sans font-bold text-[14px] leading-[20px] text-white rounded-md transition-all hover:bg-neutral-800"
-      >
-        Sentiment
-      </button>
-
-      <button
-        onClick={() => setActiveTab("next_action")}
-        className="flex flex-col justify-center items-center w-fit h-fit pt-0 pr-0 pb-0 pl-3 border-2 border-black bg-black shadow-md font-sans font-bold text-[14px] leading-[20px] text-white rounded-md transition-all hover:bg-neutral-800"
-      >
-        Next Action
-      </button>
+    <div
+      role="tablist"
+      className="tabs tabs-bordered w-full max-w-[436px] h-fit p-0 flex flex-row flex-wrap items-center justify-start gap-6 "
+    >
+      {tabs.map((tab) => (
+        <button
+          key={tab.value}
+          role="tab"
+          className="tab font-semibold pb-3"
+          onClick={() => setActiveTab(tab.value)}
+        >
+          {tab.label}
+        </button>
+      ))}
     </div>
   );
 }

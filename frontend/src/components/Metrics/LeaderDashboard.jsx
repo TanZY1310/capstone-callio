@@ -5,83 +5,100 @@ import FunnelCard from "./FunnelCard";
 import TeamFunnelCard from "./TeamFunnelCard";
 import Objections from "./Objections";
 import LeadsByRegion from "./LeadsByRegion";
+import Header from "../Layout/Header";
+import { AlignRight } from "lucide-react";
+import CallUpload from "./CallUpload";
+import BudgetBreakdown from "./BudgetBreakdown";
+import { CiSearch } from "react-icons/ci";
+import { dummyAgentPerformance } from "../../data/dummyAgentPerformance";
+import { dummyAgentData } from "../../data/dummyAgentData";
+import { dummyTeamData } from "../../data/dummyTeamData";
 
 function LeaderDashboard() {
-  const [teamStats, setTeamStats] = useState({});
-  const [stats, setStats] = useState({});
-  const [teamRegion, setTeamRegion] = useState([]);
+  // const [teamStats, setTeamStats] = useState({});
+  // const [stats, setStats] = useState({});
+  // const [teamRegion, setTeamRegion] = useState([]);
 
-  useEffect(() => {
-    // pretends get the personal data
-    const data = {
-      calls: 100,
-      leads: 50,
-      pendingFollowUps: 20,
-      followUps: 5,
-      appointments: 3,
-      booking: 1,
-    };
+  // useEffect(() => {
+  //   // pretends get the personal data
+  //   const data = {
+  //     calls: 100,
+  //     leads: 50,
+  //     pendingFollowUps: 20,
+  //     followUps: 5,
+  //     appointments: 3,
+  //     booking: 1,
+  //   };
 
-    // pretends get the team callls data
-    const teamData = {
-      sumLeads: 100,
-      sumFollowUps: 50,
-      sumApps: 10,
-      sumBookings: 0,
-    };
+  //   // pretends get the team callls data
+  //   const teamData = {
+  //     sumLeads: 100,
+  //     sumFollowUps: 50,
+  //     sumApps: 10,
+  //     sumBookings: 0,
+  //   };
 
-    // pretends get the team region data
+  //   // pretends get the team region data
 
-    setStats(data);
-    setTeamStats(teamData);
-  }, []);
+  //   setStats(data);
+  //   setTeamStats(teamData);
+  // }, []);
 
   return (
-    <div>
-      {/* // Header  */}
-      <div className="navbar bg-base-100 shadow-sm" style={{ color: "white" }}>
-        <h2>Leader Dashboard</h2>
-      </div>
+    <>
+      <div className="flex h-screen bg-base-200">
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+          {/* // Header  */}
+          <Header
+            h1="Leader Dashboard"
+            p="Monitor agent performance and logs"
+          />
 
-      {/* 1. Top Card - Personal Metrics Performance */}
+          {/* 1. Top Card - Personal Metrics Performance */}
 
-      <div className="flex w-full flex-col">
-        <div className="card-body">
-          <div className="card-title">
-            <h2>Personal Performance</h2>
-          </div>
-          <TopCard stats={stats} />
-        </div>
+          <h1 className="font-sans ... text-2xl font-bold">My Dashboard</h1>
 
-        {/* 2. Funnel Card - Metrics Performance Transition*/}
+          <TopCard dummyAgentData={dummyAgentData} />
 
-        <div className="card-body">
-          <h2 className="card-title">Team Funnel</h2>
-          <TeamFunnelCard teamData={teamStats} />
-        </div>
+          {/* 2. Bar Chart Card - Call Upload*/}
 
-        {/* 3. Team Performance*/}
+          <CallUpload />
 
-        <div className="card-body">
-          <h2 className="card-title">Agent Performance</h2>
-          <PerformanceCard />
-        </div>
+          {/* 3. Team Performance*/}
 
-        {/* 4. Bottom Card */}
+          <h1 className="font-sans ... text-2xl font-bold">Agents Overview</h1>
 
-        <div className="card-body">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="card bg-base-300 rounded-box p-5 grid place-items-center">
-              <Objections />
+          <PerformanceCard dummyAgentPerformance={dummyAgentPerformance} />
+
+          {/* 4. Bottom Card */}
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* <!-- Main content spanning 2 columns --> */}
+            <div className="col-span-2 card  bg-base-100 ">
+              <BudgetBreakdown />
             </div>
 
-            <div className="card bg-base-300 rounded-box p-5">
+            {/* <!-- Main content spanning 2 columns --> */}
+            <div className="col-span-2 card  bg-base-100">
               <LeadsByRegion />
             </div>
+
+            {/* <!-- Sidebar spanning 1 column --> */}
+            <div className="col-span-1 card bg-base-100 ">
+              <Objections />
+            </div>
           </div>
+
+          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <BudgetBreakdown />
+
+            <Objections />
+
+            <LeadsByRegion />
+          </div> */}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

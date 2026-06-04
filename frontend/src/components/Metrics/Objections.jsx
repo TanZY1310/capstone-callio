@@ -4,16 +4,30 @@ function Objections() {
   const [issues, setIssues] = useState([]);
 
   useEffect(() => {
-    const data = ["Too Expensive", "Not Interested", "Wrong Area"];
+    const data = [
+      "Too Expensive",
+      "Not Interested",
+      "Wrong Area",
+      "Call Back Later",
+      "Wrong Number",
+    ];
     setIssues(data);
   }, []);
 
   return (
-    <div>
-      <h2 style={{ padding: "10px" }}>Primary Objections</h2>
+    <div className="card bg-base-100   p-5">
+      <h2 className="card-title text-base-content" style={{ padding: "5px" }}>
+        Top Objections
+      </h2>
 
-      {issues.map((item) => (
-        <div className="badge badge-outline badge-error">{item}</div>
+      {issues.map((item, index) => (
+        <div
+          key={index}
+          className="badge badge-md badge-soft badge-error"
+          style={{ marginBottom: "10px" }}
+        >
+          {item}
+        </div>
       ))}
     </div>
   );

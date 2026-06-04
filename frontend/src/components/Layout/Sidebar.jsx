@@ -1,18 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
-
-import {
-  PanelLeftOpen,
-  PanelLeftClose,
-  Settings,
-  LogOut,
-  Bell,
-  LayoutDashboard,
-  Sun,
-  Moon,
-} from "lucide-react";
-
+import { LogOut, Building2 } from "lucide-react";
 import Navigation from "./Navigation";
+import Navbar from "./Navbar";
+import { motion, AnimatePresence } from "motion/react";
 
 function Sidebar({ setUser }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
@@ -20,7 +11,7 @@ function Sidebar({ setUser }) {
 
   //For Theme Toggle
   const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light",
+    () => localStorage.getItem("theme") || "corporate",
   );
 
   useEffect(() => {
@@ -28,7 +19,8 @@ function Sidebar({ setUser }) {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
+  const toggleTheme = () =>
+    setTheme((t) => (t === "corporate" ? "business" : "corporate"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -49,61 +41,37 @@ function Sidebar({ setUser }) {
         />
         <div className="drawer-content">
           {/* Navbar */}
-          <div className="navbar w-full bg-base-300">
-            <div className="navbar-start">
-              <button
-                className="btn btn-square btn-ghost"
-                onClick={() => setIsDrawerOpen((e) => !e)}
-              >
-                {/* Render Open Close icon based on isDrawer flag */}
-                {isDrawerOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
-              </button>
-            </div>
-            <div className="navbar-end gap-1">
-              {/* Theme toggle */}
-              <button
-                className="btn btn-ghost btn-sm btn-circle"
-                onClick={toggleTheme}
-                aria-label="Toggle theme"
-              >
-                {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-              </button>
-              {/* Divider */}
-              <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
-              <button className="btn btn-ghost btn-sm btn-circle">
-                <Bell size={18} />
-              </button>
-              {/* Divider */}
-              <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
-              <button className="btn btn-ghost btn-sm btn-circle">
-                <Settings size={18} />
-              </button>
-              {/* Divider */}
-              <div className="w-px h-5 bg-base-content opacity-15 mx-1" />
-              <div className="avatar">
-                <div className="w-7 rounded-full">
-                  <img
-                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
-                    alt="User avatar"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <Navbar
+            isDrawerOpen={isDrawerOpen}
+            setIsDrawerOpen={setIsDrawerOpen}
+            theme={theme}
+            toggleTheme={toggleTheme}
+          />
           {/* Child route / component */}
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}>
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <div className="drawer-side is-drawer-close:overflow-visible">
           <label
             htmlFor="my-drawer-4"
             aria-label="close sidebar"
-            className="drawer-overlay"
-          ></label>
-          <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-64">
+            className="drawer-overlay"></label>
+          <motion.div
+            className="flex min-h-full flex-col items-start bg-base-200"
+            animate={{ width: isDrawerOpen ? 256 : 56 }}
+            transition={{ duration: 0.1, ease: "easeInOut" }}>
             <div className="flex items-center gap-3 px-4 py-4 w-full border-b border-base-300">
               <div className="bg-neutral text-neutral-content rounded-lg w-8 h-8 flex items-center justify-center shrink-0">
-                <LayoutDashboard size={16} />
+                <Building2 size={16} />
               </div>
               <span className="is-drawer-close:hidden font-semibold tracking-wide text-sm">
                 CALLIO
@@ -115,14 +83,13 @@ function Sidebar({ setUser }) {
                 <button
                   onClick={handleLogout}
                   className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
-                  data-tip="Logout"
-                >
+                  data-tip="Logout">
                   <LogOut />
                   <span className="is-drawer-close:hidden">Logout</span>
                 </button>
               </li>
             </ul>
-          </div>
+          </motion.div>
         </div>
       </div>
     </>
