@@ -30,6 +30,7 @@ function LeadDetail() {
 
   const { state } = useLocation();
   const inputRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [responses, setResponses] = useState([]);
   const [platformStatus, setPlatformStatus] = useState({
@@ -43,6 +44,7 @@ function LeadDetail() {
       ? users.find((u) => u.id === customer.id)
       : users[0];
     setShowUser(customerFound ?? users[0]);
+    console.log(customerFound);
   }, [state]);
 
   // Load chat history when user changes
@@ -74,12 +76,11 @@ function LeadDetail() {
       );
       const properResponse = properUser?.responses ?? [];
       console.log(`properResponse looks like ${properResponse}`);
-      setResponses((prev) => [...prev, ...properResponse]);
+      setResponses(properResponse);
     };
 
     updateResponse();
   }, [showUser]);
-
 
   const handleUpdateStatus = () => {
     setPlatformStatus((prev) => ({
@@ -89,6 +90,8 @@ function LeadDetail() {
         lastSync: Date.now(),
       },
     }));
+
+    setIsConnected(true);
   };
 
   const handleSendMessage = (e) => {
@@ -109,11 +112,13 @@ function LeadDetail() {
 
     inputRef.current.value = "";
   };
-  
-// Called by AIResponseReview Edit button
-const handleEditAIResponse = (id, newText) => {
-  setResponses(prev => prev.map(r => r.id === id ? { ...r, content: newText } : r));
-};
+
+  // Called by AIResponseReview Edit button
+  const handleEditAIResponse = (id, newText) => {
+    setResponses((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, content: newText } : r)),
+    );
+  };
   // Called by AIResponseReview Confirm button
   const handleConfirmAIResponse = (content) => {
     setMessages((prev) => [
@@ -127,15 +132,26 @@ const handleEditAIResponse = (id, newText) => {
       },
     ]);
 
-    setResponses((prev)=>[...prev.filter(response=>response.content !== content)]);
-    console.log(`${content} is removed from AI responses`)
+    setResponses((prev) => [
+      ...prev.filter((response) => response.content !== content),
+    ]);
+    console.log(`${content} is removed from AI responses`);
     console.log(responses);
+  };
+
+  const handleHeaderChange = (e) => {
+    setShowUser(users.find((u) => u.id === parseInt(e.target.value)));
+    console.log(showUser);
   };
 
   return (
     <div className="flex h-screen bg-base-200">
       <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-        <LeadHeader user={showUser} users={users} />
+        <LeadHeader
+          user={showUser}
+          users={users}
+          onHeaderChange={handleHeaderChange}
+        />
         <div className="flex flex-row">
           <div className="basis-1/3">
             <ContactInfo user={showUser} users={users} />
@@ -147,19 +163,32 @@ const handleEditAIResponse = (id, newText) => {
               />
             </div>
           </div>
-          <div className="basis-2/3">
-            <ConvoHistory
-              messages={messages}
-              inputRef={inputRef}
-              onSend={handleSendMessage}
-            />
-          </div>
+          {isConnected ? (
+            <div className="basis-2/3">
+              <ConvoHistory
+                messages={messages}
+                inputRef={inputRef}
+                onSend={handleSendMessage}
+              />
+            </div>
+          ) : (
+            <div className="basis-2/3 flex items-center justify-center">
+              <div className="card bg-base-100 shadow-sm w-96">
+                <div className="card-body items-center text-center">
+                  <h2 className="card-title">Not Connected to WhatsApp</h2>
+                  <p>Please connect to view conversation history.</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <AIResponseReview
-          aiResponses = {responses}
-          onEdit={handleEditAIResponse}
-          onConfirm={handleConfirmAIResponse}
-        />
+        {isConnected && (
+          <AIResponseReview
+            aiResponses={responses}
+            onEdit={handleEditAIResponse}
+            onConfirm={handleConfirmAIResponse}
+          />
+        )}
       </div>
     </div>
   );
