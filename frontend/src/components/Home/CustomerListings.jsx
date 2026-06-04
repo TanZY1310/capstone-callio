@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { statusList } from "../../data/statusList";
 import { tableHeader } from "../../data/tableHeader";
+import { motion } from "motion/react";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -197,9 +198,12 @@ function CustomerListings({ customerData, onDataChange }) {
             </thead>
             <tbody>
               {filteredAndSortedCustomers.map((customer) => (
-                <tr
+                <motion.tr
                   key={customer.id}
                   className="border-b border-base-200 hover:bg-base-200 transition-colors"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y:0 }}
+                  transition={{ delay: customer.id * 0.05, duration: 0.2}}
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -263,7 +267,7 @@ function CustomerListings({ customerData, onDataChange }) {
                       </button>
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>

@@ -1,25 +1,33 @@
 function TranscriptionTab({ data }) {
   return (
-    <div className="card bg-base-100 border border-base-200 w-full">
+    <div className="card bg-base-100 border border-base-200  w-full max-w-[1100px] ml-60">
       <div className="card-body gap-6">
         <div className="flex flex-col gap-1">
           <h2 className="card-title text-base-content">Call Transcription</h2>
-          <p className="text-sm text-base-content/50">AI-processed conversation between agent and buyer</p>
+          <p className="text-sm text-base-content/50">
+            AI-processed conversation between agent and buyer
+          </p>
         </div>
         <div className="flex flex-col gap-4 w-full">
           {data?.transcription?.map((item, index) => (
             <div
               key={index}
               className={`flex flex-col gap-1 max-w-[70%] ${
-                item.speaker === "agent" ? "items-start self-start" : "items-end self-end"
+                item.speaker === "agent"
+                  ? "items-start self-start"
+                  : "items-end self-end"
               }`}
             >
-              <span className="text-xs font-bold text-base-content/50 capitalize">{item.speaker}</span>
-              <div className={`px-4 py-3 rounded-xl text-sm leading-relaxed ${
-                item.speaker === "agent"
-                  ? "bg-base-200 text-base-content"
-                  : "bg-neutral text-neutral-content"
-              }`}>
+              <span className="text-xs font-bold text-base-content/50 capitalize">
+                {item.speaker}
+              </span>
+              <div
+                className={`px-4 py-3 rounded-xl text-sm leading-relaxed ${
+                  item.speaker === "agent"
+                    ? "bg-base-200 text-base-content"
+                    : "bg-neutral text-neutral-content"
+                }`}
+              >
                 {item.text}
               </div>
             </div>

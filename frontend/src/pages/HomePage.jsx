@@ -6,6 +6,8 @@ import StatusCards from "../components/Home/StatusCards";
 import Header from "../components/Layout/Header";
 import { STATUS_NAME } from "../data/constants";
 
+import { motion } from "motion/react";
+
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
   //Status Card
@@ -52,7 +54,7 @@ function HomePage() {
       {/* Change background to darker colour */}
       <div className="flex h-screen bg-base-200">
         {/* Add spacing in header - move to the right slightly */}
-        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+        <motion.div className="flex-1 overflow-y-auto px-8 py-6 space-y-6" initial={{ y: -20, opacity: 0}} animate={{ y: 0, opacity: 1}} transition={{ duration: 0.5 }}>
           <div>
             <Header
               h1="Customer Listings"
@@ -78,7 +80,7 @@ function HomePage() {
             customerData={customerData}
             onDataChange={handleDataChange}
           />
-        </div>
+        </motion.div>
       </div>
     </>
   );
