@@ -1,19 +1,35 @@
 import { statusList } from "../../data/statusList.js";
+import UserPreferences from "./UserPreferences.jsx";
 
 function ContactInfo({ user }) {
-  const updateUserStatus = (e) => {
+  //should I use one useReducer for this?
+  const updateUserLocation = (e) => {
+    return;
+  };
+
+  const updateUserStatus = (e) =>{
     return;
   };
 
   return (
-    <div className="flex flex-col justify-start ml-18 mt-5 pl-4 pt-4 card w-flex bg-base-100 shadow-sm">
+    <div className="flex flex-col rounded-2xl justify-start mt-5 p-4 card w-flex bg-base-100 shadow-sm">
       <p className="font-semibold text-sm text-base-content">
         Contact Information
       </p>
       <div className="text-sm text-base-content/60 mt-1 space-y-1">
         <p>Email: {user.contact.email}</p>
         <p>Phone: {user.contact.phone}</p>
-        <p contentEditable="true">Preferences: {user.contact.preferences}</p>
+        <p>Preferences:</p>
+        {UserPreferences(user.contact.preferences)}
+        <div className="flex justify-end">
+          <button
+            className="btn btn-success btn-xs mt-1 mb-1 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+            fdprocessedid="ufksnr"
+            onSubmit={updateUserLocation}
+          >
+            Submit
+          </button>
+        </div>
       </div>
       <hr className="my-2 border-base-300" />
       <div>

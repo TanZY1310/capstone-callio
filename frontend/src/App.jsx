@@ -1,9 +1,8 @@
-import { useEffect, useState, lazy } from "react";
+import { useState, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Link,
   Navigate,
 } from "react-router-dom";
 import { Toaster } from "sonner";

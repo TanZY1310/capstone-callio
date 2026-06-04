@@ -42,11 +42,11 @@ function LeadDetail() {
 
   useEffect(() => {
     const customer = state?.customer;
-    const user = customer ? users.find((u) => u.id === customer.id) : users[0];
+    const customerFound = customer ? users.find((u) => u.id === customer.id) : users[0];
     console.log("customer", customer);
-    console.log("user", user)
+    console.log("user", customerFound)
 
-    setShowUser(user ?? users[0]);
+    setShowUser(customerFound ?? users[0]);
   }, [state]);
 
   const handleUpdateStatus = () => {
@@ -66,17 +66,19 @@ function LeadDetail() {
         <div className="flex flex-row">
           <div className="basis-1/3">
             <ContactInfo user={showUser} users={users} />
-            <StatusCards
-              platformName="whatsapp"
-              status={platformStatus.whatsapp}
-              onUpdate={handleUpdateStatus}
-            />
+            <div className ="mt-6">
+              <StatusCards
+                platformName="whatsapp"
+                status={platformStatus.whatsapp}
+                onUpdate={handleUpdateStatus}
+              />
+            </div>
           </div>
           <div className="basis-2/3">
             <ConvoHistory waHistory={dummyWAHistory} user={showUser} />
           </div>
         </div>
-        <AIResponseReview aiResponse={dummyAIResponse} user={showUser} />
+          <AIResponseReview aiResponse={dummyAIResponse} user={showUser} />
       </div>
     </div>
   );

@@ -3,12 +3,9 @@ import sampleCustomers from "../../data/SampleCustomers";
 import { SiGooglesheets } from "react-icons/si";
 import { useState } from "react";
 import { toast } from "sonner";
+import { motion } from "motion/react";
 
-function SheetsDataIntegration({
-  onImport,
-  changedRecords = [],
-  onExport,
-}) {
+function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -45,7 +42,11 @@ function SheetsDataIntegration({
   };
   return (
     <>
-      <div className="bg-base-100 rounded-2xl border border-base-200 p-5">
+      <motion.div
+        className="bg-base-100 rounded-2xl border border-base-200 p-5"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-success/10 rounded-xl flex items-center justify-center">
@@ -74,12 +75,13 @@ function SheetsDataIntegration({
             onClick={handleImport}
             disabled={importing}>
             {importing ? (
-              <span className="loading loading-spinner loading-sm">
-                Importing...
-              </span>
+              <>
+                <span className="loading loading-spinner loading-sm" />Importing{""}
+                ...
+              </>
             ) : (
               <>
-                <RefreshCw size={15} /> Import From Google Sheets
+                <RefreshCw size={15} /> {" "} Import From Google Sheets
               </>
             )}
           </button>
@@ -99,7 +101,7 @@ function SheetsDataIntegration({
             )}
           </button>
         </div>
-      </div>
+      </motion.div>
       {/* ✅ Export confirmation modal */}
       <dialog id="export_confirm_modal" className="modal">
         <div className="modal-box w-11/12 max-w-2xl">

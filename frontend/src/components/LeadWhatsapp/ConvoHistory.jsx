@@ -1,8 +1,9 @@
 import { SendHorizontal } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef} from "react";
 
 function ConvoHistory({waHistory, user }) {
   const [messages, setMessages] = useState([]);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const fetchChatHistory = async () => {
@@ -26,9 +27,30 @@ function ConvoHistory({waHistory, user }) {
     fetchChatHistory();
   }, [user]);
 
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    const text = inputRef.current.value.trim();
+    if (!text) return;
+
+    setMessages(prev=>[
+      ...prev,
+      {
+        id:prev.length+1,
+        role:"agent",
+        content:text,
+        timestamp: new Date().toISOString(),
+        seen: null
+      }
+    ])
+    
+    console.log( `Stuff stored: ${inputRef.current.value}`)
+    
+    inputRef.current.value = "";
+  } 
+
   return (
     <div className="flex">
-      <div className="grow ml-18 mt-5 mr-20 pl-4 pt-4 card w-full bg-base-100 shadow-sm">
+      <div className="grow  rounded-2xl ml-18 mt-5 p-4 card w-full bg-base-100 shadow-sm">
         <p className="font-semibold text-sm text-base-content">WhatsApp Conversation History</p>
         <p className="text-xs text-base-content/40 mt-0.5">
           End-to-end encrypted backup
@@ -56,8 +78,9 @@ function ConvoHistory({waHistory, user }) {
                 type="text"
                 placeholder="Type a message..."
                 className="input input-bordered w-full"
+                ref={inputRef}
               />
-              <button className="btn btn-success btn-circle transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" fdprocessedid="ufksnr">
+              <button onClick={handleSendMessage} className="btn btn-success btn-circle transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" fdprocessedid="ufksnr">
                 <SendHorizontal />
               </button>
             </div>
