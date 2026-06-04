@@ -5,7 +5,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 
-function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
+function SheetsDataIntegration({
+  onImport,
+  changedRecords = [],
+  onExport,
+  isConnected,
+}) {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -73,15 +78,16 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
           <button
             className="btn btn-soft btn-success flex-1"
             onClick={handleImport}
-            disabled={importing}>
+            disabled={importing || !isConnected}>
             {importing ? (
               <>
-                <span className="loading loading-spinner loading-sm" />Importing{""}
+                <span className="loading loading-spinner loading-sm" />
+                Importing{""}
                 ...
               </>
             ) : (
               <>
-                <RefreshCw size={15} /> {" "} Import From Google Sheets
+                <RefreshCw size={15} /> Import From Google Sheets
               </>
             )}
           </button>

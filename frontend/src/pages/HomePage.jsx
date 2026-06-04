@@ -19,12 +19,11 @@ function HomePage() {
   });
   //Summary Changed Records
   const [changedRecords, setChangedRecords] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   const handleImport = (data) => {
     setCustomerData(data);
     setChangedRecords([]); //Reset change records after import
-    //Update status after import
-    handleUpdateStatus();
   };
 
   const handleDataChange = (changed) => {
@@ -47,6 +46,7 @@ function HomePage() {
         lastSync: Date.now(),
       },
     }));
+    setIsConnected(true);
   };
 
   return (
@@ -54,7 +54,11 @@ function HomePage() {
       {/* Change background to darker colour */}
       <div className="flex h-screen bg-base-200">
         {/* Add spacing in header - move to the right slightly */}
-        <motion.div className="flex-1 overflow-y-auto px-8 py-6 space-y-6" initial={{ y: -20, opacity: 0}} animate={{ y: 0, opacity: 1}} transition={{ duration: 0.5 }}>
+        <motion.div
+          className="flex-1 overflow-y-auto px-8 py-6 space-y-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}>
           <div>
             <Header
               h1="Customer Listings"
@@ -68,11 +72,13 @@ function HomePage() {
                 onImport={handleImport}
                 changedRecords={changedRecords}
                 onExport={handleExport}
+                isConnected={isConnected}
               />
             </div>
             <StatusCards
               platformName="sheets"
               status={platformStatus.sheets}
+              onUpdate={handleUpdateStatus}
             />
           </div>
           {/* Pass actual state value as prop to table */}
