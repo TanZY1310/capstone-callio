@@ -37,7 +37,7 @@ function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
               const isEditing = editingId === response.id;
               return (
                 <div key={response.id} className="flex">
-                  <div className="basis-7/8">
+                  <div className="basis-8/9 flex justify-end">
                     {isEditing ? (
                       <input
                         value={editText}
@@ -46,12 +46,12 @@ function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
 
                       />
                     ) : (
-                      <div className="chat-bubble chat-bubble-primary opacity-70 p-2 m-1">
+                      <div className="chat-bubble chat-bubble-primary opacity-70 p-2 m-1 flex justify-end">
                         {response.content}
                       </div>
                     )}
                   </div>
-                  <div className="basis-1/8 flex justify-end gap-3 p-2">
+                  <div className="basis-1/9 flex justify-end gap-3 p-2">
                     <button
                       className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
                       onClick={() =>
