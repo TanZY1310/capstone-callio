@@ -49,7 +49,7 @@ function BudgetBreakdown() {
 
   const chartOptions = {
     maintainAspectRatio: false,
-    cutout: "50%",
+    cutout: "70%",
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -67,14 +67,16 @@ function BudgetBreakdown() {
   // Step 6: Render using state data
 
   return (
-    <div className="flex items-center gap-6" style={{ padding: "20px" }}>
-      {/* Donut with center label */}
-      <div className="relative w-36 h-36 shrink-0">
+    <div className="card bg-base-100 border border-base-200 shadow-sm p-5">
+      <h2 className="card-title text-base-content" style={{ padding: "5px" }}>
+        Team Budget Breakdown
+      </h2>
+
+      <div>
         <Doughnut data={chartPieAgent} options={chartOptions} />
       </div>
 
-      {/* Manual legend */}
-      <ul className="flex flex-col gap-3 text-sm w-full">
+      <ul className="flex flex-col gap-3 text-md w-full">
         {budgetData.map((item) => (
           <li key={item.cost} className="flex items-center gap-2">
             <span
@@ -86,6 +88,27 @@ function BudgetBreakdown() {
           </li>
         ))}
       </ul>
+
+      {/* <div className="card card-side bg-base-100 ">
+        <div>
+          <Doughnut data={chartPieAgent} options={chartOptions} />
+        </div>
+
+        <div className="card-body">
+          <ul>
+            {budgetData.map((item) => (
+              <li key={item.cost} className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-full shrink-0"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-base-content/70 flex-1">{item.cost}</span>
+                <span className="font-semibold">{item.value}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div> */}
     </div>
   );
 }

@@ -1,0 +1,42 @@
+export const dummyAgentPerformance = [
+  {
+    id: 1,
+    name: "Sarah Paulson",
+    calls: 5,
+    leads: 150,
+    apps: 5,
+    bookings: 5,
+  },
+  {
+    id: 2,
+    name: "Miu Natasha",
+    calls: 10,
+    leads: 100,
+    apps: 10,
+    bookings: 1,
+  },
+  {
+    id: 3,
+    name: "Lena Lalina",
+    calls: 60,
+    leads: 80,
+    apps: 5,
+    bookings: 3,
+  },
+  {
+    id: 4,
+    name: "Alexis Putellas",
+    calls: 20,
+    leads: 100,
+    apps: 10,
+    bookings: 9,
+  },
+  {
+    id: 5,
+    name: "Callum Turner",
+    calls: 10,
+    leads: 500,
+    apps: 5,
+    bookings: 3,
+  },
+];

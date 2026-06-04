@@ -15,11 +15,19 @@ function Objections() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="card bg-base-100   p-5">
+      <h2 className="card-title text-base-content" style={{ padding: "5px" }}>
+        Top Objections
+      </h2>
+
       {issues.map((item, index) => (
-        <span key={index} className="badge badge-soft badge-error">
+        <div
+          key={index}
+          className="badge badge-md badge-soft badge-error"
+          style={{ marginBottom: "10px" }}
+        >
           {item}
-        </span>
+        </div>
       ))}
     </div>
   );

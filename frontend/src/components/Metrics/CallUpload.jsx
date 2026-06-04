@@ -11,6 +11,8 @@ function CallUpload() {
     { day: "Wednesday", count: 0 },
     { day: "Thursday", count: 0 },
     { day: "Friday", count: 0 },
+    { day: "Saturday", count: 0 },
+    { day: "Sunday", count: 0 },
   ]);
 
   useEffect(() => {
@@ -20,6 +22,8 @@ function CallUpload() {
       { day: "Wednesday", count: 10 },
       { day: "Thursday", count: 50 },
       { day: "Friday", count: 60 },
+      { day: "Saturday", count: 60 },
+      { day: "Sunday", count: 20 },
     ];
     setCall(data);
   }, []);
@@ -39,7 +43,7 @@ function CallUpload() {
 
   // defining chart styling
   const chartOptions = {
-    maintainaspectratio: false,
+    maintainAspectRatio: false,
     scales: {
       x: { grid: { display: false } },
 
@@ -63,8 +67,16 @@ function CallUpload() {
 
   // rendering
   return (
-    <div className="card">
-      <Bar data={barChart} options={chartOptions} maintainAspectRatio:false />
+    <div className="card bg-base-100 border border-base-200 shadow-sm">
+      <div className="card-body">
+        <h2 className="card-title text-base-content">Weekly Call Volume</h2>
+        <p className="text-xs text-base-content/50">
+          Monday - Friday (Current Week)
+        </p>
+        <div style={{ height: "300px" }}>
+          <Bar data={barChart} options={chartOptions} />
+        </div>
+      </div>
     </div>
   );
 }
