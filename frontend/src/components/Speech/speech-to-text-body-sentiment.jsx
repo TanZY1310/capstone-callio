@@ -1,7 +1,7 @@
 import { Smile, Target, Zap, TriangleAlert } from "lucide-react";
 function SentimentTab({ data }) {
   return (
-    <div className="card bg-base-100 border border-base-200 w-full max-w-[800px] ml-60">
+    <div className="card bg-base-100 border border-base-200 w-full max-w-[1100px] ml-60">
       <div className="card-body gap-8">
         <div className="flex flex-col gap-1">
           <h2 className="card-title text-base-content">Sentiment Analysis</h2>

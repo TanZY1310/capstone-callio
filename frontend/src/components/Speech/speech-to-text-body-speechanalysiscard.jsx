@@ -29,7 +29,7 @@ function SpeechAnalysisCard({ data }) {
             </button>
           </div>
 
-          <CustomerInfoCard data={data} customer={customer}/>
+          <CustomerInfoCard data={data} customer={customer} />
 
           {/* Note: Ensure AudioPlaybackCard width inside its component is either w-full or matches this container's narrow width */}
           <AudioPlaybackCard data={data} />
@@ -40,7 +40,7 @@ function SpeechAnalysisCard({ data }) {
         {/* RIGHT PANEL: Tabs & Transcripts (Dynamically scales to fill remaining space) */}
         <div className="flex flex-col flex-1 w-full  pt-2">
           {/* Tabs header wrapper */}
-          <div className="w-full border-b border-base-200  flex justify-end">
+          <div className="w-full border-b border-base-200  flex justify-start ml-60">
             <AnalysisTab setActiveTab={setActiveTab} />
           </div>
 
