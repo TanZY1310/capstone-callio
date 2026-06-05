@@ -4,7 +4,6 @@ function ProfileCardSetting() {
       <div className="w-152 rounded-2xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md flex flex-col gap-6 m-5 mt-1">
         <div>
           <div>Personal Information</div>
-          <div>Active Profile</div>
         </div>
         <div>
           <div>
@@ -66,7 +65,7 @@ function ProfileCardSetting() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default ProfileCardSetting;
+export default ProfileCardSetting
