@@ -8,7 +8,7 @@ function ProfileCardSetting() {
         </div>
         <div>
           <div>
-            <div>
+            <div className="flex flex-col gap-1.5 mb-2">
               <label
                 className="mb-1 block text-xs text-slate-400"
                 for="license"
@@ -21,7 +21,7 @@ function ProfileCardSetting() {
                 className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            <div>
+            <div className="flex flex-col gap-1.5 mb-2">
               <label
                 className="mb-1 block text-xs text-slate-400"
                 for="license"
@@ -36,7 +36,7 @@ function ProfileCardSetting() {
             </div>
           </div>
           <div>
-            <div>
+            <div className="flex flex-col gap-1.5 mb-2">
               <label
                 className="mb-1 block text-xs text-slate-400"
                 for="license"
@@ -49,7 +49,7 @@ function ProfileCardSetting() {
                 className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            <div>
+            <div className="flex flex-col gap-1.5 mb-2">
               <label
                 className="mb-1 block text-xs text-slate-400"
                 for="license"

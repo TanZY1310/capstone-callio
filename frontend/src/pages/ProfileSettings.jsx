@@ -1,19 +1,26 @@
+import CredentialCardSetting from "../components/Profile-Management/CredentialCardSetting";
 import ProfileCardSetting from "../components/Profile-Management/ProfileCardSetting";
 
 function ProfileSetting() {
   return (
     <div>
       <div>
-        <div>
+        <div className="m-5">
           <div>
-            <h2>Profile Setting</h2>
+            <h1>Profile Setting</h1>
             <p>
               Manage your account identity and professional credential settings.
             </p>
           </div>
         </div>
         <div>
-          <ProfileCardSetting />
+          <div>
+            <ProfileCardSetting />
+            <CredentialCardSetting />
+            <div className="flex">
+              <button className="btn btn-active">Save</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

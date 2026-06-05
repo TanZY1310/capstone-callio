@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 // change the profile pic
 function ProfileCard({ user }) {
@@ -64,11 +65,11 @@ function ProfileCard({ user }) {
           </div>
         </div>
         <div>
-          <navLink to="/profile/profile-setting">
+          <NavLink to="/profile-setting">
             <button className="btn btn-neutral py-0.5 mt-10">
               Edit Profile
             </button>
-          </navLink>
+          </NavLink>
         </div>
       </div>
     </div>
