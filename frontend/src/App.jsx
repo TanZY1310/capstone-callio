@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Toaster } from "sonner";
+import ProfileSetting from "./pages/ProfileSettings";
 
 // Include page or component imports here
 const Register = lazy(() => import("./components/Authentication/RegisterForm"));
@@ -67,6 +68,8 @@ function App() {
             <Route path="metrics" element={<MainDashboard />} />
             <Route path="speech" element={<Speech />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="profile/*" element={<UserProfile />} />
+              <Route path="profile-setting" element={<ProfileSetting />} />
           </Route>
         </Routes>
       </Router>
