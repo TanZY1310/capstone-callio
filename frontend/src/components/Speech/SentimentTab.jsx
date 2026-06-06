@@ -1,7 +1,7 @@
-import { Smile, Target, Zap, TriangleAlert } from "lucide-react";
+import { Smile, Target, Zap, TriangleAlert } from 'lucide-react';
 function SentimentTab({ data }) {
   return (
-    <div className="card bg-base-100 border border-base-200 w-full max-w-[1100px] ml-60">
+    <div className="tab-panel">
       <div className="card-body gap-8">
         <div className="flex flex-col gap-1">
           <h2 className="card-title text-base-content">Sentiment Analysis</h2>
@@ -15,23 +15,24 @@ function SentimentTab({ data }) {
           {[
             {
               icon: <Smile />,
-              label: "Overall Sentiment",
+              label: 'Overall Sentiment',
               value: data.overallSentiment,
             },
             {
               icon: <Target />,
-              label: "Intent Score",
+              label: 'Intent Score',
               value: `${data.intentScore}%`,
             },
-            { icon: <Zap />, label: "Urgency Level", value: data.urgency },
+            { icon: <Zap />, label: 'Urgency Level', value: data.urgency },
           ].map((m) => (
             <div
               key={m.label}
               className="flex flex-col gap-2 p-4 bg-base-200 rounded-xl"
             >
-              <span className="text-xs font-bold text-base-content/50">
-                {m.icon} {m.label}
-              </span>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-base-content/50">
+                {m.icon}
+                <span>{m.label}</span>
+              </div>
               <span className="text-xl font-bold text-base-content">
                 {m.value}
               </span>

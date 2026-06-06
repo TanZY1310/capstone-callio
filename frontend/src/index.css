@@ -47,4 +47,83 @@ body {
   .dashboard-card {
     @apply bg-base-100 rounded-2xl border border-base-200/60 shadow-xs backdrop-blur-md transition-all duration-300 hover:shadow-md hover:border-base-200;
   }
+
+  .tab-panel {
+    @apply card bg-base-100 border border-base-200 w-full;
+  }
+
+  /* Page titles — used in Header component h1 prop */
+  .text-page-title {
+    @apply text-2xl font-bold text-base-content tracking-tight;
+  }
+
+  /* Page subtitle — used in Header component p prop */
+  .text-page-subtitle {
+    @apply text-sm text-base-content/50;
+  }
+
+  /* Card title — used in card headers across all components */
+  .text-card-title {
+    @apply text-sm font-semibold text-base-content;
+  }
+
+  /* Card subtitle / description */
+  .text-card-subtitle {
+    @apply text-xs text-base-content/40;
+  }
+
+  /* Section heading — used inside cards for sub-sections */
+  .text-section-heading {
+    @apply text-sm font-semibold text-base-content;
+  }
+
+  /* Body text */
+  .text-body {
+    @apply text-sm text-base-content/70;
+  }
+
+  /* Small / helper text */
+  .text-helper {
+    @apply text-xs text-base-content/50;
+  }
+
+  /* Table header text */
+  .text-table-header {
+    @apply text-xs font-medium text-base-content/40 uppercase tracking-wider;
+  }
+
+  /* Table cell text */
+  .text-table-cell {
+    @apply text-sm text-base-content/70;
+  }
+
+  /* Stat value — large numbers in dashboard cards */
+  .text-stat-value {
+    @apply text-3xl font-bold text-base-content;
+  }
+
+  /* Stat label */
+  .text-stat-label {
+    @apply text-sm text-base-content/60;
+  }
+
+  /* Auth heading — login/register page titles */
+  .text-auth-title {
+    @apply text-2xl font-bold text-base-content;
+  }
+
+  /* Auth subtitle */
+  .text-auth-subtitle {
+    @apply text-sm text-base-content/50 mt-1;
+  }
+
+  /* Error text */
+  .text-error-msg {
+    @apply text-xs text-error mt-1;
+  }
+
+  /* Badge / status label */
+  .text-badge {
+    @apply text-xs font-medium;
+  }
 }
