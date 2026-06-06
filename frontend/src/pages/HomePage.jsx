@@ -75,7 +75,7 @@ function HomePage() {
                 <Users size={20} />
               </div>
               <div>
-                <p className="text-xs text-base-content/50 font-medium">
+                <p className="text-xs text-base-content font-medium">
                   Total Tracked Directory
                 </p>
                 <h3 className="text-2xl font-bold">
@@ -91,7 +91,7 @@ function HomePage() {
                 <AlertCircle size={20} />
               </div>
               <div>
-                <p className="text-xs text-base-content/50 font-medium">
+                <p className="text-xs text-base-content font-medium">
                   Pending Sync Changes
                 </p>
                 <h3 className="text-2xl font-bold text-warning">
