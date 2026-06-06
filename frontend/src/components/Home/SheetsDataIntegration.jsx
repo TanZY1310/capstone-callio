@@ -43,7 +43,7 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
   return (
     <>
       <motion.div
-        className="bg-base-100 rounded-2xl border border-base-200 p-5"
+        className="dashboard-card border border-base-200 p-5"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}

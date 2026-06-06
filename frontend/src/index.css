@@ -45,7 +45,7 @@ body {
 @layer components {
   /* Premium modern dashboard card style */
   .dashboard-card {
-    @apply bg-base-100 rounded-2xl border border-base-200/60 shadow-xs backdrop-blur-md transition-all duration-300 hover:shadow-md hover:border-base-200;
+    @apply bg-base-100 rounded-2xl border border-base-200/60 shadow-xs backdrop-blur-md hover:shadow-md hover:border-base-200;
   }
 
   .tab-panel {
