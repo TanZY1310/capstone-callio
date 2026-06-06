@@ -1,24 +1,24 @@
-import { useState, useReducer, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useReducer } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
-import { KeyRound, Mail, Eye, EyeOff } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
-import sampleUserList from "../../data/SampleUserList";
-import { toast } from "sonner";
+import { KeyRound, Mail, Eye, EyeOff } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
+import sampleUserList from '../../data/SampleUserList';
+import { toast } from 'sonner';
 
 const initialState = {
-  email: "",
-  password: "",
+  email: '',
+  password: '',
   loading: false,
   loggedIn: false,
 };
 
 const ACTIONS = {
-  SET_EMAIL: "SET_EMAIL",
-  SET_PASSWORD: "SET_PASSWORD",
-  LOGIN_START: "LOGIN_START",
-  LOGIN_SUCCESS: "LOGIN_SUCCESS",
-  LOGIN_ERROR: "LOGIN_ERROR",
+  SET_EMAIL: 'SET_EMAIL',
+  SET_PASSWORD: 'SET_PASSWORD',
+  LOGIN_START: 'LOGIN_START',
+  LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+  LOGIN_ERROR: 'LOGIN_ERROR',
 };
 
 function loginReducer(state, action) {
@@ -40,7 +40,7 @@ function loginReducer(state, action) {
         ...state,
         loading: true,
         loggedIn: false,
-        error: "",
+        error: '',
       };
 
     case ACTIONS.LOGIN_SUCCESS:
@@ -66,35 +66,21 @@ function loginReducer(state, action) {
 function LoginForm({ setUser }) {
   const [state, dispatch] = useReducer(loginReducer, initialState);
   const navigate = useNavigate();
-  const { state: registerState } = useLocation();
-  const registerUserList = registerState?.updatedUserList;
-  const registeredEmail = registerState?.registeredEmail;
-  const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
-    console.log("Check Register From Login: " + registerState);
-    if (registeredEmail) {
-      dispatch({ type: ACTIONS.SET_EMAIL, payload: registeredEmail });
-    }
-  }, [registeredEmail, registerState]);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function sampleLoginAPI(email, password) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Temp implement this to combine registerList and userList later when include db change this
-    const combinedUserList = registerUserList
-      ? [...sampleUserList, ...registerUserList]
-      : sampleUserList;
-
-    console.log("Login User List", combinedUserList);
-    const user = combinedUserList.find(
+    console.log('Login User List', sampleUserList);
+    const user = sampleUserList.find(
       (u) => u.email === email && u.password === password,
     );
 
-    if (!user) throw new Error("Invalid email or password");
-    localStorage.setItem("currentUser", JSON.stringify(user));
+    if (!user) throw new Error('Invalid email or password');
+    localStorage.setItem('currentUser', JSON.stringify(user));
 
-    return { token: "sample-token", user };
+    return { token: 'sample-token', user };
   }
 
   const handleSubmit = async (e) => {
@@ -106,10 +92,10 @@ function LoginForm({ setUser }) {
       //UserList.js will simulate users from db
       const data = await sampleLoginAPI(state.email, state.password);
       setUser(data.user);
-      console.log("Token: ", data.token);
+      console.log('Token: ', data.token);
       dispatch({ type: ACTIONS.LOGIN_SUCCESS });
-      toast.success("Login successful!");
-      setTimeout(() => navigate("/"), 3000);
+      toast.success('Login successful!');
+      setTimeout(() => navigate('/'), 3000);
     } catch (err) {
       dispatch({ type: ACTIONS.LOGIN_ERROR, payload: err.message });
       toast.error(err.message);
@@ -123,10 +109,11 @@ function LoginForm({ setUser }) {
         <div
           className="hidden lg:flex flex-col justify-between p-12 bg-neutral text-neutral-content"
           style={{
-            backgroundImage: "url('/building-bg.jpg')",
-            backgroundSize: "cover",
-          }}>
-          <span className="font-bold text-2xl">CALLIO</span>
+            backgroundImage: "url('/Menara118.jpg')",
+            backgroundSize: 'cover',
+          }}
+        >
+          <span className="font-bold text-3xl">CALLIO</span>
           <blockquote className="text-lg opacity-80">
             {/* "Manage your leads and track every conversation." */}
           </blockquote>
@@ -134,18 +121,18 @@ function LoginForm({ setUser }) {
 
         {/* Right — form */}
         <div className="flex items-center justify-center p-8 bg-base-100">
-          <div className="w-full max-w-sm">
+          <div className="w-full max-w-full">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-base-content">
+              <h1 className="text-4xl font-bold text-base-content">
                 Welcome back
               </h1>
-              <p className="text-sm text-base-content/50 mt-1">
+              <p className="text-2xl text-base-content/50 mt-1">
                 Sign in to your Callio account
               </p>
             </div>
             <form onSubmit={handleSubmit}>
               <fieldset className="fieldset">
-                <legend className="fieldset-legend">Email</legend>
+                <label className="label">Email</label>
                 <label className="input validator w-full">
                   <Mail size={15} className="text-base-content/40" />
                   <input
@@ -155,7 +142,7 @@ function LoginForm({ setUser }) {
                     value={state.email}
                     onChange={(e) =>
                       dispatch({
-                        type: "SET_EMAIL",
+                        type: 'SET_EMAIL',
                         payload: e.target.value,
                       })
                     }
@@ -168,7 +155,7 @@ function LoginForm({ setUser }) {
                 <label className="input validator w-full">
                   <KeyRound size={15} className="text-base-content/40" />
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     required
                     placeholder="Password"
                     // minLength="8"
@@ -177,7 +164,7 @@ function LoginForm({ setUser }) {
                     value={state.password}
                     onChange={(e) =>
                       dispatch({
-                        type: "SET_PASSWORD",
+                        type: 'SET_PASSWORD',
                         payload: e.target.value,
                       })
                     }
@@ -185,7 +172,8 @@ function LoginForm({ setUser }) {
                   <button
                     type="button"
                     onClick={() => setShowPassword((p) => !p)}
-                    className="text-base-content/40 hover:text-base-content">
+                    className="text-base-content/40 hover:text-base-content"
+                  >
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </label>
@@ -201,9 +189,10 @@ function LoginForm({ setUser }) {
                     className="link link-primary link-hover"
                     onClick={() =>
                       document
-                        .getElementById("forgot_password_modal")
+                        .getElementById('forgot_password_modal')
                         .showModal()
-                    }>
+                    }
+                  >
                     Forgot password?
                   </a>
                 </div>
@@ -212,7 +201,8 @@ function LoginForm({ setUser }) {
                     Do Not Have An Account?
                     <Link
                       to="/register"
-                      className="link link-primary link-hover">
+                      className="link link-primary link-hover"
+                    >
                       Register
                     </Link>
                   </p>
@@ -267,8 +257,12 @@ function LoginForm({ setUser }) {
           <div className="modal-action">
             <form method="dialog">
               <div className="flex gap-4">
-                <button className="btn btn-neutral px-4 py-2 rounded">Close</button>
-                <button className="btn btn-neutral px-4 py-2 rounded">Reset Password</button>
+                <button className="btn btn-neutral px-4 py-2 rounded">
+                  Close
+                </button>
+                <button className="btn btn-neutral px-4 py-2 rounded">
+                  Reset Password
+                </button>
               </div>
             </form>
           </div>
