@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui" {
-  themes: corporate --default, business --prefersdark;
-};
+  themes:
+    corporate --default,
+    business --prefersdark;
+}
 
 body {
   margin: 0;
@@ -14,4 +16,25 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+}
+
+/* ================================
+   TYPOGRAPHY SYSTEM
+   ================================ */
+@layer base {
+  h1 {
+    @apply text-4xl font-bold text-primary mb-2;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold text-secondary mb-2;
+  }
+
+  p {
+    @apply text-base text-base-content leading-relaxed mb-2;
+  }
+
+  a {
+    @apply text-info hover:underline transition-colors;
+  }
 }
