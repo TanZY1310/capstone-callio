@@ -40,11 +40,10 @@ function SocialCard() {
   };
 
   return (
-   <div>
+    <div>
       {/* Main DaisyUI Card Component */}
       <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm h-full backdrop-blur-md">
         <div className="card-body p-8 gap-6">
-          
           {/* Header Section */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -71,7 +70,6 @@ function SocialCard() {
 
           {/* FIX: Set to flex layout container so all components scale 100% horizontally */}
           <div className="flex flex-col gap-4">
-            
             {/* Account ID Field */}
             <div className="form-control w-full">
               <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
@@ -106,7 +104,6 @@ function SocialCard() {
                 </span>
               </label>
             </div>
-
           </div>
 
           {/* Primary CTA Action Button */}
@@ -205,7 +202,7 @@ function SocialCard() {
           <div className="modal-action justify-center mt-6">
             <form method="dialog">
               <button
-                className={`btn min-w-[120px] ${notification && !error ? 'btn-success text-white' : 'btn-ghost border border-neutral-300'}`}
+                className={`btn min-w-30 ${notification && !error ? 'btn-success text-white' : 'btn-ghost border border-neutral-300'}`}
                 onClick={handleClose}
                 disabled={isLoading}
               >

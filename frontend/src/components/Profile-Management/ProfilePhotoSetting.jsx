@@ -31,32 +31,41 @@ function ProfilePhotoSetting() {
         accept="image/*"
         ref={fileInputRef}
         onChange={handleImageChange}
-        classNameName="hidden"
+        className="hidden"
       />
-      <div className="card w-[310px] bg-base-100 border border-neutral-200 rounded-xl shadow-sm p-6 flex flex-col items-center text-center gap-6">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-800 self-start">
+
+      {/* Changed w-[310px] to w-full to match dynamic card grid columns */}
+      <div className="card w-full bg-base-100 border border-base-200 rounded-xl shadow-sm p-6 flex flex-col items-center text-center gap-6">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 self-start">
           Profile Photo
         </h2>
 
         <div className="relative">
           <div className="avatar">
-            <div className="w-32 rounded-full ring ring-offset-2 ring-neutral-100">
-              <img src={profilePic} alt="Profile Picture" />
+            <div className="w-32 h-32 rounded-full ring-4 ring-base-200">
+              <img src={profilePic} alt="Profile" className="object-cover" />
             </div>
           </div>
           <button
-            className="btn btn-circle btn-sm btn-neutral absolute bottom-1 right-1 border-2 border-base-100 shadow-md"
+            className="btn btn-circle btn-sm btn-neutral absolute bottom-1 right-1 border-2 border-base-100 shadow-md bg-[#111827] text-white hover:bg-slate-800"
             onClick={triggerFileSelect}
+            type="button"
           >
-            <Pencil classNameName="px-1" />
+            <Pencil className="h-3 w-3" />
           </button>
         </div>
 
-        <p className="text-xs text-neutral-500 leading-relaxed max-w-[220px]">
+        <p className="text-xs text-base-content/50 leading-relaxed max-w-55">
           Upload a high-resolution photo. JPEG or PNG recommended.
         </p>
 
-        
+        <button
+          onClick={triggerFileSelect}
+          type="button"
+          className="btn btn-outline btn-sm w-full border-base-300 normal-case font-medium text-xs rounded-lg"
+        >
+          Change Photo
+        </button>
       </div>
     </div>
   );
