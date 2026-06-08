@@ -1,5 +1,6 @@
-import CredentialCardSetting from "../components/Profile-Management/CredentialCardSetting";
-import ProfileCardSetting from "../components/Profile-Management/ProfileCardSetting";
+import CredentialCardSetting from '../components/Profile-Management/CredentialCardSetting';
+import ProfileCardSetting from '../components/Profile-Management/ProfileCardSetting';
+import ProfilePhotoSetting from '../components/Profile-Management/ProfilePhotoSetting';
 
 function ProfileSetting() {
   return (
@@ -15,7 +16,10 @@ function ProfileSetting() {
         </div>
         <div>
           <div>
-            <ProfileCardSetting />
+            <div className="flex flex-row flex-wrap items-start">
+              <ProfileCardSetting />
+              <ProfilePhotoSetting />
+            </div>
             <CredentialCardSetting />
             <div className="flex">
               <button className="btn btn-active">Save</button>
