@@ -29,7 +29,7 @@ function ProfileSetting() {
           <ProfilePhotoSetting />
 
           {/* Dark Card with flex-grow to fill the remaining vertical space */}
-          <div className="card bg-[#111827] text-white rounded-xl p-6 shadow-sm flex-grow flex flex-col justify-center">
+          <div className="card bg-[#111827] text-white rounded-xl p-6 shadow-sm grow flex flex-col justify-center">
             <div className="flex items-start gap-3 mb-4">
               <div className="mt-1">
                 <svg
