@@ -1,0 +1,28 @@
+import { FaPlay } from 'react-icons/fa';
+import { Volume2 } from 'lucide-react';
+function AudioPlaybackCard() {
+  return (
+    <div className="flex justify-center p-4 w-full rounded-xl bg-base-200">
+      <div className="flex flex-row items-center gap-3 w-full">
+        <button className="btn btn-circle btn-neutral btn-sm">
+          <FaPlay />
+        </button>
+        <div className="flex flex-col justify-center gap-1 flex-1">
+          <div className="w-full h-1.5 rounded-full bg-base-300 overflow-hidden" />
+          <div className="flex justify-between w-full">
+            <span className="font-mono text-xs text-base-content/60">
+              12:00
+            </span>
+            <span className="font-mono text-xs text-base-content/60">
+              24:00
+            </span>
+          </div>
+        </div>
+        <button className="btn btn-ghost btn-sm btn-circle shrink-0">
+          <Volume2 />
+        </button>
+      </div>
+    </div>
+  );
+}
+export default AudioPlaybackCard;

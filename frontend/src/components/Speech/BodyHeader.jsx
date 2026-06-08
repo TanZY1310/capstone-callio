@@ -1,6 +1,6 @@
-import { AudioLines } from "lucide-react";
-import Header from "../Layout/Header";
-import { useRef } from "react";
+import { AudioLines } from 'lucide-react';
+import Header from '../Layout/Header';
+import { useRef } from 'react';
 
 function BodyHeader() {
   const fileInputRef = useRef(null);
@@ -10,13 +10,14 @@ function BodyHeader() {
   };
 
   const handleFileChange = (e) => {
-    const file = e.targer.file[0];
-    console.log("Selected file:", file);
+    const file = e.target.files[0];
+    if (!file) return;
+    console.log('Selected file:', file);
   };
 
   return (
     <div className="flex flex-row items-center justify-between w-full">
-      <div className="flex flex-col gap-1">
+      <div>
         <Header
           h1="Audio Intelligence"
           p="Analyze buyer conversation and extract automated insights"
