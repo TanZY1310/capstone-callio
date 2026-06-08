@@ -1,29 +1,36 @@
-import { useState, useEffect, useReducer } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useReducer } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 
-import { KeyRound, Mail, ALargeSmall, UserKey } from "lucide-react";
-import sampleUserList from "../../data/SampleUserList";
-import { toast } from "sonner";
+import {
+  KeyRound,
+  Mail,
+  ALargeSmall,
+  UserKey,
+  EyeOff,
+  Eye,
+} from 'lucide-react';
+import sampleUserList from '../../data/SampleUserList';
+import { toast } from 'sonner';
 
 const initialState = {
-  username: "",
-  role: "",
-  email: "",
-  password: "",
+  username: '',
+  role: '',
+  email: '',
+  password: '',
   errors: {},
   isSubmitting: false,
   loading: false,
 };
 
 const ACTIONS = {
-  SET_FIELD: "SET_FIELD",
-  SET_ERROR: "SET_ERROR",
-  CLEAR_ERROR: "CLEAR_ERROR",
-  SUBMIT: "SUBMIT",
-  RESET: "RESET",
-  REGISTER_START: "REGISTER_START",
-  REGISTER_SUCCESS: "REGISTER_SUCCESS",
-  REGISTER_ERROR: "REGISTER_ERROR",
+  SET_FIELD: 'SET_FIELD',
+  SET_ERROR: 'SET_ERROR',
+  CLEAR_ERROR: 'CLEAR_ERROR',
+  SUBMIT: 'SUBMIT',
+  RESET: 'RESET',
+  REGISTER_START: 'REGISTER_START',
+  REGISTER_SUCCESS: 'REGISTER_SUCCESS',
+  REGISTER_ERROR: 'REGISTER_ERROR',
 };
 
 function registerReducer(state, action) {
@@ -80,14 +87,15 @@ function registerReducer(state, action) {
   }
 }
 
-function RegisterForm() {
+function RegisterForm({ setUser }) {
   const [state, dispatch] = useReducer(registerReducer, initialState);
   const [userList, setUserList] = useState(sampleUserList);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("There are changes in userList: ", userList);
+    console.log('There are changes in userList: ', userList);
   }, [userList]);
 
   async function sampleRegisterAPI(state) {
@@ -95,7 +103,7 @@ function RegisterForm() {
     console.log(state);
 
     const emailExists = userList.find((u) => u.email === state.email);
-    if (emailExists) throw new Error("Email already registered");
+    if (emailExists) throw new Error('Email already registered');
 
     const newUser = {
       id: Date.now(), // Change to increment id later
@@ -108,19 +116,16 @@ function RegisterForm() {
     const updatedUserList = [...userList, newUser];
     setUserList(updatedUserList);
     // Pass the  updated registeredUserList to login page
-    toast.success("Account created! Please log in");
-    navigate("/login", {
-      state: { updatedUserList, registeredEmail: state.email },
-    });
+    return newUser;
   }
 
   const validateForm = () => {
     let isValid = true;
-    if (!state.email.includes("@")) {
+    if (!state.email.includes('@')) {
       dispatch({
         type: ACTIONS.SET_ERROR,
-        field: "email",
-        msg: "Invalid email",
+        field: 'email',
+        msg: 'Invalid email',
       });
       isValid = false;
     }
@@ -144,14 +149,22 @@ function RegisterForm() {
     try {
       if (!validateForm()) return;
       dispatch({ type: ACTIONS.SUBMIT, value: true });
-      await sampleRegisterAPI(state);
+      const newUser = await sampleRegisterAPI(state);
+
+      // Direct login after register
+      localStorage.setItem('currentUser', JSON.stringify(newUser));
+      setUser(newUser);
+
+      dispatch({ type: ACTIONS.REGISTER_SUCCESS });
+      toast.success('Account created! Welcome to Callio.');
+      setTimeout(() => navigate('/'), 1500);
     } catch (err) {
       dispatch({
         type: ACTIONS.REGISTER_ERROR,
         payload: err.message,
       });
       toast.error(err.message);
-    } 
+    }
   };
 
   return (
@@ -161,23 +174,28 @@ function RegisterForm() {
         <div
           className="hidden lg:flex flex-col justify-between p-12 bg-neutral text-neutral-content"
           style={{
-            backgroundImage: "url('/building-bg.jpg')",
-            backgroundSize: "cover",
+            backgroundImage: "url('/Menara118.jpg')",
+            backgroundSize: 'cover',
           }}
         >
-          <span className="font-bold text-2xl">CALLIO</span>
-          <blockquote className="text-lg opacity-80">
-            "Manage your leads and track every conversation."
-          </blockquote>
+          <span className="font-bold text-3xl">CALLIO</span>
         </div>
 
         {/* Right — form */}
         <div className="flex items-center justify-center p-8 bg-base-100">
-          <div className="w-full max-w-sm">
+          <div className="w-full max-w-full">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-base-content">
+                Create an account
+              </h1>
+              <p className="text-2xl text-base-content/50 mt-1">
+                Join Callio to manage your leads
+              </p>
+            </div>
             <form onSubmit={handleSubmit}>
               <fieldset className="fieldset">
                 <label className="label">Username</label>
-                <label className="input validator">
+                <label className="input validator w-full">
                   <ALargeSmall size={15} className="text-base-content/40" />
                   <input
                     type="text"
@@ -192,21 +210,24 @@ function RegisterForm() {
                   Please enter your username
                 </div>
                 <label className="label">Role</label>
-                <label className="input validator">
+                <label className="input validator w-full">
                   <UserKey size={15} className="text-base-content/40" />
                   <select
                     name="role"
-                    className="select"
+                    className="bg-transparent grow h-full focus:outline-none"
                     value={state.role}
                     onChange={handleChange}
+                    required
                   >
-                    <option disabled={true}>Pick a role</option>
+                    <option value="" disabled={true}>
+                      Pick a role
+                    </option>
                     <option value="team_lead">Team Lead</option>
                     <option value="agent">Agent</option>
                   </select>
                 </label>
                 <label className="label">Email</label>
-                <label className="input validator">
+                <label className="input validator w-full">
                   <Mail size={15} className="text-base-content/40" />
                   <input
                     type="email"
@@ -221,7 +242,7 @@ function RegisterForm() {
                   Please enter a valid email address
                 </div>
                 <label className="label">Password</label>
-                <label className="input validator">
+                <label className="input validator w-full">
                   <KeyRound size={15} className="text-base-content/40" />
                   <input
                     type="password"
@@ -234,6 +255,13 @@ function RegisterForm() {
                     value={state.password}
                     onChange={handleChange}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((p) => !p)}
+                    className="text-base-content/40 hover:text-base-content"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
                 </label>
                 <p className="validator-hint hidden">
                   Must be more than 8 characters, including
@@ -251,12 +279,12 @@ function RegisterForm() {
                   </p>
                 </div>
                 {state.loading ? (
-                  <button className="btn btn-neutral w-full mt-4" disabled>
+                  <button className="btn btn-neutral w-full mt-6" disabled>
                     <span className="loading loading-spinner loading-sm"></span>
                     Creating Account...
                   </button>
                 ) : (
-                  <button className="btn btn-neutral w-full mt-4" type="submit">
+                  <button className="btn btn-neutral w-full mt-6" type="submit">
                     Create New Account
                   </button>
                 )}

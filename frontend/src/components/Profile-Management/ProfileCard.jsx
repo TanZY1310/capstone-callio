@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 // change the profile pic
-function ProfileCard() {
+function ProfileCard({ user }) {
   const [profilePic, setProfilePic] = useState(
     "https://unsplash.com/s/photos/photo-contest",
   );
@@ -62,6 +63,13 @@ function ProfileCard() {
               </span>
             </div>
           </div>
+        </div>
+        <div>
+          <NavLink to="/profile-setting">
+            <button className="btn btn-neutral py-0.5 mt-10">
+              Edit Profile
+            </button>
+          </NavLink>
         </div>
       </div>
     </div>

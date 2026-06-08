@@ -32,7 +32,7 @@ function TopCard({ dummyAgentData }) {
             <div className="stat-figure text-secondary">
               <MdCall size={32} />
             </div>
-            <div className="stat-title">Total Calls Today</div>
+            <div className="stat-title">Total Calls </div>
             <div className="stat-value">{dummyAgentData.calls}</div>
           </div>
 
@@ -42,7 +42,7 @@ function TopCard({ dummyAgentData }) {
             <div className="stat-figure text-secondary">
               <IoChatboxEllipsesSharp size={32} />
             </div>
-            <div className="stat-title">Pending Follow-Ups</div>
+            <div className="stat-title">Follow-Ups</div>
             <div className="stat-value">{dummyAgentData.followUps}</div>
           </div>
 
@@ -52,7 +52,7 @@ function TopCard({ dummyAgentData }) {
             <div className="stat-figure text-secondary">
               <TiTick size={32} />
             </div>
-            <div className="stat-title">Appoinment Sets</div>
+            <div className="stat-title">Booking Sets</div>
             <div className="stat-value">{dummyAgentData.appointments}</div>
           </div>
         </div>
