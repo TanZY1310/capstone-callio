@@ -7,8 +7,8 @@ function CredentialCardSetting() {
             <h3>PROFESSIONAL DETAILS</h3>
           </div>
         </div>
-        <div>
-          <div className="flex flex-col gap-1.5 mb-2">
+        <div className="flex flex-row flex-wrap items-start">
+          <div className="flex flex-col gap-1.5 mb-2 mr-5">
             <label className="mb-1 block text-xs text-slate-400">
               LICENSE NUMBER/REN
             </label>
@@ -21,6 +21,13 @@ function CredentialCardSetting() {
             <label className="mb-1 block text-xs text-slate-400">
               AGENCY BRANCH
             </label>
+            <input
+              type="text"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:border-emerald-500 focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5 mb-2">
+            <label className="mb-1 block text-xs text-slate-400">BIO</label>
             <input
               type="text"
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:border-emerald-500 focus:outline-none"

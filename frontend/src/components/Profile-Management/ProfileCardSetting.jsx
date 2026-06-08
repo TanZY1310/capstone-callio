@@ -6,7 +6,7 @@ function ProfileCardSetting() {
           <div>Personal Information</div>
         </div>
         <div>
-          <div>
+          <div className="flex flex-row flex-wrap items-start">
             <div className="flex flex-col gap-1.5 mb-2">
               <label
                 className="mb-1 block text-xs text-slate-400"
