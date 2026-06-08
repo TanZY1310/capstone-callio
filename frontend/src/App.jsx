@@ -1,34 +1,34 @@
-import { useState, lazy } from "react";
+import { useState, lazy } from 'react'
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-} from "react-router-dom";
-import { Toaster } from "sonner";
-import ProfileSetting from "./pages/ProfileSettings";
+} from 'react-router-dom'
+import { Toaster } from 'sonner'
 
 // Include page or component imports here
-const Register = lazy(() => import("./components/Authentication/RegisterForm"));
-const Login = lazy(() => import("./components/Authentication/LoginForm"));
+const Register = lazy(() => import('./components/Authentication/RegisterForm'))
+const Login = lazy(() => import('./components/Authentication/LoginForm'))
 const ProtectedRoute = lazy(
-  () => import("./components/Authentication/ProtectedRoute"),
-);
-const HomePage = lazy(() => import("./pages/HomePage"));
-const LeadDetail = lazy(() => import("./pages/LeadDetail"));
-const MainDashboard = lazy(() => import("./pages/MainDashboard"));
-const Speech = lazy(() => import("./pages/Speech"));
-const Sidebar = lazy(() => import("./components/Layout/Sidebar"));
-const UserProfile = lazy(() => import("./pages/UserProfile"));
+  () => import('./components/Authentication/ProtectedRoute'),
+)
+const HomePage = lazy(() => import('./pages/HomePage'))
+const LeadDetail = lazy(() => import('./pages/LeadDetail'))
+const MainDashboard = lazy(() => import('./pages/MainDashboard'))
+const Speech = lazy(() => import('./pages/Speech'))
+const Sidebar = lazy(() => import('./components/Layout/Sidebar'))
+const UserProfile = lazy(() => import('./pages/UserProfile'))
+const ProfileSetting = lazy(() => import('./pages/ProfileSettings'))
 
 function App() {
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("currentUser");
-    return stored ? JSON.parse(stored) : null;
-  });
+    const stored = localStorage.getItem('currentUser')
+    return stored ? JSON.parse(stored) : null
+  })
 
-  console.log("User: ", user);
-  const isAuthenticated = user !== null;
+  console.log('User: ', user)
+  const isAuthenticated = user !== null
 
   return (
     <>
@@ -68,13 +68,13 @@ function App() {
             <Route path="metrics" element={<MainDashboard />} />
             <Route path="speech" element={<Speech />} />
             <Route path="profile" element={<UserProfile />} />
-            <Route path="profile/*" element={<UserProfile />} />
-              <Route path="profile-setting" element={<ProfileSetting />} />
+            <Route path="profile/*" element={<UserProfile  />} />
+            <Route path="profile-setting" element={<ProfileSetting />} />
           </Route>
         </Routes>
       </Router>
     </>
-  );
+  )
 }
 
-export default App;
+export default App

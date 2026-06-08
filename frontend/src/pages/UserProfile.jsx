@@ -6,7 +6,7 @@ import SocialCard from "../components/Profile-Management/SocialCard";
 function UserProfile() {
   return (
     <div>
-      <ProfileCard />
+      <ProfileCard  />
       <div className="flex flex-row flex-wrap items-start">
         <SocialCard />
         <SheetsCard />

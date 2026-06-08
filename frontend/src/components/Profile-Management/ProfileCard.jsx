@@ -3,7 +3,7 @@ import { Pencil } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 // change the profile pic
-function ProfileCard({ user }) {
+function ProfileCard({username, yearJoined}) {
   const [profilePic, setProfilePic] = useState(
     "https://unsplash.com/s/photos/photo-contest",
   );
@@ -59,7 +59,7 @@ function ProfileCard({ user }) {
                 Member since 2024
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-[#E6F3FF] px-2.5 py-1 text-xs font-medium text-[#005BB3]">
-                Verified Professional
+                Agent
               </span>
             </div>
           </div>
