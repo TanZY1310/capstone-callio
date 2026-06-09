@@ -1,42 +1,70 @@
 function CredentialCard() {
   const agent = {
     renNumber: 123456,
-    agency: "AIA",
+    agency: 'AIA',
   };
 
   return (
-    <div>
-      <div className="w-160 rounded-xl border border-[#E2E8F0] bg-white/70 p-8 shadow-sm backdrop-blur-md ml-5 ">
-        <div className="mb-6 flex items-center gap-2">
-          <h2 className="text-lg font-bold text-slate-900">
-            Professional Details
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <label className="mb-1 block text-xs text-slate-400" for="license">
-              License Number (REN)
-            </label>
-            <input
-              type="text"
-              id="license"
-              value="REN 12345"
-              disabled
-              className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
+    <div className="w-full">
+      {/* Removed max-w-2xl so it scales 100% horizontally.
+        Changed bg-base-100/70 to match the exact background style profileCard uses.
+      */}
+      <div className="card w-full bg-base-100/70 border border-base-200 shadow-sm backdrop-blur-md">
+        <div className="card-body p-6">
+          {/* Card Header Title */}
+          <div className="mb-2">
+            <h2 className="card-title text-lg font-bold text-base-content">
+              Professional Details
+            </h2>
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs text-slate-400" for="branch">
-              Agency Branch
+          {/* Form Layout Split Grid */}
+          {/* Using a custom responsive max-width layout on the input grid itself ensures 
+              the form fields don't stretch awkwardly wide on huge desktop monitors */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl w-full">
+            {/* License Input Control Group */}
+            <div className="form-control w-full">
+              <label className="label p-0 mb-1.5" htmlFor="license">
+                <span className="label-text text-xs text-slate-400 font-medium">
+                  License Number (REN)
+                </span>
+              </label>
+              <input
+                type="text"
+                id="license"
+                value="REN 12345"
+                disabled
+                className="input input-bordered w-full text-sm bg-slate-50/50 border-slate-200 text-slate-700 disabled:bg-slate-50/50 disabled:text-slate-700 disabled:border-slate-200"
+              />
+            </div>
+
+            {/* Agency Branch Input Control Group */}
+            <div className="form-control w-full">
+              <label className="label p-0 mb-1.5" htmlFor="branch">
+                <span className="label-text text-xs text-slate-400 font-medium">
+                  Agency Branch
+                </span>
+              </label>
+              <input
+                type="text"
+                id="branch"
+                value="IQI Global - Klang Valley"
+                disabled
+                className="input input-bordered w-full text-sm bg-slate-50/50 border-slate-200 text-slate-700 disabled:bg-slate-50/50 disabled:text-slate-700 disabled:border-slate-200"
+              />
+            </div>
+          </div>
+          <div className="form-control w-full">
+            <label className="label p-0 mb-1.5" htmlFor="branch">
+              <span className="label-text text-xs text-slate-400 font-medium">
+                Bio
+              </span>
             </label>
             <input
               type="text"
-              id="branch"
-              value="IQI Global - Klang Valley"
+              value="I am the wolf of wall street"
               disabled
-              className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="input input-bordered w-full text-sm bg-slate-50/50 border-slate-200 text-slate-700 disabled:bg-slate-50/50 disabled:text-slate-700 disabled:border-slate-200"
             />
           </div>
         </div>
