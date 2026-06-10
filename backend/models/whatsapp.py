@@ -4,7 +4,7 @@ from database import Base
 class AIResponse(Base):
     __tablename__ = "airesponses"
 
-    resposne_id = Column(Integer, primary_key = True, index = True)
+    response_id = Column(Integer, primary_key = True, index = True)
     content = Column(JSON)
     cust_id = Column(Integer, foreign_key=True)
 
