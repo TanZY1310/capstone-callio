@@ -13,7 +13,7 @@ router = APIRouter(
 async def get_user(db: db_dependency):
     return db.query(Users).all()
 
-@router.get("/login/{email}")
+@router.get("/login")
 async def login_user(db: db_dependency, email: str):
     user_result = db.query(Users).filter(Users.email == email).first()
 
