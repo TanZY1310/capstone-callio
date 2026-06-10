@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { KeyRound, Mail, Eye, EyeOff } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
-import sampleUserList from '../../data/SampleUserList';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 const initialState = {
   email: '',
@@ -63,24 +63,20 @@ function loginReducer(state, action) {
   }
 }
 
-function LoginForm({ setUser }) {
+function LoginForm() {
   const [state, dispatch] = useReducer(loginReducer, initialState);
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
 
-  async function sampleLoginAPI(email, password) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+  const API_URL = 'http://localhost:8000';
 
-    console.log('Login User List', sampleUserList);
-    const user = sampleUserList.find(
-      (u) => u.email === email && u.password === password,
-    );
-
-    if (!user) throw new Error('Invalid email or password');
-    localStorage.setItem('currentUser', JSON.stringify(user));
-
-    return { token: 'sample-token', user };
+  async function loginAPI(email, password) {
+    const response = await axios.post(`${API_URL}/login`, null, {
+      params: { email: email, password: password },
+    });
+    console.log(response.data);
+    return response.data;
   }
 
   const handleSubmit = async (e) => {
@@ -90,9 +86,8 @@ function LoginForm({ setUser }) {
     try {
       //TODO Handle authentication via backend API, Simulate API for now
       //UserList.js will simulate users from db
-      const data = await sampleLoginAPI(state.email, state.password);
-      setUser(data.user);
-      console.log('Token: ', data.token);
+      const user = await loginAPI(state.email, state.password);
+      localStorage.setItem('currentUser', JSON.stringify(user));
       dispatch({ type: ACTIONS.LOGIN_SUCCESS });
       toast.success('Login successful!');
       setTimeout(() => navigate('/'), 3000);
@@ -130,10 +125,12 @@ function LoginForm({ setUser }) {
                 Sign in to your Callio account
               </p>
             </div>
+
             <form onSubmit={handleSubmit}>
-              <fieldset className="fieldset">
-                <label className="label">Email</label>
-                <label className="input validator w-full">
+              <fieldset className="fieldset gap-1">
+                {/* Email */}
+                <legend className="fieldset-legend">Email</legend>
+                <label className="input input-bordered validator w-full">
                   <Mail size={15} className="text-base-content/40" />
                   <input
                     type="email"
@@ -142,29 +139,25 @@ function LoginForm({ setUser }) {
                     value={state.email}
                     onChange={(e) =>
                       dispatch({
-                        type: 'SET_EMAIL',
+                        type: ACTIONS.SET_EMAIL,
                         payload: e.target.value,
                       })
                     }
                   />
                 </label>
-                <div className="validator-hint hidden">
-                  Please enter a valid email address
-                </div>
-                <label className="label">Password</label>
-                <label className="input validator w-full">
+
+                {/* Password */}
+                <legend className="fieldset-legend mt-2">Password</legend>
+                <label className="input input-bordered validator w-full">
                   <KeyRound size={15} className="text-base-content/40" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     placeholder="Password"
-                    // minLength="8"
-                    // pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                    title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
                     value={state.password}
                     onChange={(e) =>
                       dispatch({
-                        type: 'SET_PASSWORD',
+                        type: ACTIONS.SET_PASSWORD,
                         payload: e.target.value,
                       })
                     }
@@ -177,16 +170,17 @@ function LoginForm({ setUser }) {
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </label>
-                <p className="validator-hint hidden">
-                  Must be more than 8 characters, including
-                  <br />
-                  At least one number <br />
-                  At least one lowercase letter <br />
-                  At least one uppercase letter
-                </p>
-                <div>
+
+                {/* Error message */}
+                {state.error && (
+                  <div className="alert alert-error text-sm py-2 mt-2">
+                    {state.error}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between mt-2">
                   <a
-                    className="link link-primary link-hover"
+                    className="link link-primary link-hover text-sm"
                     onClick={() =>
                       document
                         .getElementById('forgot_password_modal')
@@ -195,10 +189,8 @@ function LoginForm({ setUser }) {
                   >
                     Forgot password?
                   </a>
-                </div>
-                <div>
-                  <p>
-                    Do Not Have An Account?
+                  <p className="text-sm text-base-content/60">
+                    Do Not Have An Account?{' '}
                     <Link
                       to="/register"
                       className="link link-primary link-hover"
@@ -207,6 +199,7 @@ function LoginForm({ setUser }) {
                     </Link>
                   </p>
                 </div>
+
                 {state.loading ? (
                   <button className="btn btn-neutral w-full mt-4" disabled>
                     <span className="loading loading-spinner loading-sm"></span>
