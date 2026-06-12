@@ -28,7 +28,7 @@ const SIDEBAR_COLORS = {
   },
 };
 
-function Sidebar({ setUser }) {
+function Sidebar({ logout }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const navigate = useNavigate();
 
@@ -46,9 +46,7 @@ function Sidebar({ setUser }) {
     setTheme((t) => (t === 'corporate' ? 'business' : 'corporate'));
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('currentUser');
-    setUser(null);
+    logout();
     navigate('/login');
   };
 
