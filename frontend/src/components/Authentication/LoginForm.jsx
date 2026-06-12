@@ -84,8 +84,6 @@ function LoginForm() {
     dispatch({ type: ACTIONS.LOGIN_START });
 
     try {
-      //TODO Handle authentication via backend API, Simulate API for now
-      //UserList.js will simulate users from db
       const user = await loginAPI(state.email, state.password);
       localStorage.setItem('currentUser', JSON.stringify(user));
       dispatch({ type: ACTIONS.LOGIN_SUCCESS });
