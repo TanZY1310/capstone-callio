@@ -1,16 +1,26 @@
-# Specify the pydantic model here
-from pydantic import BaseModel, Field, StrictInt
+from pydantic import BaseModel, field_validator
+from datetime import datetime
+from typing import Optional
+import uuid
 
+class CustomerSheetRow(BaseModel):
+    cust_name: str
+    phone: str
+    budget: Optional[str] = None        # nullable — filled in later
+    location: Optional[str] = None      
+    status: Optional[str] = None
+    last_contact: Optional[datetime] = None
+    user_id: uuid.UUID 
 
-# Example only, modify based on requirements
-class CustomerRequest(BaseModel):
-    title: str = Field(min_length=3, max_length=1000)
-    author: str = Field(min_length=3, max_length=1000)
-    published_year: StrictInt = Field(gt=1800, lt=2026)
+    # Convert empty values from google sheets to null value so that it can still be saved to database (For eg: datetime from last_contact got error since it requires datetime format)
+    @field_validator("budget", "location", "status", "last_contact", "phone", mode="before")
+    @classmethod
+    def empty_string_to_none(cls, v):
+        if v == "" or v is None:
+            return None
+        return v
 
-class CustomerCreate(BaseModel):
-    id: int
-    name: str
-    phone: int
-    budget: float
-    
+class SyncResult(BaseModel):
+    synced: int
+    skipped: int
+    total: int
