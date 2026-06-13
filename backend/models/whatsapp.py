@@ -6,5 +6,6 @@ class AIResponse(Base):
 
     response_id = Column(Integer, primary_key = True, index = True)
     content = Column(JSON)
-    cust_id = Column(Integer, foreign_key=True)
+    status = Column(String, default="draft")
+    cust_id = Column(Integer, ForeignKey("cust_id"))
 
