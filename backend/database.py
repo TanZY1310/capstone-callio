@@ -7,7 +7,7 @@ from fastapi import Depends
 
 # PostgreSQL connection details: Move to env file later
 DB_USER = "postgres"
-DB_PASSWORD = "password"
+DB_PASSWORD = "Drose?4MVP"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "callio_db"
