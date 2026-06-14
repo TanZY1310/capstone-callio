@@ -3,22 +3,12 @@ from pydantic import BaseModel, Field, EmailStr
 from database import db_dependency
 from models.user import Users, UserRole
 from auth import pwd_context
+from schemas.user import UserVerification, UserProfileUpdate
 
 router = APIRouter(
     prefix="/user-profile",
     tags=["user-profile"]
 )
-
-class UserVerification(BaseModel):
-    password: str = Field(..., description="Current password")
-    new_password: str = Field(..., min_length=6, description="New password")
-
-class UserProfileUpdate(BaseModel):
-    first_name: str | None = Field(None, max_length=100)
-    last_name: str | None = Field(None, max_length=100)
-    registered_year: int | None = None
-    license_number: str | None = Field(None, max_length=10)
-    agency_branch: str | None = Field(None, max_length=100)
 
 
 # temporary
