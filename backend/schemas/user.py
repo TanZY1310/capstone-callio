@@ -19,6 +19,5 @@ class UserVerification(BaseModel):
 class UserProfileUpdate(BaseModel):
     first_name: str | None = Field(None, max_length=100)
     last_name: str | None = Field(None, max_length=100)
-    registered_year: int | None = None
     license_number: str | None = Field(None, max_length=10)
     agency_branch: str | None = Field(None, max_length=100)
