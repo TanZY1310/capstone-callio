@@ -2,14 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, EmailStr
 from database import db_dependency
 from models.user import Users, UserRole
-from auth import pwd_context
+from routers.auth import pwd_context
 from schemas.user import UserVerification, UserProfileUpdate
 
 router = APIRouter(
-    prefix="/user-profile",
-    tags=["user-profile"]
+    prefix='/user_profile',
+    tags=['user_profile']
 )
-
 
 # temporary
 async def get_current_user(db: db_dependency) -> Users:
