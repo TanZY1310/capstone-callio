@@ -3,6 +3,19 @@ from datetime import datetime
 from typing import Optional
 import uuid
 
+class CustomerResponse(BaseModel):
+    cust_id: uuid.UUID
+    cust_name: str
+    phone: int
+    budget: Optional[int] = None
+    location: Optional[str] = None
+    status: Optional[str] = None
+    last_contact: Optional[datetime] = None
+    remarks: Optional[dict] = None
+    user_id: uuid.UUID
+
+    model_config = {"from_attributes": True} 
+
 class CustomerSheetRow(BaseModel):
     cust_name: str
     phone: str
@@ -10,7 +23,6 @@ class CustomerSheetRow(BaseModel):
     location: Optional[str] = None      
     status: Optional[str] = None
     last_contact: Optional[datetime] = None
-    user_id: uuid.UUID 
 
     # Convert empty values from google sheets to null value so that it can still be saved to database (For eg: datetime from last_contact got error since it requires datetime format)
     @field_validator("budget", "location", "status", "last_contact", "phone", mode="before")

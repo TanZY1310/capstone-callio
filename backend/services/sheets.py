@@ -10,7 +10,7 @@ from schemas.customer import CustomerSheetRow, SyncResult
 import uuid
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-SERVICE_ACCOUNT_FILE = "credentials.json"   # path to your downloaded JSON key
+SERVICE_ACCOUNT_FILE = "sheets_credentials.json"   # path to your downloaded JSON key
 SPREADSHEET_ID = "1eN1XOgQ7VbaXCCX2iUq0DJrglThdzGkdqjBb6L_z8E8"
 SHEET_RANGE = "Sheet1!A2:G"                 # skip header row, 7 columns, Sheet1 follow name of sheet below
 
@@ -40,7 +40,7 @@ def _fetch_sheet_rows() -> list[dict]:
     return parsed
 
 
-async def sync_customers_from_sheets(db: db_dependency) -> SyncResult:
+async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> SyncResult:
     # Google SDK is sync — offload to threadpool
     raw_rows = await run_in_threadpool(_fetch_sheet_rows)
 
@@ -63,10 +63,9 @@ async def sync_customers_from_sheets(db: db_dependency) -> SyncResult:
                 phone=validated.phone,
                 budget=validated.budget,
                 location=validated.location,
-                status=validated.status,
+                status=validated.status or "Not Yet Call", #If no status default is "Not Yet Call"
                 last_contact=validated.last_contact,
-                user_id=validated.user_id,
-                remarks=None,
+                user_id=user_id,
             )
             .on_conflict_do_update(
                 index_elements=["phone"],
@@ -74,7 +73,7 @@ async def sync_customers_from_sheets(db: db_dependency) -> SyncResult:
                     "cust_name": validated.cust_name,
                     "budget": validated.budget,
                     "location": validated.location,
-                    "status": validated.status,
+                    "status": validated.status or "Not Yet Call",
                     "last_contact": validated.last_contact,
                 },
             )
@@ -85,3 +84,10 @@ async def sync_customers_from_sheets(db: db_dependency) -> SyncResult:
 
     db.commit()
     return SyncResult(synced=synced, skipped=skipped, total=len(raw_rows))
+
+async def fetch_status():
+    creds = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+    service = build("sheets", "v4", credentials=creds)
+    service.spreadsheets().get(spreadsheetid=SPREADSHEET_ID).execute()

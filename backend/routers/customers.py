@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, status, HTTPException
 from database import db_dependency
 from models.customer import Customers
-from schemas.customer import SyncResult
-from services.sheets import sync_customers_from_sheets
+from schemas.customer import CustomerResponse
+import uuid
 
 #GET/POST/PUT/DELETE /customers
 router = APIRouter(
@@ -10,11 +10,19 @@ router = APIRouter(
     tags=["customers"]
 )
 
-@router.get("/")
-async def get_customer(db: db_dependency):
-    return db.query(Customers).all()
+@router.get("/", response_model=list[CustomerResponse], status_code=status.HTTP_200_OK)
+async def get_customers(
+    db: db_dependency,
+    user_id: uuid.UUID,
+) -> list[CustomerResponse]:
+    # result = db.execute(
+    #     select(Customers).where(Customers.user_id == user_id)
+    # )
+    # return result.scalars().all()
 
-@router.post("/sync", response_model=SyncResult, status_code=status.HTTP_200_OK, 
-             summary="Sync customers from Google Sheets", description="Fetches rows from the configured Google Sheet and insert into customer table")
-async def sync_customers(db: db_dependency) -> SyncResult:
-    return await sync_customers_from_sheets(db)
+    customers = db.query(Customers).filter(Customers.user_id == user_id).all()
+
+    if customers is not None:
+        return customers
+    
+    raise HTTPException(status_code=400, detail="Customers not found")

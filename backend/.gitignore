@@ -13,3 +13,4 @@ env/
 
 # Credentials 
 sheets_credentials.json
+credentials.json
