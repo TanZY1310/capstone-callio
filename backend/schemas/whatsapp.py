@@ -1,18 +1,28 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 from typing_extensions import Self
+from datetime import datetime
+from enum import Enum
+
+class SendMessage(BaseModel):
+    message: str
+
+class ResponseStatus(str, Enum):
+    draft = "draft"
+    edited = "edited"      # user has personalized it, not yet sent
+    confirmed = "confirmed"
 
 class AIResponse(BaseModel):
-    id: int
-    content: str
-    confirmed: bool = False
-    needsEdit: bool = False
+    model_config = ConfigDict(from_attributes=True)
 
-    @model_validator(mode='after')
-    def check_confirm_edit_exclusive(self) -> Self:
-        if (self.needsEdit is True) and (self.confirmed is True):
-            raise ValueError("Generated response can't be true in both confirmed & needsEdit at the same time!")
-        return self
+    response_id: int
+    content: str
+    status: ResponseStatus
+    cust_id: int
+    created_at: datetime
+
+class AIResponseUpdate(BaseModel):
+    content: str
 
 class AIResponses(BaseModel):
     id: int # client ID
