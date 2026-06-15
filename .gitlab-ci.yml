@@ -27,7 +27,3 @@ secret_detection:
   stage: secret-detection
 include:
   - template: Auto-DevOps.gitlab-ci.yml
-
-update_sheets:
-  script:
-    - python sheets.py
