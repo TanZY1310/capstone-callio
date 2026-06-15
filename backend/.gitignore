@@ -11,3 +11,7 @@ myenv
 venv/
 .venv/
 env/
+
+# Credentials 
+sheets_credentials.json
+credentials.json

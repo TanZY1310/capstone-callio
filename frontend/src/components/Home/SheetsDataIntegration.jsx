@@ -1,21 +1,29 @@
 import { RefreshCw } from 'lucide-react';
-import sampleCustomers from '../../data/SampleCustomers';
 import { SiGooglesheets } from 'react-icons/si';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
+import axios from 'axios';
 
-function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
+function SheetsDataIntegration({
+  onImport,
+  changedRecords = [],
+  onExport,
+  hasExistingData,
+}) {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  const API_URL = 'http://localhost:8000';
 
   // TODO implement fetch backend Google Sheets API here
   const handleImport = async () => {
     setImporting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      //Call parent function to send value back to parent component (HomePage)
-      onImport(sampleCustomers);
+      // Temporary get from localStorage until implement Auth
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      await axios.post(`${API_URL}/sheets/sync?user_id=${currentUser.user_id}`);
+      await onImport();
       toast.success('Data imported successfully.');
     } catch (err) {
       toast.error('Import failed. Please try again.');
@@ -58,7 +66,9 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
                 Google Sheets Data Transfer
               </p>
               <p className="text-xs text-base-content/40">
-                Import from or export data back to Google Sheets
+                {hasExistingData
+                  ? 'Re-sync data from Google Sheets'
+                  : 'No customers found - Import from Google Sheets to get started'}
               </p>
             </div>
           </div>
@@ -84,7 +94,10 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
               </>
             ) : (
               <>
-                <RefreshCw size={15} /> Import From Google Sheets
+                <RefreshCw size={15} />{' '}
+                {hasExistingData
+                  ? 'Re-Sync Google Sheets Data'
+                  : 'Import From Google Sheets'}
               </>
             )}
           </button>
@@ -130,9 +143,9 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
               </thead>
               <tbody>
                 {changedRecords.map((record) => (
-                  <tr key={record.id}>
+                  <tr key={record.cust_id}>
                     <td className="text-sm font-medium text-base-content">
-                      {record.name}
+                      {record.cust_name}
                     </td>
                     <td>
                       <span className="badge badge-ghost badge-sm">
