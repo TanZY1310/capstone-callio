@@ -27,3 +27,13 @@ secret_detection:
   stage: secret-detection
 include:
   - template: Auto-DevOps.gitlab-ci.yml
+
+run_tests:
+  stage: test
+  image: python:3.12.7
+  script:
+    - pip install python-dotenv
+    # Move the GitLab managed file to your root directory as '.env'
+    - cp "$ENV_FILE" .env
+    # Now load_dotenv() will find the physical file and parse it normally
+    - python test_script.py
