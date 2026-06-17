@@ -11,7 +11,7 @@ import NextActionData from './NextActionData';
 import ProgressBar from './ProgressBar';
 import { useLocation } from 'react-router-dom';
 
-function SpeechAnalysisCard({ data }) {
+function SpeechAnalysisCard({ data, audioFile }) {
   // Setting the default tab to "transcription" so it isn't empty on load
   const [activeTab, setActiveTab] = useState('transcription');
   const { state } = useLocation();
@@ -27,7 +27,7 @@ function SpeechAnalysisCard({ data }) {
               {data.customerFirstLetter}
             </button>
             <CustomerInfoCard data={data} customer={customer} />
-            <AudioPlaybackCard data={data} />
+            <AudioPlaybackCard audioFile={audioFile} />
             <ProgressBar />
           </div>
 

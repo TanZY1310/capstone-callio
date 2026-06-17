@@ -2,7 +2,12 @@ import { AudioLines } from 'lucide-react';
 import Header from '../Layout/Header';
 import { useRef } from 'react';
 
-function BodyHeader() {
+/**
+ * BodyHeader
+ * @param {Object}   props
+ * @param {Function} props.onFileSelect  – called with the selected File object
+ */
+function BodyHeader({ onFileSelect }) {
   const fileInputRef = useRef(null);
 
   const handleUploadClick = () => {
@@ -12,7 +17,9 @@ function BodyHeader() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    console.log('Selected file:', file);
+    onFileSelect?.(file);
+    // Reset the input so the same file can be re-selected if needed
+    e.target.value = '';
   };
 
   return (
