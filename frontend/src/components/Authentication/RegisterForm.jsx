@@ -1,4 +1,4 @@
-import { useState, useEffect, useReducer } from 'react';
+import { useState, useReducer } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import {
@@ -8,15 +8,22 @@ import {
   UserKey,
   EyeOff,
   Eye,
+  Building,
+  Hash,
+  Calendar,
 } from 'lucide-react';
-import sampleUserList from '../../data/SampleUserList';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 const initialState = {
-  username: '',
+  first_name: '',
+  last_name: '',
   role: '',
   email: '',
   password: '',
+  registered_year: '',
+  license_number: '',
+  agency_branch: '',
   errors: {},
   isSubmitting: false,
   loading: false,
@@ -25,7 +32,6 @@ const initialState = {
 const ACTIONS = {
   SET_FIELD: 'SET_FIELD',
   SET_ERROR: 'SET_ERROR',
-  CLEAR_ERROR: 'CLEAR_ERROR',
   SUBMIT: 'SUBMIT',
   RESET: 'RESET',
   REGISTER_START: 'REGISTER_START',
@@ -87,40 +93,28 @@ function registerReducer(state, action) {
   }
 }
 
-function RegisterForm({ setUser }) {
-  const [state, dispatch] = useReducer(registerReducer, initialState);
-  const [userList, setUserList] = useState(sampleUserList);
-  const [showPassword, setShowPassword] = useState(false);
+const API_URL = 'http://localhost:8000';
 
+function RegisterForm() {
+  const [state, dispatch] = useReducer(registerReducer, initialState);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log('There are changes in userList: ', userList);
-  }, [userList]);
-
-  async function sampleRegisterAPI(state) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log(state);
-
-    const emailExists = userList.find((u) => u.email === state.email);
-    if (emailExists) throw new Error('Email already registered');
-
-    const newUser = {
-      id: Date.now(), // Change to increment id later
-      username: state.username,
-      role: state.role,
-      email: state.email,
-      password: state.password,
-    };
-
-    const updatedUserList = [...userList, newUser];
-    setUserList(updatedUserList);
-    // Pass the  updated registeredUserList to login page
-    return newUser;
+  async function registerAPI(payload) {
+    const response = await axios.post(`${API_URL}/register`, payload);
+    return response.data;
   }
 
   const validateForm = () => {
     let isValid = true;
+    if (!state.role) {
+      dispatch({
+        type: ACTIONS.SET_ERROR,
+        field: 'role',
+        msg: 'Please select a role',
+      });
+      isValid = false;
+    }
     if (!state.email.includes('@')) {
       dispatch({
         type: ACTIONS.SET_ERROR,
@@ -129,7 +123,14 @@ function RegisterForm({ setUser }) {
       });
       isValid = false;
     }
-
+    if (state.password.length < 8) {
+      dispatch({
+        type: ACTIONS.SET_ERROR,
+        field: 'password',
+        msg: 'Password must be at least 8 characters',
+      });
+      isValid = false;
+    }
     return isValid;
   };
 
@@ -142,28 +143,36 @@ function RegisterForm({ setUser }) {
   };
 
   const handleSubmit = async (e) => {
-    // TODO Handle registration via backend API, Simulate API for now
     e.preventDefault();
+    if (!validateForm()) return;
     dispatch({ type: ACTIONS.REGISTER_START });
 
     try {
-      if (!validateForm()) return;
       dispatch({ type: ACTIONS.SUBMIT, value: true });
-      const newUser = await sampleRegisterAPI(state);
+      const user = await registerAPI({
+        first_name: state.first_name,
+        last_name: state.last_name,
+        role: state.role,
+        email: state.email,
+        password: state.password,
+        registered_year: state.registered_year
+          ? parseInt(state.registered_year)
+          : null,
+        license_number: state.license_number || null,
+        agency_branch: state.agency_branch || null,
+      });
 
       // Direct login after register
-      localStorage.setItem('currentUser', JSON.stringify(newUser));
-      setUser(newUser);
+      localStorage.setItem('currentUser', JSON.stringify(user));
 
       dispatch({ type: ACTIONS.REGISTER_SUCCESS });
       toast.success('Account created! Welcome to Callio.');
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate('/'), 3000);
     } catch (err) {
-      dispatch({
-        type: ACTIONS.REGISTER_ERROR,
-        payload: err.message,
-      });
-      toast.error(err.message);
+      const msg =
+        err.response?.data?.detail || err.message || 'Registration failed';
+      dispatch({ type: ACTIONS.REGISTER_ERROR, payload: msg });
+      toast.error(msg);
     }
   };
 
@@ -193,86 +202,171 @@ function RegisterForm({ setUser }) {
               </p>
             </div>
             <form onSubmit={handleSubmit}>
-              <fieldset className="fieldset">
-                <label className="label">Username</label>
-                <label className="input validator w-full">
-                  <ALargeSmall size={15} className="text-base-content/40" />
-                  <input
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                    name="username"
-                    value={state.username}
-                    onChange={handleChange}
-                  />
-                </label>
-                <div className="validator-hint hidden">
-                  Please enter your username
+              <fieldset className="fieldset gap-1">
+                {/* First Name + Last Name — side by side */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <legend className="fieldset-legend">First Name</legend>
+                    <label className="input input-bordered w-full">
+                      <ALargeSmall size={14} className="text-base-content/40" />
+                      <input
+                        type="text"
+                        placeholder="John"
+                        required
+                        name="first_name"
+                        value={state.first_name}
+                        onChange={handleChange}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <legend className="fieldset-legend">Last Name</legend>
+                    <label className="input input-bordered w-full">
+                      <ALargeSmall size={14} className="text-base-content/40" />
+                      <input
+                        type="text"
+                        placeholder="Doe"
+                        required
+                        name="last_name"
+                        value={state.last_name}
+                        onChange={handleChange}
+                      />
+                    </label>
+                  </div>
                 </div>
-                <label className="label">Role</label>
-                <label className="input validator w-full">
-                  <UserKey size={15} className="text-base-content/40" />
-                  <select
-                    name="role"
-                    className="bg-transparent grow h-full focus:outline-none"
-                    value={state.role}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="" disabled={true}>
-                      Pick a role
-                    </option>
-                    <option value="team_lead">Team Lead</option>
-                    <option value="agent">Agent</option>
-                  </select>
-                </label>
-                <label className="label">Email</label>
-                <label className="input validator w-full">
-                  <Mail size={15} className="text-base-content/40" />
-                  <input
-                    type="email"
-                    placeholder="mail@site.com"
-                    required
-                    name="email"
-                    value={state.email}
-                    onChange={handleChange}
-                  />
-                </label>
-                <div className="validator-hint hidden">
-                  Please enter a valid email address
+
+                {/* Role */}
+                <div className="w-full">
+                  <legend className="fieldset-legend mt-2">Role</legend>
+                  <label className="input input-bordered w-full">
+                    <UserKey size={15} className="text-base-content/40" />
+                    <select
+                      name="role"
+                      className="bg-transparent grow h-full focus:outline-none"
+                      value={state.role}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="" disabled={true}>
+                        Pick a role
+                      </option>
+                      <option value="team_lead">Team Lead</option>
+                      <option value="agent">Agent</option>
+                    </select>
+                  </label>
+                  {state.errors.role && (
+                    <p className="text-error-msg">{state.errors.role}</p>
+                  )}
                 </div>
-                <label className="label">Password</label>
-                <label className="input validator w-full">
-                  <KeyRound size={15} className="text-base-content/40" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="Password"
-                    // minLength="8"
-                    // pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                    title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
-                    name="password"
-                    value={state.password}
-                    onChange={handleChange}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((p) => !p)}
-                    className="text-base-content/40 hover:text-base-content"
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </label>
-                <p className="validator-hint hidden">
-                  Must be more than 8 characters, including
-                  <br />
-                  At least one number <br />
-                  At least one lowercase letter <br />
-                  At least one uppercase letter
-                </p>
-                <div>
-                  <p>
-                    Already Have An Account?
+
+                {/* Email */}
+                <div className="w-full">
+                  <legend className="fieldset-legend mt-2">Email</legend>
+                  <label className="input input-bordered w-full">
+                    <Mail size={15} className="text-base-content/40" />
+                    <input
+                      type="email"
+                      placeholder="mail@site.com"
+                      required
+                      name="email"
+                      value={state.email}
+                      onChange={handleChange}
+                    />
+                  </label>
+                  {state.errors.email && (
+                    <p className="text-error-msg">{state.errors.email}</p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div className="w-full">
+                  <legend className="fieldset-legend mt-2">Password</legend>
+                  <label className="input input-bordered w-full">
+                    <KeyRound size={15} className="text-base-content/40" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="Password"
+                      name="password"
+                      value={state.password}
+                      onChange={handleChange}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((p) => !p)}
+                      className="text-base-content/40 hover:text-base-content"
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </label>
+                  {state.errors.password && (
+                    <p className="text-error-msg">{state.errors.password}</p>
+                  )}
+                </div>
+
+                {/* Divider professional details */}
+                <div className="divider text-xs text-base-content/40 my-2">
+                  PROFESSIONAL DETAILS
+                </div>
+
+                {/* Registered Year + License Number — side by side */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <legend className="fieldset-legend">Year Registered</legend>
+                    <label className="input input-bordered w-full">
+                      <Calendar size={14} className="text-base-content/40" />
+                      <input
+                        type="number"
+                        placeholder="2020"
+                        name="registered_year"
+                        value={state.registered_year}
+                        onChange={handleChange}
+                        min="1990"
+                        max={new Date().getFullYear()}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <legend className="fieldset-legend">License No.</legend>
+                    <label className="input input-bordered w-full">
+                      <Hash size={14} className="text-base-content/40" />
+                      <input
+                        type="text"
+                        placeholder="ABCDE12345"
+                        name="license_number"
+                        value={state.license_number}
+                        onChange={handleChange}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Agency Branch */}
+                <div className="w-full">
+                  <legend className="fieldset-legend mt-2">
+                    Agency Branch
+                  </legend>
+                  <label className="input input-bordered w-full">
+                    <Building size={15} className="text-base-content/40" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Kuala Lumpur HQ"
+                      name="agency_branch"
+                      value={state.agency_branch}
+                      onChange={handleChange}
+                    />
+                  </label>
+                  {/* General error */}
+                  {state.error && (
+                    <div className="alert alert-error text-sm py-2 mt-2">
+                      {state.error}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3">
+                  <p className="text-sm text-base-content/60">
+                    Already have an account?{' '}
                     <Link to="/login" className="link link-primary link-hover">
                       Sign In
                     </Link>

@@ -1,1 +1,17 @@
 *.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment 
+myenv/
+myenv
+venv/
+.venv/
+env/
+
+# Credentials 
+sheets_credentials.json
+credentials.json
