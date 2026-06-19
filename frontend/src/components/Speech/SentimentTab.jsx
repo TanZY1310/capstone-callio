@@ -16,14 +16,14 @@ function SentimentTab({ data }) {
             {
               icon: <Smile />,
               label: 'Overall Sentiment',
-              value: data.overallSentiment,
+              value: data?.overallSentiment ?? '—',
             },
             {
               icon: <Target />,
               label: 'Intent Score',
-              value: `${data.intentScore}%`,
+              value: data?.intentScore != null ? `${data.intentScore}%` : '—',
             },
-            { icon: <Zap />, label: 'Urgency Level', value: data.urgency },
+            { icon: <Zap />, label: 'Urgency Level', value: data?.urgency ?? '—' },
           ].map((m) => (
             <div
               key={m.label}
@@ -46,14 +46,18 @@ function SentimentTab({ data }) {
             Emotional Signals
           </span>
           <div className="flex flex-wrap gap-2">
-            {data?.emotions?.map((e, i) => (
-              <span
-                key={i}
-                className="badge bg-info/20 text-info-content border-none px-4 py-3 rounded-full text-xs font-bold"
-              >
-                {e}
-              </span>
-            ))}
+            {data?.emotions?.length ? (
+              data.emotions.map((e, i) => (
+                <span
+                  key={i}
+                  className="badge bg-info/20 text-info-content border-none px-4 py-3 rounded-full text-xs font-bold"
+                >
+                  {e}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-base-content/40 italic">No data yet</span>
+            )}
           </div>
         </div>
 
@@ -63,17 +67,21 @@ function SentimentTab({ data }) {
             Buyer Concerns / Objections
           </span>
           <div className="flex flex-col gap-3">
-            {data?.objections?.map((o, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 p-4 bg-warning/10 border border-warning/40 rounded-xl"
-              >
-                <span>
-                  <TriangleAlert />
-                </span>
-                <span className="text-sm text-base-content/70">{o}</span>
-              </div>
-            ))}
+            {data?.objections?.length ? (
+              data.objections.map((o, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 p-4 bg-warning/10 border border-warning/40 rounded-xl"
+                >
+                  <span>
+                    <TriangleAlert />
+                  </span>
+                  <span className="text-sm text-base-content/70">{o}</span>
+                </div>
+              ))
+            ) : (
+              <span className="text-sm text-base-content/40 italic">No data yet</span>
+            )}
           </div>
         </div>
 
@@ -83,14 +91,18 @@ function SentimentTab({ data }) {
             Interest Tags
           </span>
           <div className="flex flex-wrap gap-2">
-            {data?.interestTags?.map((tag, i) => (
-              <span
-                key={i}
-                className="badge bg-success/20 text-success-content border-none px-4 py-3 rounded-full text-xs font-bold"
-              >
-                {tag}
-              </span>
-            ))}
+            {data?.interestTags?.length ? (
+              data.interestTags.map((tag, i) => (
+                <span
+                  key={i}
+                  className="badge bg-success/20 text-success-content border-none px-4 py-3 rounded-full text-xs font-bold"
+                >
+                  {tag}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-base-content/40 italic">No data yet</span>
+            )}
           </div>
         </div>
       </div>

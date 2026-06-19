@@ -50,7 +50,7 @@ function Sidebar({ logout }) {
     navigate('/login');
   };
 
-  const c = SIDEBAR_COLORS[theme];
+  const c = SIDEBAR_COLORS[theme] ?? SIDEBAR_COLORS.corporate;
 
   return (
     <div className="flex h-screen overflow-hidden">
