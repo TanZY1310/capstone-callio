@@ -8,14 +8,23 @@ import NextAction from './NextActionTab';
 import ProgressBar from './ProgressBar';
 import { useLocation } from 'react-router-dom';
 
-function SpeechAnalysisCard({ data, transcription, audioUrl, sentiment, nextActions, progressStep, onAddToPipeline }) {
+function SpeechAnalysisCard({
+  data,
+  transcription,
+  audioUrl,
+  sentiment,
+  nextActions,
+  progressStep,
+  onAddToPipeline,
+  audioFile,
+}) {
   // Setting the default tab to "transcription" so it isn't empty on load
   const [activeTab, setActiveTab] = useState('transcription');
   const { state } = useLocation();
   const customer = state?.customer;
 
   const transcriptionData = transcription
-    ? { conversationId: "live", transcription }
+    ? { conversationId: 'live', transcription }
     : null;
 
   const sentimentData = sentiment || null;
@@ -31,9 +40,13 @@ function SpeechAnalysisCard({ data, transcription, audioUrl, sentiment, nextActi
               <button className="w-14 h-14 shrink-0 flex items-center justify-center rounded-full bg-primary text-primary-content font-bold text-lg shadow-sm hover:bg-primary-focus transition-colors">
                 {(customer?.name ?? data?.customerName)?.[0]?.toUpperCase()}
               </button>
-              <CustomerInfoCard data={data} customer={customer} onAddToPipeline={onAddToPipeline} />
+              <CustomerInfoCard
+                data={data}
+                customer={customer}
+                onAddToPipeline={onAddToPipeline}
+              />
             </div>
-            <AudioPlaybackCard audioUrl={audioUrl} />
+            <AudioPlaybackCard audioUrl={audioUrl} audioFile={audioFile} />
             <ProgressBar step={progressStep} />
           </div>
 
