@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 from typing_extensions import Self
@@ -18,7 +19,7 @@ class AIResponseSchema(BaseModel):
     response_id: int
     content: str
     status: ResponseStatus
-    cust_id: int
+    cust_id: uuid.UUID
     created_at: datetime
 
 class AIResponseUpdate(BaseModel):
