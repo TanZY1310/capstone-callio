@@ -9,7 +9,6 @@ class Customers(Base):
     __tablename__ = "customers"
 
     cust_id: Mapped[uuid.UUID] = mapped_column(
-            UUID(as_uuid=True),
             primary_key=True,
             default=uuid.uuid4,
     )    
@@ -22,7 +21,6 @@ class Customers(Base):
     remarks: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
         ForeignKey("users.user_id"),
         nullable=False,
     )
