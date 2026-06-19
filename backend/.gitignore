@@ -7,6 +7,11 @@ __pycache__/
 
 # Virtual environment
 myenv/
+myenv
 venv/
 .venv/
 env/
+
+# Credentials 
+sheets_credentials.json
+credentials.json

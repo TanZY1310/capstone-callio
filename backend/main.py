@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, StrictInt, Field
 
 #Instead of importing routers.customer i can just from routers with the use of __init__.py
-from routers import customers, auth, whatsapp
+from routers import customers, auth, sheets, user_profile, whatsapp
 
 app = FastAPI()
 create_tables()
@@ -26,3 +26,5 @@ async def root():
 app.include_router(customers.router)
 app.include_router(auth.router)
 app.include_router(whatsapp.router)
+app.include_router(sheets.router)
+app.include_router(user_profile.router)

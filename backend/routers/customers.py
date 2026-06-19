@@ -1,10 +1,8 @@
-import uuid
-from typing import Optional
-from fastapi import APIRouter, HTTPException, Cookie, Depends, Response
-from sqlalchemy.orm import Session
-from database import get_db, db_dependency
-from typing import Annotated
+from fastapi import APIRouter, status, HTTPException
+from database import db_dependency
 from models.customer import Customers
+from schemas.customer import CustomerResponse
+import uuid
 
 #GET/POST/PUT/DELETE /customers
 router = APIRouter(
@@ -12,6 +10,19 @@ router = APIRouter(
     tags=["customers"]
 )
 
-@router.get("/")
-async def get_customer(db: db_dependency):
-    return db.query(Customers).all()
+@router.get("/", response_model=list[CustomerResponse], status_code=status.HTTP_200_OK)
+async def get_customers(
+    db: db_dependency,
+    user_id: uuid.UUID,
+) -> list[CustomerResponse]:
+    # result = db.execute(
+    #     select(Customers).where(Customers.user_id == user_id)
+    # )
+    # return result.scalars().all()
+
+    customers = db.query(Customers).filter(Customers.user_id == user_id).all()
+
+    if customers is not None:
+        return customers
+    
+    raise HTTPException(status_code=400, detail="Customers not found")
