@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from models.whatsapp import AIResponse
-from schemas.whatsapp import AIResponseUpdate, SendMessage
+from schemas.whatsapp import AIResponseSchema, AIResponseUpdate, SendMessage
 from models.customer import Customers
 from database import get_db, db_dependency
 from services.ai_responder import generate_reply_draft
@@ -92,7 +92,7 @@ async def generate_ai_draft(cust_id: int, db: db_dependency):
 
 # regenerate a specific bubble — replaces its content in place, no compare
 # DB + LangChain
-@router.post("/airesponse/{cust_id}/{response_id}/regenerate")
+@router.post("/airesponse/{cust_id}/{response_id}/regenerate", response_model = AIResponseSchema)
 async def regenerate_ai_draft(cust_id: int, response_id: int, db: db_dependency):
     existing = db.query(AIResponse).filter(
         AIResponse.response_id == response_id,
@@ -143,7 +143,7 @@ async def update_ai_draft(cust_id: int, response_id: int, payload: AIResponseUpd
 
 # confirm and send a specific bubble
 # NODE + DB
-@router.post("/airesponse/{cust_id}/{response_id}/confirm")
+@router.post("/airesponse/{cust_id}/{response_id}/confirm", response_model = AIResponseSchema)
 async def confirm_ai_draft(cust_id: int, response_id: int, db: db_dependency):
     current = db.query(AIResponse).filter(
         AIResponse.response_id == response_id, #ensure response_id matches during frontend-backend mapping

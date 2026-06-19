@@ -12,7 +12,7 @@ class ResponseStatus(str, Enum):
     edited = "edited"      # user has personalized it, not yet sent
     confirmed = "confirmed"
 
-class AIResponse(BaseModel):
+class AIResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     response_id: int
@@ -26,7 +26,7 @@ class AIResponseUpdate(BaseModel):
 
 class AIResponses(BaseModel):
     id: int # client ID
-    responses: List[AIResponse] = Field(default_factory = list)
+    responses: List[AIResponseSchema] = Field(default_factory = list)
 
 class AIResponseList(BaseModel):
     clients: List[AIResponses]
