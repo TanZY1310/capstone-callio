@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 const API_URL = 'http://localhost:8000';
 
-function BodyHeader({ onUpload, customerId }) {
+function BodyHeader({ onUpload, customerId, onFileSelect }) {
   const fileInputRef = useRef(null);
 
   const handleUploadClick = () => {
@@ -16,6 +16,9 @@ function BodyHeader({ onUpload, customerId }) {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // This enables the audio player before API call
+    onFileSelect?.(file);
 
     const formData = new FormData();
     formData.append('file', file);
