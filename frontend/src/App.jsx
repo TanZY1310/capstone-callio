@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,7 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import ProfileSetting from './pages/ProfileSettings';
+import { useAuth } from './hooks/useAuth';
 
 // Include page or component imports here
 const Register = lazy(() => import('./components/Authentication/RegisterForm'));
@@ -20,49 +20,63 @@ const MainDashboard = lazy(() => import('./pages/MainDashboard'));
 const Speech = lazy(() => import('./pages/Speech'));
 const Sidebar = lazy(() => import('./components/Layout/Sidebar'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
-
-import { useAuth } from './hooks/useAuth';
+const ProfileSetting = lazy(() => import('./pages/ProfileSettings'));
 
 function App() {
-  const { user, setUser, logout } = useAuth();
-  const isAuthenticated = user !== null;
+  const { user, profile, loading, logout } = useAuth();
+  console.log('Profile Details in App.jsx', profile);
 
   return (
     <>
       <Router>
         <Toaster position="top-right" richColors />
-        <Routes>
-          <Route
-            path="/register"
-            element={
-              isAuthenticated ? <Navigate to="/" replace /> : <Register />
-            }
-          />
-          <Route
-            path="/login"
-            element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
-          />
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                redirectTo="/login"
-              >
-                <Sidebar logout={logout} />
-              </ProtectedRoute>
-            }
-          >
-            {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
-            <Route index element={<HomePage />} />
-            <Route path="whatsapp" element={<LeadDetail />} />
-            <Route path="metrics" element={<MainDashboard />} />
-            <Route path="speech" element={<Speech />} />
-            <Route path="profile" element={<UserProfile />} />
-            <Route path="profile/*" element={<UserProfile />} />
-            <Route path="profile-setting" element={<ProfileSetting />} />
-          </Route>
-        </Routes>
+        <Suspense // similar to loading or skeleton but is a built in React component, suitable for lazy loading
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-base-100">
+              <span className="loading loading-spinner loading-lg"></span>
+            </div>
+          }
+        >
+          <Routes>
+            <Route
+              path="/register"
+              element={
+                loading ? null : user ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <Register />
+                ) //loading helps prevent from rendering before Firebase resolves, redirect issue caused if user is logged in
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                loading ? null : user ? <Navigate to="/" replace /> : <Login />
+              }
+            />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  loading={loading}
+                  redirectTo="/login"
+                >
+                  <Sidebar logout={logout} />
+                </ProtectedRoute>
+              }
+            >
+              {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
+              <Route index element={<HomePage />} />
+              <Route path="whatsapp" element={<LeadDetail />} />
+              <Route path="metrics" element={<MainDashboard />} />
+              <Route path="speech" element={<Speech />} />
+              <Route path="profile" element={<UserProfile />} />
+              <Route path="profile/*" element={<UserProfile />} />
+              <Route path="profile-setting" element={<ProfileSetting />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </Router>
     </>
   );

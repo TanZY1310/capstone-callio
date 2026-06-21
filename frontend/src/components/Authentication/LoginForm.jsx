@@ -1,5 +1,7 @@
 import { useState, useReducer } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../../firebase';
 
 import { KeyRound, Mail, Eye, EyeOff } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
@@ -63,34 +65,57 @@ function loginReducer(state, action) {
   }
 }
 
+// Maps Firebase error codes to readable messages
+function parseFirebaseError(code) {
+  switch (code) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'Invalid email or password';
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please try again later.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled.';
+    default:
+      return 'Login failed. Please try again.';
+  }
+}
+
 function LoginForm() {
   const [state, dispatch] = useReducer(loginReducer, initialState);
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const API_URL = 'http://localhost:8000';
-
-  async function loginAPI(email, password) {
-    const response = await axios.post(`${API_URL}/login`, null, {
-      params: { email: email, password: password },
-    });
-    console.log(response.data);
-    return response.data;
-  }
+  // const API_URL = 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch({ type: ACTIONS.LOGIN_START });
 
     try {
-      const user = await loginAPI(state.email, state.password);
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      // Sign in with Firebase
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        state.email,
+        state.password,
+      );
+
+      // Get Firebase ID token
+      const idToken = await userCredential.user.getIdToken();
+
+      // Exchange token for db user profile - replace localstorage which is not needed anymore
+      await axios.post(`${API_URL}/auth/session`, null, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+
       dispatch({ type: ACTIONS.LOGIN_SUCCESS });
       toast.success('Login successful!');
       setTimeout(() => navigate('/'), 3000);
     } catch (err) {
-      dispatch({ type: ACTIONS.LOGIN_ERROR, payload: err.message });
+      const message = parseFirebaseError(err.code);
+      dispatch({ type: ACTIONS.LOGIN_ERROR, payload: message });
       toast.error(err.message);
     }
   };
