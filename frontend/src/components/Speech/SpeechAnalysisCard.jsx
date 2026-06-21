@@ -17,6 +17,9 @@ function SpeechAnalysisCard({
   progressStep,
   onAddToPipeline,
   audioFile,
+  awaitingApproval,
+  onApprove,
+  onReject,
 }) {
   // Setting the default tab to "transcription" so it isn't empty on load
   const [activeTab, setActiveTab] = useState('transcription');
@@ -38,7 +41,7 @@ function SpeechAnalysisCard({
           <div className="flex flex-col gap-4 w-full md:w-100">
             <div className="flex items-start gap-4">
               <button className="w-14 h-14 shrink-0 flex items-center justify-center rounded-full bg-primary text-primary-content font-bold text-lg shadow-sm hover:bg-primary-focus transition-colors">
-                {(customer?.name ?? data?.customerName)?.[0]?.toUpperCase()}
+                {(customer?.cust_name ?? data?.customerName)?.[0]?.toUpperCase()}
               </button>
               <CustomerInfoCard
                 data={data}
@@ -47,7 +50,17 @@ function SpeechAnalysisCard({
               />
             </div>
             <AudioPlaybackCard audioUrl={audioUrl} audioFile={audioFile} />
-            <ProgressBar step={progressStep} />
+            <ProgressBar step={progressStep} awaitingApproval={awaitingApproval} />
+            {awaitingApproval && (
+              <div className="flex gap-2 w-full">
+                <button className="btn btn-primary flex-1" onClick={onApprove}>
+                  Approve & Continue
+                </button>
+                <button className="btn btn-outline btn-error flex-1" onClick={onReject}>
+                  Reject
+                </button>
+              </div>
+            )}
           </div>
 
           {/* RIGHT PANEL */}

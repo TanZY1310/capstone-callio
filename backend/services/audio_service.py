@@ -74,6 +74,11 @@ def analyze_transcript(transcript: list) -> dict:
         f"{s['speaker']}: {s['text']}" for s in transcript
     )
 
+    buyer_stages = [
+        "Awareness", "Interested", "Considering",
+        "Negotiation", "Ready to close", "Cold lead",
+    ]
+
     prompt = (
         f"Here is a transcribed conversation between a real estate agent and a buyer:\n\n"
         f"{transcript_text}\n\n"
@@ -95,11 +100,9 @@ def analyze_transcript(transcript: list) -> dict:
         '    "budgetValue": "budget range",\n'
         '    "budgetNote": "flexibility note"\n'
         "  },\n"
-        '  "summary": {\n'
-        '    "nextActions": "comma-separated next actions",\n'
-        '    "customerStanding": "current status/interest level of the buyer",\n'
-        '    "preferencesSpecified": "summary of preferences mentioned"\n'
-        "  }\n"
+        '  "objections": ["duplicate of sentiment.objections for easy storage"],\n'
+        f'  "buyerStage": "one of {buyer_stages}",\n'
+        '  "summary": "A short 2-3 sentence plain-text summary of the conversation covering preferences, next actions, and sentiment."\n'
         "}\n"
         "Do not include any markdown formatting or code blocks."
     )

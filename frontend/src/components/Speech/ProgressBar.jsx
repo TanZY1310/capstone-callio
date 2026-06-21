@@ -8,7 +8,7 @@ const steps = [
   "Complete",
 ];
 
-function ProgressBar({ step = -1 }) {
+function ProgressBar({ step = -1, awaitingApproval = false }) {
   return (
     <ul className="timeline timeline-vertical mt-10 w-full [&_hr]:w-1">
       {steps.map((label, i) => {
@@ -22,13 +22,17 @@ function ProgressBar({ step = -1 }) {
           : "text-lg font-medium px-6 py-3 text-base-content/30";
         const align = i % 2 === 0 ? "timeline-start" : "timeline-end";
 
+        const isAwaitingStep = awaitingApproval && i === 2;
+
         return (
           <li key={i}>
             {i > 0 && <hr className={hrColor} />}
-            <div className={`${align} timeline-box ${boxStyle}`}>{label}</div>
+            <div className={`${align} timeline-box ${boxStyle}`}>
+              {isAwaitingStep ? "Awaiting Approval" : label}
+            </div>
             <div className="timeline-middle">
-              {done ? (
-                <CircleCheck size={28} className={circleColor} />
+              {done || isAwaitingStep ? (
+                <CircleCheck size={28} className={done ? circleColor : "text-primary"} />
               ) : active && i === steps.length - 1 ? (
                 <Check size={28} className="text-primary" />
               ) : active ? (

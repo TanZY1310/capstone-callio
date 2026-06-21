@@ -25,6 +25,9 @@ function Speech() {
   // Separate from audioUrl audioFile is for audio player
   const [audioFile, setAudioFile] = useState(null);
 
+  const [awaitingApproval, setAwaitingApproval] = useState(false);
+  const [rawAudioUrl, setRawAudioUrl] = useState(null);
+
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
@@ -45,7 +48,12 @@ function Speech() {
 
           setProgressStep(task.step);
 
-          if (task.status === 'complete') {
+          if (task.status === 'awaiting_approval') {
+            stopPolling();
+            setTranscription(task.data.transcription);
+            setProgressStep(task.step);
+            setAwaitingApproval(true);
+          } else if (task.status === 'complete') {
             stopPolling();
             setAudioUrl(`${API_URL}${audioUrl}`);
             setTranscription(task.data.transcription);
@@ -71,13 +79,56 @@ function Speech() {
   }, [stopPolling]);
 
   const handleUpload = (data) => {
+    setAwaitingApproval(false);
+    setRawAudioUrl(data.audio_url);
+    setTranscription(null);
+    setSentiment(null);
+    setNextActions(null);
+    setPreferences(null);
+    setAudioUrl(null);
     startPolling(data.task_id, data.audio_url);
+  };
+
+  const handleApprove = async () => {
+    try {
+      await axios.post(`${API_URL}/speech/approve/${taskId}`);
+      setAwaitingApproval(false);
+      startPolling(taskId, rawAudioUrl);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Approval failed');
+    }
+  };
+
+  const resetState = () => {
+    stopPolling();
+    setAwaitingApproval(false);
+    setRawAudioUrl(null);
+    setTranscription(null);
+    setSentiment(null);
+    setNextActions(null);
+    setPreferences(null);
+    setAudioUrl(null);
+    setAudioFile(null);
+    setProgressStep(-1);
+    setTaskId(null);
+  };
+
+  const handleReject = async () => {
+    try {
+      await axios.post(`${API_URL}/speech/reject/${taskId}`);
+      toast.info('Transcription rejected');
+    } catch {
+      // ignore backend error, reset locally anyway
+    }
+    resetState();
   };
 
   const handleAddToPipeline = async () => {
     if (!taskId) return;
     try {
-      await axios.post(`${API_URL}/speech/pipeline/${taskId}`);
+      await axios.post(`${API_URL}/speech/pipeline/${taskId}`, {
+        customer_id: customer?.cust_id || null,
+      });
       toast.success('Added to lead pipeline');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to add to pipeline');
@@ -103,6 +154,9 @@ function Speech() {
             progressStep={progressStep}
             onAddToPipeline={handleAddToPipeline}
             audioFile={audioFile}
+            awaitingApproval={awaitingApproval}
+            onApprove={handleApprove}
+            onReject={handleReject}
           />
         </div>
         <div className="w-full lg:w-96 flex">
