@@ -25,7 +25,7 @@ async def get_current_user(
     """
     uid = token["uid"]
 
-    result = await db.execute(select(Users).where(Users.firebase_uid == uid))
+    result = db.execute(select(Users).where(Users.firebase_uid == uid))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -68,7 +68,7 @@ async def update_profile(
         setattr(current_user, key, value)
 
     db.add(current_user)
-    await db.commit()
-    await db.refresh(current_user)
+    db.commit()
+    db.refresh(current_user)
 
     return current_user
