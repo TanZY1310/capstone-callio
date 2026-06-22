@@ -1,30 +1,30 @@
-import AIResponseReview from "../components/LeadWhatsapp/AIResponseReview.jsx";
-import ContactInfo from "../components/LeadWhatsapp/ContactInfo.jsx";
-import ConvoHistory from "../components/LeadWhatsapp/ConvoHistory.jsx";
-import LeadHeader from "../components/LeadWhatsapp/LeadHeader.jsx";
-import StatusCards from "../components/Home/StatusCards.jsx";
-import { useState, useEffect, useRef } from "react";
-import users from "../data/dummyData.js";
-import dummyWAHistory from "../data/dummyWAHistory.js";
-import dummyAIResponse from "../data/dummyAIResponse.js";
-import { useLocation } from "react-router-dom";
-import { STATUS_NAME } from "../data/constants";
+import AIResponseReview from '../components/LeadWhatsapp/AIResponseReview.jsx';
+import ContactInfo from '../components/LeadWhatsapp/ContactInfo.jsx';
+import ConvoHistory from '../components/LeadWhatsapp/ConvoHistory.jsx';
+import LeadHeader from '../components/LeadWhatsapp/LeadHeader.jsx';
+import StatusCards from '../components/Home/StatusCards.jsx';
+import { useState, useEffect, useRef } from 'react';
+import users from '../data/dummyData.js';
+import dummyWAHistory from '../data/dummyWAHistory.js';
+import dummyAIResponse from '../data/dummyAIResponse.js';
+import { useLocation } from 'react-router-dom';
+import { STATUS_NAME } from '../data/constants';
 
 function LeadDetail() {
   const [showUser, setShowUser] = useState({
     id: 0,
-    name: "Blank",
-    breadcrumb: { parent: "Lead Pipeline", current: "Blank" },
-    contact: { email: "", phone: "", preferences: "" },
-    status: "",
+    name: 'Blank',
+    breadcrumb: { parent: 'Lead Pipeline', current: 'Blank' },
+    contact: { email: '', phone: '', preferences: '' },
+    status: '',
     syncStatus: [
       {
         id: 1,
-        name: "Google Sheets Not Connected",
-        lastSync: "",
+        name: 'Google Sheets Not Connected',
+        lastSync: '',
         connected: false,
       },
-      { id: 2, name: "WhatsApp Not Linked", lastSync: "", connected: false },
+      { id: 2, name: 'WhatsApp Not Linked', lastSync: '', connected: false },
     ],
   });
 
@@ -33,6 +33,8 @@ function LeadDetail() {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [responses, setResponses] = useState([]);
+  const [qrCode, setQrCode] = useState(null);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [platformStatus, setPlatformStatus] = useState({
     whatsapp: { connectionStatus: STATUS_NAME.NOT_CONNECTED, lastSync: null },
   });
@@ -53,7 +55,7 @@ function LeadDetail() {
 
     const fetchChatHistory = async () => {
       // placeholder for real WA Business API call later
-      let waApiUrl = "https://jsonplaceholder.typicode.com/users";
+      let waApiUrl = 'https://jsonplaceholder.typicode.com/users';
       const response = await fetch(waApiUrl);
       const data = await response.json();
       const userHistory = dummyWAHistory.find((u) => u.userID === showUser.id);
@@ -82,16 +84,32 @@ function LeadDetail() {
     updateResponse();
   }, [showUser]);
 
-  const handleUpdateStatus = () => {
-    setPlatformStatus((prev) => ({
-      ...prev,
-      whatsapp: {
-        connectionStatus: STATUS_NAME.CONNECTED,
-        lastSync: Date.now(),
-      },
-    }));
+  const handleUpdateStatus = async () => {
+    //start whatsapp client, change to axios method later
+    await fetch('http://localhost:3001/whatsapp/connect', { method: 'POST' });
+    setShowQrModal(true);
 
-    setIsConnected(true);
+    // 2. Poll /status until connected
+    const poll = setInterval(async () => {
+      const res = await fetch('http://localhost:3001/whatsapp/status');
+      const data = await res.json();
+
+      if (data.status === 'connected') {
+        clearInterval(poll);
+        setQrCode(null);
+        setShowQrModal(false);
+        setIsConnected(true);
+        setPlatformStatus((prev) => ({
+          ...prev,
+          whatsapp: {
+            connectionStatus: STATUS_NAME.CONNECTED,
+            lastSync: Date.now(),
+          },
+        }));
+      } else if (data.qr) {
+        setQrCode(data.qr); // ← this is the base64 data URL
+      }
+    }, 3000);
   };
 
   const handleSendMessage = (e) => {
@@ -103,14 +121,14 @@ function LeadDetail() {
       ...prev,
       {
         id: prev.length + 1,
-        role: "agent",
+        role: 'agent',
         content: text,
         timestamp: new Date().toISOString(),
         seen: null,
       },
     ]);
 
-    inputRef.current.value = "";
+    inputRef.current.value = '';
   };
 
   // Called by AIResponseReview Edit button
@@ -125,7 +143,7 @@ function LeadDetail() {
       ...prev,
       {
         id: prev.length + 1,
-        role: "agent",
+        role: 'agent',
         content,
         timestamp: new Date().toISOString(),
         seen: null,
@@ -190,6 +208,21 @@ function LeadDetail() {
           />
         )}
       </div>
+
+      {/* QR modal — overlays everything, doesn't replace anything */}
+      {showQrModal && (
+        <dialog className="modal modal-open">
+          <div className="modal-box items-center text-center">
+            <h3 className="font-bold text-lg">Scan QR Code</h3>
+            <p className="py-2">Open WhatsApp → Linked Devices → Link a Device</p>
+            {qrCode ? (
+              <img src={qrCode} alt="WhatsApp QR" className="mx-auto w-64 h-64" />
+            ) : (
+              <span className="loading loading-spinner loading-lg" />
+            )}
+          </div>
+        </dialog>
+      )}
     </div>
   );
 }
