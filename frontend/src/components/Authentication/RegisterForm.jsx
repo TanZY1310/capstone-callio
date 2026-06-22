@@ -1,5 +1,7 @@
 import { useState, useReducer } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../../../firebase';
 
 import {
   KeyRound,
@@ -14,6 +16,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const initialState = {
   first_name: '',
@@ -93,17 +97,23 @@ function registerReducer(state, action) {
   }
 }
 
-const API_URL = 'http://localhost:8000';
+function parseFirebaseError(code) {
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'Email already registered.';
+    case 'auth/invalid-email':
+      return 'Invalid email address.';
+    case 'auth/weak-password':
+      return 'Password must be at least 6 characters.';
+    default:
+      return 'Registration failed. Please try again.';
+  }
+}
 
 function RegisterForm() {
   const [state, dispatch] = useReducer(registerReducer, initialState);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
-  async function registerAPI(payload) {
-    const response = await axios.post(`${API_URL}/register`, payload);
-    return response.data;
-  }
 
   const validateForm = () => {
     let isValid = true;
@@ -149,30 +159,58 @@ function RegisterForm() {
 
     try {
       dispatch({ type: ACTIONS.SUBMIT, value: true });
-      const user = await registerAPI({
-        first_name: state.first_name,
-        last_name: state.last_name,
-        role: state.role,
-        email: state.email,
-        password: state.password,
-        registered_year: state.registered_year
-          ? parseInt(state.registered_year)
-          : null,
-        license_number: state.license_number || null,
-        agency_branch: state.agency_branch || null,
+
+      // Create Firebase User
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        state.email,
+        state.password,
+      );
+
+      // Set dislay name in Firebase (optional but useful)
+      await updateProfile(userCredential.user, {
+        displayName: `${state.first_name} ${state.last_name}`,
       });
 
-      // Direct login after register
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      // Get ID token
+      const idToken = await userCredential.user.getIdToken();
+
+      // Create DB profile backend
+      const registerResponse = await axios.post(
+        `${API_URL}/auth/register`,
+        {
+          first_name: state.first_name,
+          last_name: state.last_name,
+          role: state.role,
+          email: state.email,
+          password: state.password,
+          registered_year: state.registered_year
+            ? parseInt(state.registered_year)
+            : null,
+          license_number: state.license_number || null,
+          agency_branch: state.agency_branch || null,
+        },
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+        },
+      );
+
+      console.log('Register response:', registerResponse.data);
+      localStorage.setItem(
+        'userProfile',
+        JSON.stringify(registerResponse.data),
+      );
 
       dispatch({ type: ACTIONS.REGISTER_SUCCESS });
       toast.success('Account created! Welcome to Callio.');
-      setTimeout(() => navigate('/'), 3000);
+      navigate('/');
     } catch (err) {
-      const msg =
-        err.response?.data?.detail || err.message || 'Registration failed';
-      dispatch({ type: ACTIONS.REGISTER_ERROR, payload: msg });
-      toast.error(msg);
+      // Firebase errors use err.code , Axios uses err.response
+      const message = err.code
+        ? parseFirebaseError(err.code)
+        : err.response?.data?.detail || 'Registration failed.';
+      dispatch({ type: ACTIONS.REGISTER_ERROR, payload: message });
+      toast.error(message);
     }
   };
 

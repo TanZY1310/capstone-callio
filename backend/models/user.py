@@ -1,9 +1,7 @@
 import uuid
 from enum import StrEnum
-from sqlalchemy import Column, Integer, ForeignKey, String, DATE, DATETIME, Boolean, Enum as SAEnum
-from sqlalchemy.sql import func
+from sqlalchemy import Integer, String, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
 class UserRole(StrEnum):
@@ -27,8 +25,10 @@ class Users(Base):
     )
 
     email: Mapped[str] =  mapped_column(String(255), unique=True, nullable=False, index=True)
-    password: Mapped[str] = mapped_column(String(255), nullable=False)
-
+    # password column removed — Firebase owns credentials
+    
     registered_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     license_number: Mapped[str | None] = mapped_column(String(10), nullable=True)
     agency_branch: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True) # nullable during transition

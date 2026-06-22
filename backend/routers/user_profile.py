@@ -1,74 +1,74 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, EmailStr
+from sqlalchemy import select
+
 from database import db_dependency
-from models.user import Users, UserRole
-from routers.auth import pwd_context
-from schemas.user import UserVerification, UserProfileUpdate
+from models.user import Users
+from routers.auth import verify_firebase_token
+from schemas.user import UserProfileUpdate, UserResponse
 
 router = APIRouter(
     prefix='/user_profile',
     tags=['user_profile']
 )
 
-# temporary
-async def get_current_user(db: db_dependency) -> Users:
-    # Hardcoded fallback placeholder to ensure the code compiles out-of-the-box
-    user = db.query(Users).first() 
+FirebaseToken = Annotated[dict, Depends(verify_firebase_token)]
+
+async def get_current_user(
+    token: FirebaseToken,
+    db: db_dependency,
+) -> Users:
+    """
+    Resolves the Firebase token to a DB user.
+    Reused across all routes in this router.
+    """
+    uid = token["uid"]
+
+    result = await db.execute(select(Users).where(Users.firebase_uid == uid))
+    user = result.scalar_one_or_none()
+
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Authentication Failed"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User profile not found.",
         )
+
     return user
 
+CurrentUser = Annotated[Users, Depends(get_current_user)]
 
+# ── Routes ────────────────────────────────────────────────────────────────────
 
-@router.get("/", status_code=status.HTTP_200_OK)
-async def get_user_profile(
-    db: db_dependency, 
-    current_user: Users = Depends(get_current_user)
-):
-   
+@router.get(
+    "/",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get current user profile",
+)
+async def get_user_profile(current_user: CurrentUser) -> Users:
     return current_user
 
 
-@router.put("/", status_code=status.HTTP_200_OK)
+@router.put(
+    "/",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update current user profile",
+    description="Updates editable profile fields. Email and password are managed by Firebase — not accepted here.",
+)
 async def update_profile(
-    payload: UserProfileUpdate, 
-    db: db_dependency, 
-    current_user: Users = Depends(get_current_user)
-):
-    
-    # Dynamically update fields if they are explicitly passed in the request body
+    payload: UserProfileUpdate,
+    db: db_dependency,
+    current_user: CurrentUser,
+) -> Users:
     update_data = payload.model_dump(exclude_unset=True)
-    
+
     for key, value in update_data.items():
         setattr(current_user, key, value)
-        
+
     db.add(current_user)
-    db.commit()
-    db.refresh(current_user)
-    
+    await db.commit()
+    await db.refresh(current_user)
+
     return current_user
-
-
-@router.put("/password", status_code=status.HTTP_204_NO_CONTENT)
-async def change_password(
-    payload: UserVerification, 
-    db: db_dependency, 
-    current_user: Users = Depends(get_current_user)
-):
-    
-    # Verify old password matches database record
-    if not pwd_context.verify(payload.password, current_user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect current password"
-        )
-        
-    current_user.password = pwd_context.hash(payload.new_password)
-    
-    db.add(current_user)
-    db.commit()
-    
-    return None
