@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import { Users, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
@@ -23,7 +24,7 @@ function HomePage() {
   const [changedRecords, setChangedRecords] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
 
-  const API_URL = 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleUpdateStatus = () => {
     setPlatformStatus((prev) => ({
@@ -36,14 +37,17 @@ function HomePage() {
     setIsConnected(true);
   };
 
+  const getAuthHeader = async () => {
+    const token = await getAuth().currentUser.getIdToken();
+    return { Authorization: `Bearer ${token}` };
+  };
+
   useEffect(() => {
     const initialize = async () => {
       try {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
         // Both calls are independent
         const [customerResponse, sheetsStatusResponse] = await Promise.all([
-          axios.get(`${API_URL}/customers?user_id=${currentUser.user_id}`),
+          axios.get(`${API_URL}/customers`, { headers: await getAuthHeader() }),
           axios.get(`${API_URL}/sheets/status`),
         ]);
 
@@ -67,9 +71,10 @@ function HomePage() {
 
   const handleImport = async () => {
     try {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-      const response = await axios.get(
-        `${API_URL}/customers?user_id=${currentUser.user_id}`,
+      const response = await axios.post(
+        `${API_URL}/sheets/sync`,
+        {},
+        { headers: await getAuthHeader() },
       );
       setCustomerData(response.data);
       //Reset change records after import
