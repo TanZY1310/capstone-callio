@@ -1,9 +1,6 @@
-from fastapi import FastAPI, Depends, Path, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, SessionLocal, get_db, create_tables
-from typing import Annotated
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, StrictInt, Field
+from database import create_tables
 
 #Instead of importing routers.customer i can just from routers with the use of __init__.py
 from routers import customers, auth, sheets, user_profile, whatsapp, speech
@@ -18,9 +15,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )    
-
-async def root():
-    return {"message": "Welcome to the API!"}  
 
 # Add your routers here
 app.include_router(customers.router)

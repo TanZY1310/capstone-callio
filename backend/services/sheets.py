@@ -1,10 +1,8 @@
 import os
 import uuid
-from typing import Annotated
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from fastapi import Depends
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
@@ -12,7 +10,6 @@ from sqlalchemy import select
 from database import db_dependency
 from models.customer import Customers
 from schemas.customer import CustomerSheetRow, SyncResult
-from routers.auth import verify_firebase_token
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SERVICE_ACCOUNT_FILE = "sheets_credentials.json"   # path to your JSON key
