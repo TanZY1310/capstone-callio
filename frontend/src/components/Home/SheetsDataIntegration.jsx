@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
 function SheetsDataIntegration({
   onImport,
@@ -14,15 +15,21 @@ function SheetsDataIntegration({
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const API_URL = 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  // TODO implement fetch backend Google Sheets API here
+  const getAuthHeader = async () => {
+    const token = await getAuth().currentUser.getIdToken();
+    return { Authorization: `Bearer ${token}` };
+  };
+
   const handleImport = async () => {
     setImporting(true);
     try {
-      // Temporary get from localStorage until implement Auth
-      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-      await axios.post(`${API_URL}/sheets/sync?user_id=${currentUser.user_id}`);
+      await axios.post(
+        `${API_URL}/sheets/sync`,
+        {},
+        { headers: await getAuthHeader() },
+      );
       await onImport();
       toast.success('Data imported successfully.');
     } catch (err) {
@@ -33,7 +40,6 @@ function SheetsDataIntegration({
     }
   };
 
-  // TODO implement fetch backend Google Sheets API here
   const handleExport = async () => {
     setExporting(true);
     try {

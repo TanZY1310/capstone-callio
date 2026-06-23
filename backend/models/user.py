@@ -31,4 +31,4 @@ class Users(Base):
     license_number: Mapped[str | None] = mapped_column(String(10), nullable=True)
     agency_branch: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
-    firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True) # nullable during transition
+    firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=False) 

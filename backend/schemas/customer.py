@@ -6,7 +6,7 @@ import uuid
 class CustomerResponse(BaseModel):
     cust_id: uuid.UUID
     cust_name: str
-    phone: int
+    phone: str
     budget: Optional[int] = None
     location: Optional[str] = None
     status: Optional[str] = None
