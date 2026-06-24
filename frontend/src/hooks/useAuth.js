@@ -16,16 +16,12 @@ export function useAuth() {
         setUser(firebaseUser);
 
         try {
-          // Check if registration just completed and profile was stored locally
-          const cached = localStorage.getItem('userProfile');
-          if (cached) {
-            setProfile(JSON.parse(cached));
-            localStorage.removeItem('userProfile'); // clear after use
+          if (sessionStorage.getItem('callio_pending_registration')) {
+            setProfile(null);
             setLoading(false);
             return;
           }
-          // Fetch your DB profile using the Firebase token
-          const idToken = await firebaseUser.getIdToken();
+          const idToken = await firebaseUser.getIdToken(true);
           const response = await axios.post(`${API_URL}/auth/session`, null, {
             headers: { Authorization: `Bearer ${idToken}` },
           });
