@@ -3,11 +3,17 @@ import uuid
 import asyncio
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
 from models.customer import Customers
+from models.speech import SpeechAnalysis
 from services.audio_service import transcribe_audio, analyze_transcript
+
+
+class PipelineRequest(BaseModel):
+    customer_id: str | None = None
 
 router = APIRouter(prefix="/speech", tags=["Speech"])
 
@@ -54,35 +60,41 @@ async def get_status(task_id: str):
 
 
 @router.post("/pipeline/{task_id}")
-async def add_to_pipeline(task_id: str):
+async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
     task = tasks.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if task["status"] != "complete":
         raise HTTPException(status_code=400, detail="Analysis not yet complete")
-    if not task.get("customer_id"):
+
+    cid = (body.customer_id if body else None) or task.get("customer_id")
+    if not cid:
         raise HTTPException(status_code=400, detail="No customer associated")
 
-    summary = task["data"].get("summary", {})
-    if not summary:
-        raise HTTPException(status_code=400, detail="No summary available")
+    summary = task["data"].get("summary", "")
+    buyer_stage = task["data"].get("buyerStage")
+    analysis_id = task["data"].get("analysisId")
 
     db: Session = SessionLocal()
     try:
-        customer = (
-            db.query(Customers)
-            .filter(Customers.cust_id == task["customer_id"])
-            .first()
-        )
+        customer = db.query(Customers).filter(Customers.cust_id == cid).first()
         if not customer:
             raise HTTPException(status_code=404, detail="Customer not found")
 
         from datetime import datetime
 
-        customer.remarks = {
+        remarks_entry = customer.remarks or {}
+        remarks_entry["speechAnalysis"] = {
+            "analysisId": analysis_id,
             "summary": summary,
+            "buyerStage": buyer_stage,
             "lastAnalysis": datetime.utcnow().isoformat(),
         }
+        customer.remarks = remarks_entry
+
+        if buyer_stage:
+            customer.status = buyer_stage
+
         db.commit()
         return {"success": True}
     finally:
@@ -96,10 +108,96 @@ async def _process(task_id: str, file_path: str):
         transcript = await asyncio.to_thread(transcribe_audio, file_path)
 
         tasks[task_id]["step"] = 2
-        await asyncio.sleep(0.1)
+        tasks[task_id]["status"] = "awaiting_approval"
+        tasks[task_id]["data"] = {
+            "transcription": transcript,
+        }
+
+    except Exception as e:
+        tasks[task_id]["status"] = "error"
+        tasks[task_id]["error"] = str(e)
+
+
+@router.post("/reject/{task_id}")
+async def reject_transcript(task_id: str):
+    task = tasks.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if task["status"] != "awaiting_approval":
+        raise HTTPException(status_code=400, detail="Task is not awaiting approval")
+
+    task["status"] = "rejected"
+    return {"success": True}
+
+
+@router.post("/approve/{task_id}")
+async def approve_transcript(task_id: str):
+    task = tasks.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if task["status"] != "awaiting_approval":
+        raise HTTPException(status_code=400, detail="Task is not awaiting approval")
+
+    task["status"] = "processing"
+    task["step"] = 3
+
+    asyncio.create_task(_analyze_phase(task_id))
+
+    return {"success": True}
+
+
+async def _analyze_phase(task_id: str):
+    try:
+        transcript = tasks[task_id]["data"]["transcription"]
 
         tasks[task_id]["step"] = 3
+        await asyncio.sleep(0.1)
+
         analysis = await asyncio.to_thread(analyze_transcript, transcript)
+
+        transcript_text = "\n".join(
+            f"{s['speaker']}: {s['text']}" for s in transcript
+        )
+
+        buyer_stage = analysis.get("buyerStage")
+        summary_text = analysis.get("summary", "")
+        if isinstance(summary_text, dict):
+            summary_text = str(summary_text)
+
+        objections = analysis.get("objections", analysis.get("sentiment", {}).get("objections", []))
+
+        db: Session = SessionLocal()
+        try:
+            customer_id = tasks[task_id].get("customer_id")
+            user_id = None
+            customer_name = None
+            if customer_id:
+                customer = db.query(Customers).filter(Customers.cust_id == customer_id).first()
+                if customer:
+                    user_id = customer.user_id
+                    customer_name = customer.cust_name
+
+            record = SpeechAnalysis(
+                user_id=user_id,
+                customer_id=customer_id,
+                customer_name=customer_name,
+                transcription=transcript_text,
+                sentiment=analysis.get("sentiment", {}),
+                next_actions=analysis.get("nextActions", []),
+                preferences=analysis.get("preferences", {}),
+                summary=summary_text,
+                objections=objections,
+                buyer_stage=buyer_stage,
+            )
+            db.add(record)
+            db.commit()
+            db.refresh(record)
+            analysis_id = str(record.id)
+        except Exception:
+            db.rollback()
+            analysis_id = None
+        finally:
+            db.close()
 
         tasks[task_id]["step"] = 4
         tasks[task_id]["status"] = "complete"
@@ -108,7 +206,10 @@ async def _process(task_id: str, file_path: str):
             "sentiment": analysis.get("sentiment", {}),
             "nextActions": analysis.get("nextActions", []),
             "preferences": analysis.get("preferences", {}),
-            "summary": analysis.get("summary", {}),
+            "summary": summary_text,
+            "buyerStage": buyer_stage,
+            "objections": objections,
+            "analysisId": analysis_id,
         }
 
     except Exception as e:
