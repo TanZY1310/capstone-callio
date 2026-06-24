@@ -6,7 +6,7 @@ import uuid
 class CustomerResponse(BaseModel):
     cust_id: uuid.UUID
     cust_name: str
-    phone: int
+    phone: str
     budget: Optional[int] = None
     location: Optional[str] = None
     status: Optional[str] = None
@@ -19,7 +19,7 @@ class CustomerResponse(BaseModel):
 class CustomerSheetRow(BaseModel):
     cust_name: str
     phone: str
-    budget: Optional[str] = None        # nullable — filled in later
+    budget: Optional[int] = None        # nullable — filled in later
     location: Optional[str] = None      
     status: Optional[str] = None
     last_contact: Optional[datetime] = None

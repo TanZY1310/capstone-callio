@@ -1,16 +1,29 @@
-from pydantic import BaseModel, StrictInt, Field, EmailStr
+import uuid
+from pydantic import BaseModel, StrictInt, Field, ConfigDict
 from models.user import UserRole
 
-class UserCreate(BaseModel):
+class UserCreate(BaseModel): # Email and password now comes from firebase token
     first_name: str = Field(min_length=1, max_length=1000)
     last_name: str = Field(min_length=1, max_length=1000)
     role: UserRole = UserRole.AGENT
-    email: EmailStr
-    password: str = Field(min_length=8)
     registered_year: StrictInt | None = None
     license_number: str | None = None
     agency_branch: str | None = None
+    team_lead_id: uuid.UUID | None = None
 
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_id: uuid.UUID
+    firebase_uid: str | None
+    email: str | None
+    first_name: str
+    last_name: str
+    role: str
+    registered_year: StrictInt | None = None
+    license_number: str | None = None
+    agency_branch: str | None = None
+    team_lead_id: uuid.UUID | None = None
 
 class UserVerification(BaseModel):
     password: str = Field(..., description="Current password")
@@ -21,3 +34,4 @@ class UserProfileUpdate(BaseModel):
     last_name: str | None = Field(None, max_length=100)
     license_number: str | None = Field(None, max_length=10)
     agency_branch: str | None = Field(None, max_length=100)
+    team_lead_id: uuid.UUID | None = None

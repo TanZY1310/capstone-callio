@@ -1,5 +1,7 @@
-import { useState, useReducer } from 'react';
+import { useState, useReducer, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../../../firebase';
 
 import {
   KeyRound,
@@ -11,9 +13,12 @@ import {
   Building,
   Hash,
   Calendar,
+  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const initialState = {
   first_name: '',
@@ -24,6 +29,7 @@ const initialState = {
   registered_year: '',
   license_number: '',
   agency_branch: '',
+  team_lead_id: '',
   errors: {},
   isSubmitting: false,
   loading: false,
@@ -93,17 +99,47 @@ function registerReducer(state, action) {
   }
 }
 
-const API_URL = 'http://localhost:8000';
+function parseFirebaseError(code) {
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'Email already registered.';
+    case 'auth/invalid-email':
+      return 'Invalid email address.';
+    case 'auth/weak-password':
+      return 'Password must be at least 6 characters.';
+    default:
+      return 'Registration failed. Please try again.';
+  }
+}
 
 function RegisterForm() {
   const [state, dispatch] = useReducer(registerReducer, initialState);
   const [showPassword, setShowPassword] = useState(false);
+  const [teamLead, setTeamLead] = useState([]);
   const navigate = useNavigate();
 
-  async function registerAPI(payload) {
-    const response = await axios.post(`${API_URL}/register`, payload);
-    return response.data;
-  }
+  useEffect(() => {
+    if (state.role === 'agent') {
+      const fetchTeamLeads = async () => {
+        try {
+          const { data } = await axios.get(`${API_URL}/users/team-leads`);
+          setTeamLead(data);
+        } catch {
+          console.error('Failed to fetch team leads');
+        }
+      };
+      fetchTeamLeads();
+    } else {
+      setTeamLead([]);
+      if (state.role !== 'team_lead') {
+        dispatch({
+          type: ACTIONS.SET_FIELD,
+          field: 'team_lead_id',
+          value: '',
+        });
+      }
+    }
+  }, [state.role]);
 
   const validateForm = () => {
     let isValid = true;
@@ -112,6 +148,14 @@ function RegisterForm() {
         type: ACTIONS.SET_ERROR,
         field: 'role',
         msg: 'Please select a role',
+      });
+      isValid = false;
+    }
+    if (state.role === 'agent' && !state.team_lead_id) {
+      dispatch({
+        type: ACTIONS.SET_ERROR,
+        field: 'team_lead_id',
+        msg: 'Please select a team lead',
       });
       isValid = false;
     }
@@ -142,37 +186,83 @@ function RegisterForm() {
     });
   };
 
+  const registerUserProfile = async (payload, token) => {
+    for (let i = 0; i < 3; i++) {
+      try {
+        return await axios.post(`${API_URL}/auth/register`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (err) {
+        if (err.response?.status === 401 && i < 2) {
+          await new Promise((r) => setTimeout(r, 1000));
+          continue;
+        }
+        throw err;
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     dispatch({ type: ACTIONS.REGISTER_START });
 
+    sessionStorage.setItem('callio_pending_registration', 'true');
+
     try {
       dispatch({ type: ACTIONS.SUBMIT, value: true });
-      const user = await registerAPI({
-        first_name: state.first_name,
-        last_name: state.last_name,
-        role: state.role,
-        email: state.email,
-        password: state.password,
-        registered_year: state.registered_year
-          ? parseInt(state.registered_year)
-          : null,
-        license_number: state.license_number || null,
-        agency_branch: state.agency_branch || null,
+
+      // Create Firebase User
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        state.email,
+        state.password,
+      );
+
+      // Set dislay name in Firebase (optional but useful)
+      await updateProfile(userCredential.user, {
+        displayName: `${state.first_name} ${state.last_name}`,
       });
 
-      // Direct login after register
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      // Get ID token
+      const idToken = await userCredential.user.getIdToken(true);
 
+      // Create DB profile backend (with retry on 401)
+      const registerResponse = await registerUserProfile(
+        {
+          first_name: state.first_name,
+          last_name: state.last_name,
+          role: state.role,
+          email: state.email,
+          password: state.password,
+          registered_year: state.registered_year
+            ? parseInt(state.registered_year)
+            : null,
+          license_number: state.license_number || null,
+          agency_branch: state.agency_branch || null,
+          team_lead_id: state.team_lead_id || null,
+        },
+        idToken,
+      );
+
+      console.log('Register response:', registerResponse.data);
+      localStorage.setItem(
+        'userProfile',
+        JSON.stringify(registerResponse.data),
+      );
+
+      sessionStorage.removeItem('callio_pending_registration');
       dispatch({ type: ACTIONS.REGISTER_SUCCESS });
       toast.success('Account created! Welcome to Callio.');
-      setTimeout(() => navigate('/'), 3000);
+      navigate('/');
     } catch (err) {
-      const msg =
-        err.response?.data?.detail || err.message || 'Registration failed';
-      dispatch({ type: ACTIONS.REGISTER_ERROR, payload: msg });
-      toast.error(msg);
+      sessionStorage.removeItem('callio_pending_registration');
+      // Firebase errors use err.code , Axios uses err.response
+      const message = err.code
+        ? parseFirebaseError(err.code)
+        : err.response?.data?.detail || 'Registration failed.';
+      dispatch({ type: ACTIONS.REGISTER_ERROR, payload: message });
+      toast.error(message);
     }
   };
 
@@ -258,6 +348,37 @@ function RegisterForm() {
                     <p className="text-error-msg">{state.errors.role}</p>
                   )}
                 </div>
+
+                {/* Team Lead (only for agents) */}
+                {state.role === 'agent' && (
+                  <div className="w-full">
+                    <legend className="fieldset-legend mt-2">Team Lead</legend>
+                    <label className="input input-bordered w-full">
+                      <Users size={15} className="text-base-content/40" />
+                      <select
+                        name="team_lead_id"
+                        className="bg-transparent grow h-full focus:outline-none"
+                        value={state.team_lead_id}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="" disabled={true}>
+                          Select your team lead
+                        </option>
+                        {teamLead.map((lead) => (
+                          <option key={lead.user_id} value={lead.user_id}>
+                            {lead.first_name} {lead.last_name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {state.errors.team_lead_id && (
+                      <p className="text-error-msg">
+                        {state.errors.team_lead_id}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Email */}
                 <div className="w-full">
