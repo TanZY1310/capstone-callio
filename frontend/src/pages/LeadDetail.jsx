@@ -9,6 +9,7 @@ import dummyWAHistory from '../data/dummyWAHistory.js';
 import dummyAIResponse from '../data/dummyAIResponse.js';
 import { useLocation } from 'react-router-dom';
 import { STATUS_NAME } from '../data/constants';
+import axios from 'axios';
 
 function LeadDetail() {
   const [showUser, setShowUser] = useState({
@@ -28,6 +29,7 @@ function LeadDetail() {
     ],
   });
 
+  const FASTAPI_BASE_URL = "http://127.0.0.1:8000/whatsapp";
   const { state } = useLocation();
   const inputRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -86,13 +88,13 @@ function LeadDetail() {
 
   const handleUpdateStatus = async () => {
     //start whatsapp client, change to axios method later
-    await fetch('http://localhost:3001/whatsapp/connect', { method: 'POST' });
+    await axios.post(`${FASTAPI_BASE_URL}/connect`);
     setShowQrModal(true);
 
     // 2. Poll /status until connected
     const poll = setInterval(async () => {
-      const res = await fetch('http://localhost:3001/whatsapp/status');
-      const data = await res.json();
+      const res = await axios.get(`${FASTAPI_BASE_URL}/status`);
+      const data = await res.data;
 
       if (data.status === 'connected') {
         clearInterval(poll);
@@ -112,10 +114,12 @@ function LeadDetail() {
     }, 3000);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     const text = inputRef.current?.value.trim();
     if (!text) return;
+
+    await axios.post(`${FASTAPI_BASE_URL}/send/00000000-0000-0000-0000-000000000067`, {message:text});
 
     setMessages((prev) => [
       ...prev,
@@ -138,7 +142,9 @@ function LeadDetail() {
     );
   };
   // Called by AIResponseReview Confirm button
-  const handleConfirmAIResponse = (content) => {
+  const handleConfirmAIResponse = async (content) => {
+
+    await axios.post(`${FASTAPI_BASE_URL}/send/00000000-0000-0000-0000-000000000067`, {message:content});
     setMessages((prev) => [
       ...prev,
       {
@@ -209,7 +215,7 @@ function LeadDetail() {
         )}
       </div>
 
-      {/* QR modal — overlays everything, doesn't replace anything */}
+      {/* QR modal — overlays everything, doesn't replace anything */} 
       {showQrModal && (
         <dialog className="modal modal-open">
           <div className="modal-box items-center text-center">

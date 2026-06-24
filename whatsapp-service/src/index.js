@@ -18,6 +18,7 @@ const corsOptions = {
   credentials: true                // Allow cookies/auth headers if needed
 };
 
+app.use(express.json()); 
 app.use(cors(corsOptions)); // 3. Apply the middleware
 // or whatever base path, need adjustment
 app.use('/', whatsappRoutes); 

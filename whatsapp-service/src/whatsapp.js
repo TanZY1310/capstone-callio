@@ -8,16 +8,24 @@ let state = {
   qr: null,
 };
 
-async function initializeClient() {
+class ConnectionError extends Error { 
+  constructor(message) { 
+    super(message); 
+    this.name = 'ConnectionError'; 
+    this.statusCode = 503; 
+  } 
+} 
+
+function initializeClient() {
   // guard: if already connecting/connected, do nothing
   if (state.status == 'connected'){
         return;
-    }
+  }
 
   // create new Client with LocalAuth
   // default relevant session files are stored under .wwebjs_auth
   // LocalAuth stored in Cloud SQL upon deployment 
-  const client = new Client({
+  client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
       headless: true,
@@ -78,8 +86,55 @@ async function initializeClient() {
   client.initialize();
 }
 
+async function sendMessage(phone, message){
+
+  // guard clause
+  if (getState().status !== 'connected') {
+    throw new ConnectionError("You're not connected")   
+  };
+
+  try {
+    const chatId = phone.includes("@c.us") ? phone : `${phone}@c.us`;
+    const result = await client.sendMessage(chatId, message);
+    return({
+        status: "sent",
+        messageId: result.id._serialized,
+        timestamp: result.timestamp,
+        to: chatId,
+    });
+  } catch (e) {
+      throw new Error("Error in send message", {cause: e});
+  }
+}
+
+function getMessages(){
+  // guard clause
+  if (getState().status !== 'connected') {
+    throw new ConnectionError("You're not connected")   
+  };
+
+  try {
+    const chat = await client.getChatById(chatId);
+    const messages = await chat.fetchMessages({ limit: parseInt(limit) });
+    return(messages.map(m => ({
+      id: m.id._serialized,
+      from: m.from,
+      to: m.to,
+      body: m.body,
+      timestamp: m.timestamp,
+      fromMe: m.fromMe,
+      type: m.type,
+      hasMedia: m.hasMedia,
+    })));
+  }
+  catch (e) {
+    throw new Error("Error in read message", {cause: e});
+  }
+}
+
 function getState() {
   return state;
 }
 
-module.exports = { initializeClient, getState };
+// exported functions that are accessible upon = require(../whatsapp)
+module.exports = { initializeClient, sendMessage, getMessages, getState };
