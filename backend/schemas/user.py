@@ -24,6 +24,7 @@ class UserResponse(BaseModel):
     license_number: str | None = None
     agency_branch: str | None = None
     team_lead_id: uuid.UUID | None = None
+    sheets_id: str | None = None
 
 class UserVerification(BaseModel):
     password: str = Field(..., description="Current password")
@@ -35,3 +36,4 @@ class UserProfileUpdate(BaseModel):
     license_number: str | None = Field(None, max_length=10)
     agency_branch: str | None = Field(None, max_length=100)
     team_lead_id: uuid.UUID | None = None
+    sheets_id: str | None = Field(None, max_length=255)
