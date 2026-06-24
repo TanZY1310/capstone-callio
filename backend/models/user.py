@@ -36,3 +36,5 @@ class Users(Base):
     )
 
     firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=False) 
+
+    sheets_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
