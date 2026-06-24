@@ -6,10 +6,10 @@ import {
   Title,
   Tooltip,
   Legend,
-} from "chart.js";
-import { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
-import { MdWidthFull } from "react-icons/md";
+} from 'chart.js';
+import { useState, useEffect } from 'react';
+import { Bar } from 'react-chartjs-2';
+import { MdWidthFull } from 'react-icons/md';
 
 // Step 1 — Register the parts of Chart.js you are using
 // Without this, the chart will not render at all
@@ -22,38 +22,26 @@ ChartJS.register(
   Legend,
 );
 
-function LeadsByRegion() {
-  const [leadsRegion, setLeadsRegion] = useState([
-    { district: "Bangsar", value: 0 },
-    { district: "Cheras", value: 0 },
-    { district: "Puchong", value: 0 },
-    { district: "Kajang", value: 0 },
-    { district: "KL City", value: 0 },
-  ]);
+function LeadsByRegion({ regions }) {
+  if (!regions || regions.length === 0) {
+    return (
+      <div className="card bg-base-100  p-6">
+        <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
+          Team Regions Breakdown
+        </h2>
 
-  const [totalCall, setTotalCall] = useState(0);
-
-  useEffect(() => {
-    const data = [
-      { district: "Bangsar", value: 40 },
-      { district: "Cheras", value: 60 },
-      { district: "Puchong", value: 20 },
-      { district: "Kajang", value: 80 },
-      { district: "KL City", value: 10 },
-    ];
-
-    const total = 200;
-    setLeadsRegion(data);
-    setTotalCall(total);
-  }, []);
+        <p className="text-base-content/60 text-sm">No region data yet.</p>
+      </div>
+    );
+  }
 
   // define your data into chart
   const chartBarAgent = {
-    labels: leadsRegion.map((item) => item.district),
+    labels: regions.map((item) => item.region),
     datasets: [
       {
-        data: leadsRegion.map((item) => item.value),
-        backgroundColor: "#1a3a7c",
+        data: regions.map((item) => item.region_count),
+        backgroundColor: '#1a3a7c',
         borderRadius: 5,
       },
     ],
@@ -62,7 +50,7 @@ function LeadsByRegion() {
   // define your chart styling
   const chartOptions = {
     maintainAspectRatio: false,
-    indexAxis: "y", // this is the part that makes the chart horizontal
+    indexAxis: 'y', // this is the part that makes the chart horizontal
     scales: {
       x: { grid: { display: true } },
 
@@ -89,11 +77,11 @@ function LeadsByRegion() {
   return (
     // <div className="card bg-base-100 border border-base-200 shadow-sm p-6">
     <div className="card bg-base-100  p-6">
-      <h2 className="card-title text-base-content" style={{ padding: "5px" }}>
+      <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
         Team Regions Breakdown
       </h2>
 
-      <div style={{ height: "200px" }}>
+      <div style={{ height: '200px' }}>
         <Bar data={chartBarAgent} options={chartOptions} />
       </div>
     </div>
@@ -101,3 +89,24 @@ function LeadsByRegion() {
 }
 
 export default LeadsByRegion;
+
+///////////////////////////////////////////////////////////////////
+///////////////////// NOT IMPORTANT ///////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+// const [leadsRegion, setLeadsRegion] = useState([]);
+// const [totalCall, setTotalCall] = useState(0);
+
+// useEffect(() => {
+//   const data = [
+//     { district: "Bangsar", value: 40 },
+//     { district: "Cheras", value: 60 },
+//     { district: "Puchong", value: 20 },
+//     { district: "Kajang", value: 80 },
+//     { district: "KL City", value: 10 },
+//   ];
+
+//   const total = 200;
+//   setLeadsRegion(data);
+//   setTotalCall(total);
+// }, []);
