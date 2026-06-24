@@ -1,6 +1,6 @@
 import uuid
 from enum import StrEnum
-from sqlalchemy import Integer, String, Enum as SAEnum
+from sqlalchemy import Integer, String, Enum as SAEnum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from database import Base
 
@@ -18,10 +18,10 @@ class Users(Base):
     first_name:  Mapped[str] = mapped_column(String(100), nullable=False)
     last_name:  Mapped[str] = mapped_column(String(100), nullable=False)
 
-    role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name="user_role_enum"),
+    role: Mapped[str] = mapped_column(
+        String(20),
         nullable=False,
-        default=UserRole.AGENT,
+        default=UserRole.AGENT.value,
     )
 
     email: Mapped[str] =  mapped_column(String(255), unique=True, nullable=False, index=True)
@@ -30,5 +30,9 @@ class Users(Base):
     registered_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     license_number: Mapped[str | None] = mapped_column(String(10), nullable=True)
     agency_branch: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    team_lead_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.user_id"), nullable=True
+    )
 
     firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=False) 

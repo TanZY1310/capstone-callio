@@ -9,6 +9,8 @@ class UserCreate(BaseModel): # Email and password now comes from firebase token
     registered_year: StrictInt | None = None
     license_number: str | None = None
     agency_branch: str | None = None
+    team_lead_id: uuid.UUID | None = None
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -21,6 +23,7 @@ class UserResponse(BaseModel):
     registered_year: StrictInt | None = None
     license_number: str | None = None
     agency_branch: str | None = None
+    team_lead_id: uuid.UUID | None = None
 
 class UserVerification(BaseModel):
     password: str = Field(..., description="Current password")
@@ -31,3 +34,4 @@ class UserProfileUpdate(BaseModel):
     last_name: str | None = Field(None, max_length=100)
     license_number: str | None = Field(None, max_length=10)
     agency_branch: str | None = Field(None, max_length=100)
+    team_lead_id: uuid.UUID | None = None

@@ -102,7 +102,7 @@ function LoginForm() {
       );
 
       // Get Firebase ID token
-      const idToken = await userCredential.user.getIdToken();
+      const idToken = await userCredential.user.getIdToken(true);
 
       // Exchange token for db user profile - replace localstorage which is not needed anymore
       await axios.post(`${API_URL}/auth/session`, null, {
