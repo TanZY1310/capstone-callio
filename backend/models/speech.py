@@ -5,6 +5,8 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from database import Base
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 
 
 class SpeechAnalysis(Base):
@@ -19,6 +21,20 @@ class SpeechAnalysis(Base):
     next_actions: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     preferences: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
-    objections: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    # objections: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     buyer_stage: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    objections = relationship("Objection", back_populates="call")
+
+
+class Objection(Base):
+    __tablename__ = "objections"
+
+    objection_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    call_id: Mapped[uuid.UUID] =  mapped_column(ForeignKey("speech_analysis.id"), nullable=False)
+    objection_type: Mapped[str | None] = mapped_column(String(255), nullable=False)
+    detected_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    
+

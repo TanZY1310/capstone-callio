@@ -1,37 +1,58 @@
-import { useState, useEffect } from "react";
-import TopCard from "./TopCard";
-import FunnelCard from "./FunnelCard";
-import LeadsByRegion from "./LeadsByRegion";
-import BudgetBreakdown from "./BudgetBreakdown";
-import CallUpload from "./CallUpload";
-import { data } from "react-router-dom";
-import Header from "../Layout/Header";
-import Objections from "./Objections";
-import { dummyAgentData } from "../../data/dummyAgentData";
+import { useState, useEffect } from 'react';
+import TopCard from './TopCard';
+import FunnelCard from './FunnelCard';
+import LeadsByRegion from './LeadsByRegion';
+import BudgetBreakdown from './BudgetBreakdown';
+import CallUpload from './CallUpload';
+import { data } from 'react-router-dom';
+import Header from '../Layout/Header';
+import Objections from './Objections';
+import { dummyAgentData } from '../../data/dummyAgentData';
+import axios from 'axios';
 
 function AgentDashboard() {
-  // const [stats, setStats] = useState({
-  //   calls: 0,
-  //   leads: 0,
-  //   pendingFollowUps: 0,
-  //   followUps: 0,
-  //   appointments: 0,
-  //   booking: 0,
-  // });
+  const [agent, setAgent] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // useEffect(() => {
-  //   // pretends get the data
-  //   const data = {
-  //     calls: 50,
-  //     leads: 100,
-  //     pendingFollowUps: 10,
-  //     followUps: 5,
-  //     appointments: 2,
-  //     booking: 1,
-  //   };
+  const API_URL = 'http://localhost:8000';
 
-  //   setStats(data);
-  // }, []);
+  useEffect(() => {
+    async function fetchKPIs() {
+      try {
+        const response = await axios.get('${API_URL}/dashboard/agent'); //, {credentials: "include"})
+
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+
+        const data = await response.json();
+        setAgent(data);
+      } catch (err) {
+        setError(err.message);
+        console.log('Error fetching books:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchKPIs;
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="card bg-base-100 border border-base-200 shadow-sm p-6">
+        <span className="loading loading-spinner loading-md"></span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card bg-base-100 border border-error shadow-sm p-6">
+        <p className="text-error">Couldn't load dashboard stats: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -41,10 +62,16 @@ function AgentDashboard() {
           <Header h1="Agent Dashboard" p="Monitor logs and tracks activity" />
 
           {/* 1. Top Card - Personal Metrics Performance */}
+          {/* TopCard({ calls, leads, followUps, appointments }) */}
 
-          <TopCard dummyAgentData={dummyAgentData} />
+          <TopCard
+            calls={agent.kpis.calls}
+            leads={agent.kpis.leads}
+            followUps={agent.kpis.followUps}
+            appointments={agent.kpis.appointments}
+          />
 
-          {/* 2. Bar Chart Card - Call Upload Activity*/}
+          {/* 2. Line Chart Card - Call Upload Activity*/}
 
           {/* <div className="card bg-base-100 border border-base-200 shadow-sm">
             <div className="card-body gap-4">
@@ -55,7 +82,7 @@ function AgentDashboard() {
             </div>
           </div> */}
 
-          <CallUpload />
+          <CallUpload daily_calls={agent.daily_calls} />
 
           {/* 3. Divider Part - LeadsByRegion + Leads Budget Breakdown*/}
 
@@ -76,12 +103,12 @@ function AgentDashboard() {
 
             {/* <!-- Main content spanning 2 columns --> */}
             <div className="col-span-2 card  bg-base-100">
-              <LeadsByRegion />
+              <LeadsByRegion region={agent.total_region} />
             </div>
 
             {/* <!-- Sidebar spanning 1 column --> */}
             <div className="col-span-1 card bg-base-100 ">
-              <Objections />
+              <Objections objection={agent.top_objection} />
             </div>
           </div>
 
@@ -99,3 +126,53 @@ function AgentDashboard() {
 }
 
 export default AgentDashboard;
+
+// The data from API will in below form (example)
+
+// {
+//   "kpis": {
+//     "total_calls_today": 2,
+//     "total_leads": 5,
+//     "pending_follow_ups": 1,
+//     "appointments_booked": 2
+//   },
+//   "daily_calls": [
+//     { "call_date": "2026-06-22", "call_count": 1 },
+//     { "call_date": "2026-06-23", "call_count": 1 }
+//   ],
+//   "regions": [
+//     { "region": "Petaling Jaya", "count": 3 },
+//     { "region": "Subang Jaya", "count": 2 }
+//   ],
+//   "top_objections": [
+//     { "objection_type": "Too Expensive", "count": 4 },
+//     { "objection_type": "Not Interested", "count": 2 }
+//   ]
+// }
+
+///////////////////////////////////////////////////////////////////
+///////////////////// NOT IMPORTANT ///////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+// const [stats, setStats] = useState({
+//   calls: 0,
+//   leads: 0,
+//   pendingFollowUps: 0,
+//   followUps: 0,
+//   appointments: 0,
+//   booking: 0,
+// });
+
+// useEffect(() => {
+//   // pretends get the data
+//   const data = {
+//     calls: 50,
+//     leads: 100,
+//     pendingFollowUps: 10,
+//     followUps: 5,
+//     appointments: 2,
+//     booking: 1,
+//   };
+
+//   setStats(data);
+// }, []);
