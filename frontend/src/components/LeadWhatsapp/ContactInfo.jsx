@@ -17,10 +17,9 @@ function ContactInfo({ user }) {
         Contact Information
       </p>
       <div className="text-sm text-base-content/60 mt-1 space-y-1">
-        <p>Email: {user.contact.email}</p>
-        <p>Phone: {user.contact.phone}</p>
+        <p>Phone: {user.phone}</p>
         <p>Preferences:</p>
-        {UserPreferences(user.contact.preferences)}
+        {UserPreferences(user.location)}
         <div className="flex justify-end">
           <button
             className="btn btn-success btn-xs mt-1 mb-1 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
