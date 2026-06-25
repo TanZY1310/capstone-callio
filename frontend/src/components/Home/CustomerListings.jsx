@@ -62,7 +62,8 @@ function CustomerListings({ customerData, onDataChange }) {
       setLoading(true);
       try {
         console.log('CustomerData in syncData: ' + customerData);
-        setCustomers(customerData);
+        // setCustomers(customerData);
+        setCustomers(Array.isArray(customerData) ? customerData : []);
         const statusMap = Object.fromEntries(
           customerData.map((customer) => [customer.cust_id, customer.status]),
         );
