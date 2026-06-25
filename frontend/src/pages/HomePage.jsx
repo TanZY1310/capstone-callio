@@ -76,13 +76,17 @@ function HomePage() {
         {},
         { headers: await getAuthHeader() },
       );
-      setCustomerData(response.data);
-      //Reset change records after import
+
+      // Re-fetch the customer list (GET returns an array)
+      const customerResponse = await axios.get(`${API_URL}/customers`, {
+        headers: await getAuthHeader(),
+      });
+      setCustomerData(customerResponse.data);
+
       setChangedRecords([]);
-      //Update status after import
       handleUpdateStatus();
     } catch (err) {
-      toast.error('Failed to load customers after sync.', err.message);
+      toast.error('Failed to load customers after sync.');
     }
   };
 

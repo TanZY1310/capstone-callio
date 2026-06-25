@@ -3,8 +3,6 @@ import { SiGooglesheets } from 'react-icons/si';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
-import axios from 'axios';
-import { getAuth } from 'firebase/auth';
 
 function SheetsDataIntegration({
   onImport,
@@ -15,22 +13,10 @@ function SheetsDataIntegration({
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
-  const getAuthHeader = async () => {
-    const token = await getAuth().currentUser.getIdToken();
-    return { Authorization: `Bearer ${token}` };
-  };
-
   const handleImport = async () => {
     setImporting(true);
     try {
-      await axios.post(
-        `${API_URL}/sheets/sync`,
-        {},
-        { headers: await getAuthHeader() },
-      );
-      await onImport();
+      await onImport(); // parent will call POST /sheets/sync
       toast.success('Data imported successfully.');
     } catch (err) {
       toast.error('Import failed. Please try again.');
