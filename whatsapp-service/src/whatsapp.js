@@ -71,7 +71,7 @@ function initializeClient() {
   });
 
   // Incoming message listener
-  client.on("message", async (msg) => {
+  /*client.on("message", async (msg) => {
     console.log(`\nNew message from ${msg.from}: ${msg.body}`);
 
     if (msg.body === "!info") {
@@ -80,7 +80,7 @@ function initializeClient() {
         `Name: ${contact.pushname}\nNumber: ${contact.number}\nIs Business: ${contact.isBusiness}`
       );
     }
-  });
+  });*/
 
   // Start your client
   client.initialize();
@@ -107,13 +107,14 @@ async function sendMessage(phone, message){
   }
 }
 
-function getMessages(){
+async function getMessages(phone, limit){
   // guard clause
   if (getState().status !== 'connected') {
     throw new ConnectionError("You're not connected")   
   };
 
   try {
+    const chatId = phone.includes("@c.us") ? phone : `${phone}@c.us`;
     const chat = await client.getChatById(chatId);
     const messages = await chat.fetchMessages({ limit: parseInt(limit) });
     return(messages.map(m => ({
@@ -128,7 +129,7 @@ function getMessages(){
     })));
   }
   catch (e) {
-    throw new Error("Error in read message", {cause: e});
+    throw new Error(`Error in read message: ${e.message}`, {cause: e});
   }
 }
 

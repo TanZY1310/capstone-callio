@@ -15,11 +15,13 @@ router.get('/whatsapp/status', (req, res) => {
     res.json(getState());
 });
 
-// Read message by Cust_ID
-router.get('whatsapp/read', (req, res) =>{
+// Read message by phone
+// Filtering of cust_id done in routers/whatsapp.py
+router.get('/whatsapp/read/:phone', async (req, res) =>{
     
     try{
-        const result = getMessages();
+        const {phone} = req.params;
+        const result = await getMessages(phone,'20');
         return res.json(result);
     }
     catch (e){

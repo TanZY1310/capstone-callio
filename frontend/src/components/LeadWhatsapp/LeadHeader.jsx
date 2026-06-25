@@ -21,7 +21,7 @@ function LeadHeader({ user, users, onHeaderChange }) {
           <button className="btn btn-sm">
             <select value={user.id} onChange = {onHeaderChange}>
               {users.map((u) => (
-                <option key={u.id} value={u.id}>
+                <option key={u.cust_id} value={u.cust_id}>
                   {u.name}
                 </option>
               ))}
