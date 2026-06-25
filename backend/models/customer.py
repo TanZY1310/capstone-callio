@@ -21,6 +21,6 @@ class Customers(Base):
     remarks: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.user_id"),
+        ForeignKey("users.user_id"),     # FK to user_id
         nullable=False,
     )

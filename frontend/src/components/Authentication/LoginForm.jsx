@@ -87,7 +87,6 @@ function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  // const API_URL = 'http://localhost:8000';
   const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
@@ -103,7 +102,7 @@ function LoginForm() {
       );
 
       // Get Firebase ID token
-      const idToken = await userCredential.user.getIdToken();
+      const idToken = await userCredential.user.getIdToken(true);
 
       // Exchange token for db user profile - replace localstorage which is not needed anymore
       await axios.post(`${API_URL}/auth/session`, null, {

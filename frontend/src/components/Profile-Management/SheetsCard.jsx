@@ -1,11 +1,82 @@
-import react, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings, RefreshCcw } from 'lucide-react';
 import sheetsimg from '../../assets/sheets_icon.png';
+import { Info } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { useAuth } from '../../hooks/useAuth';
 
 function SheetsCard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(false);
+  const [sheetsId, setSheetsId] = useState('');
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState('2026-05-12 14:22:10');
+
+  const { user } = useAuth();
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        try {
+          const token = await user.getIdToken();
+          const response = await axios.get(`${API_URL}/user_profile/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (response.data.sheets_id) {
+            setSheetsId(response.data.sheets_id);
+          }
+        } catch (err) {
+          console.error('Failed to fetch profile data:', err);
+        }
+      }
+    };
+    fetchProfile();
+  }, [user, API_URL]);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+
+    try {
+      if (user) {
+        const token = await user.getIdToken();
+        await axios.put(
+          `${API_URL}/user_profile/`,
+          { sheets_id: sheetsId },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        toast.success('Sheets ID saved successfully!');
+      }
+
+      // Simulate sync delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Format current time: YYYY-MM-DD HH:mm:ss
+      const now = new Date();
+      const formattedTime =
+        now.getFullYear() +
+        '-' +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(now.getDate()).padStart(2, '0') +
+        ' ' +
+        String(now.getHours()).padStart(2, '0') +
+        ':' +
+        String(now.getMinutes()).padStart(2, '0') +
+        ':' +
+        String(now.getSeconds()).padStart(2, '0');
+
+      setLastSyncTime(formattedTime);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to sync Sheets ID.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const insert_api = async () => {
     setIsLoading(true);
@@ -50,8 +121,19 @@ function SheetsCard() {
                 </div>
               </div>
               <div>
-                <h3 className="text-base font-bold text-base-content">
+                <h3 className="text-base font-bold text-base-content flex items-center gap-1.5">
                   Google Sheets API
+                  <div
+                    className="tooltip tooltip-right flex items-center before:text-xs before:font-normal"
+                    data-tip="How to get spreadsheet id"
+                  >
+                    <Info
+                      className="h-4 w-4 text-base-content/50 cursor-pointer hover:text-base-content transition-colors"
+                      onClick={() =>
+                        document.getElementById('sheets_info_modal').showModal()
+                      }
+                    />
+                  </div>
                 </h3>
                 <p className="text-xs text-base-content/60">
                   Automated lead export and data syncing.
@@ -60,8 +142,7 @@ function SheetsCard() {
             </div>
 
             {/* Status Badge */}
-            <span className="badge badge-success badge-outline font-mono gap-1.5 py-3 text-xs uppercase tracking-wide">
-              <span className="h-1.5 w-1.5 rounded-full bg-success"></span>
+            <span className="badge badge-success text-white border-none py-3 text-xs uppercase font-mono tracking-wider">
               Connected
             </span>
           </div>
@@ -70,25 +151,14 @@ function SheetsCard() {
           <div className="flex flex-col gap-4">
             <div className="form-control w-full">
               <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
-                API Key
-              </label>
-              <input
-                type="text"
-                value="sk_live_11MvXU7Kk83VzNqP1xX..."
-                disabled
-                className="input input-bordered bg-base-200/50 text-xs font-mono w-full"
-              />
-            </div>
-
-            <div className="form-control w-full">
-              <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
                 Spreadsheet ID
               </label>
               <input
                 type="text"
-                value="1x9jLp8qZ-5_R8vA_m2Xy7w..."
-                disabled
-                className="input input-bordered bg-base-200/50 text-xs font-mono w-full"
+                placeholder="Enter Spreadsheet ID"
+                className="input input-bordered w-full text-sm"
+                value={sheetsId}
+                onChange={(e) => setSheetsId(e.target.value)}
               />
             </div>
           </div>
@@ -99,8 +169,10 @@ function SheetsCard() {
               <span className="font-bold text-base-content">
                 Last Sync Status
               </span>
-              <span className="text-base-content/60 font-mono">
-                2026-05-12 14:22:10
+              <span
+                className={`text-base-content/60 font-mono transition-all duration-300 ${isSyncing ? 'animate-pulse text-success' : ''}`}
+              >
+                {isSyncing ? 'Syncing...' : lastSyncTime}
               </span>
             </div>
             <progress
@@ -113,82 +185,61 @@ function SheetsCard() {
           {/* Action Footer */}
           <div className="card-actions flex gap-2.5 pt-1">
             <button
-              className={`btn btn-neutral flex-1 normal-case font-medium ${isLoading ? 'loading' : ''}`}
-              disabled={isLoading}
+              className={`btn btn-neutral flex-1 normal-case font-medium`}
+              disabled={isSyncing}
+              onClick={handleSync}
             >
-              {!isLoading && <RefreshCcw className="w-4 h-4" />}
-              Sync Now
-            </button>
-
-            <button
-              className="btn btn-square btn-outline border-neutral-200 hover:bg-base-200 text-base-content/70"
-              onClick={handleClick}
-            >
-              <Settings className="w-5 h-5" />
+              <RefreshCcw
+                className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`}
+              />
+              {isSyncing ? 'Syncing...' : 'Sync Now'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* DaisyUI Settings Modal */}
-      <dialog id="setting_modal" className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box max-w-md">
-          {/* Close button inside form context */}
+      {/* Info Modal */}
+      <dialog id="sheets_info_modal" className="modal">
+        <div className="modal-box max-w-2xl">
           <form method="dialog">
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
               ✕
             </button>
           </form>
 
-          <h3 className="font-bold text-lg mb-4">Update API Configuration</h3>
+          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+            <Info className="h-5 w-5 text-info" />
+            How to find your Spreadsheet ID
+          </h3>
 
-          {error && (
-            <div className="alert alert-error text-xs py-2 mb-4">
-              <span>{error}</span>
-            </div>
-          )}
+          <p className="text-sm text-base-content/80 mb-6">
+            Your Spreadsheet ID is the long string of letters and numbers in the
+            URL of your Google Sheet. It is located between <strong>/d/</strong>{' '}
+            and <strong>/edit</strong>.
+          </p>
 
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="form-control w-full">
-              <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
-                API Key
-              </label>
-              <input
-                type="text"
-                placeholder="Enter your live secret API Key"
-                className="input input-bordered w-full text-xs font-mono"
-                required
-              />
+          <div className="mockup-browser bg-base-200 border border-base-300">
+            <div className="mockup-browser-toolbar">
+              <div className="input text-xs sm:text-sm overflow-x-auto whitespace-nowrap">
+                https://docs.google.com/spreadsheets/d/
+                <span className="text-primary font-bold">
+                  1Z7DdeF4-CRXSHm9Zeykk44HIAtR5f0D7-ctbqw0HNx8
+                </span>
+                /edit?gid=0#gid=0
+              </div>
             </div>
-
-            <div className="form-control w-full">
-              <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
-                Spreadsheet ID
-              </label>
-              <input
-                type="text"
-                placeholder="Enter Google Spreadsheet ID"
-                className="input input-bordered w-full text-xs font-mono"
-                required
-              />
+            <div className="bg-base-100 flex justify-center px-4 py-8 border-t border-base-300">
+              <div className="text-center">
+                <p className="text-sm font-semibold mb-2">
+                  Extracted Spreadsheet ID
+                </p>
+                <code className="bg-base-200 px-4 py-2 rounded-lg text-primary select-all font-mono shadow-sm">
+                  1Z7DdeF4-CRXSHm9Zeykk44HIAtR5f0D7-ctbqw0HNx8
+                </code>
+              </div>
             </div>
-
-            <div className="modal-action justify-center pt-2">
-              <button
-                type="submit"
-                className={`btn btn-neutral px-8 ${isLoading ? 'loading' : ''}`}
-                disabled={isLoading}
-              >
-                Save & Link Key
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-
-        {/* Click outside to close helper */}
-        <form method="dialog" className="modal-backdrop">
-          <button>close</button>
-        </form>
       </dialog>
     </div>
   );
