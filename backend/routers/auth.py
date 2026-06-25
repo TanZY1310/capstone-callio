@@ -1,3 +1,4 @@
+import traceback
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status, Depends, Header
@@ -25,29 +26,39 @@ async def verify_firebase_token(authorization: Annotated[str, Header()]) -> dict
 
     Header format: Authorization: Bearer <firebase_id_token>
     """
+    print("[AUTH] verify_firebase_token called")
+    print(f"[AUTH] Authorization header starts with Bearer: {authorization.startswith('Bearer ') if authorization else 'NO HEADER'}")
+
     if not authorization.startswith("Bearer "):
+        print("[AUTH] ERROR: Invalid auth header format")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authorization header format. Expected: Bearer <token>",
         )
 
     token = authorization.removeprefix("Bearer ")
+    print(f"[AUTH] Token length: {len(token)} chars")
 
     try:
         # verify_id_token is blocking (JWKS fetch on first call) — run in threadpool
         decoded = await run_in_threadpool(firebase_auth.verify_id_token, token)
+        print(f"[AUTH] Token verified successfully. UID: {decoded.get('uid')}, Project: {decoded.get('aud')}")
     except firebase_auth.ExpiredIdTokenError:
+        print("[AUTH] ERROR: Token expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired. Please sign in again.",
         )
-    except firebase_auth.InvalidIdTokenError:
+    except firebase_auth.InvalidIdTokenError as e:
+        print(f"[AUTH] ERROR: Invalid token - {e}")
+        print(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token.",
         )
     except Exception as e:
-        print(f"Firebase token verification error: {type(e).__name__}: {e}")
+        print(f"[AUTH] ERROR: Unexpected Firebase token verification error: {type(e).__name__}: {e}")
+        print(f"[AUTH] Full traceback:\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Token verification failed: {type(e).__name__}: {str(e)}",
@@ -113,6 +124,7 @@ async def register_user(payload: UserCreate, token: FirebaseToken, db: db_depend
         registered_year=payload.registered_year,
         license_number=payload.license_number,
         agency_branch=payload.agency_branch,
+        team_lead_id=payload.team_lead_id,
     )
 
     db.add(new_user)

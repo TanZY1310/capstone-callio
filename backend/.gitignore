@@ -15,3 +15,6 @@ env/
 # Credentials 
 sheets_credentials.json
 credentials.json
+
+# YH test
+seed_test_data.py
