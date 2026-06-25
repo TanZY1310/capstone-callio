@@ -29,6 +29,15 @@ async def connect():
     response = await connect_whatsapp()
     return response
 
+# Get all customers
+# DB
+@router.get("/details/all")
+async def get_all_customers(db: db_dependency):
+    response = db.query(Customers).all()
+    if not response:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    return response
+
 # Get info to show in ContactCard & LeadHeader
 # DB
 @router.get("/details/{cust_id}")
@@ -42,8 +51,9 @@ async def get_customer_info(cust_id: uuid.UUID, db: db_dependency):
 # read whatsapp history (ideally read it in a way that matches frontend rendering and make it show)
 # NODEJS + DB (maybe, due to AIResponse) - AI Response part handled in generate_ai_draft
 @router.get("/history/{cust_id}")
-async def get_chat_history(cust_id: uuid.UUID):
-    response = await fetch_chat_messages(cust_id)
+async def get_chat_history(cust_id: uuid.UUID, db: db_dependency):
+    search = db.query(Customers).filter(Customers.cust_id == cust_id).first()
+    response = await fetch_chat_messages(search.phone)
     return response
 
 # take input in from user and prompt the send
