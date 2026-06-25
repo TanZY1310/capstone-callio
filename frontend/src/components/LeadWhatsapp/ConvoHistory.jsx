@@ -13,9 +13,9 @@ function ConvoHistory({ messages, inputRef, onSend }) {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`chat ${msg.role === "client" ? "chat-start" : "chat-end"}`}
+                  className={`chat ${msg.fromMe === true ? "chat-end" : "chat-start"}`}
                 >
-                  <div className="chat-bubble">{msg.content}</div>
+                  <div className="chat-bubble">{msg.body}</div>
                   <div className="chat-footer opacity-50">{msg.timestamp}</div>
                 </div>
               ))}

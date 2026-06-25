@@ -14,21 +14,20 @@ async def fetch_connection_status():
         return {"status": "offline"}
 
 # NEED WORK & CUSTOMIZATION
-async def fetch_chat_messages(cust_id):
+async def fetch_chat_messages(phone):
     
-    print(f"\nwill read whatsapp history of this user: {cust_id}")
+    print(f"\nwill read whatsapp history of this user: {phone}")
     client = await get_shared_client()
 
     try:
-        response = await client.get(f"{NODE_BASE_URL}/whatsapp/read")
+        response = await client.get(f"{NODE_BASE_URL}/whatsapp/read/{phone}")
+        
+        response.raise_for_status()
         return response.json()
     except httpx.HTTPStatusError as e:
         return {"status": "error", "message": f"Node.js error: {e.response.text}"}
     except httpx.RequestError:
         return {"status": "error", "message": "Node.js server is offline"}
-
-
-    return
 
 # send_chat_message & confirm_ai_draft endpoints in router use the same function in services
 async def send_whatsapp_message(cust_phone, content):
@@ -42,7 +41,6 @@ async def send_whatsapp_message(cust_phone, content):
         # phone number & message will be received from router/whatsapp.py
         # passed into nodejs express router endpoint via httpxasyncclient object post request function
         payload = {"phone": cust_phone, "message": content}
-        
         response = await client.post(url, json=payload)
         
         # raise an error if Node returns a bad status code (404, 500, etc.)
