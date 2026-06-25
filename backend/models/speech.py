@@ -25,9 +25,6 @@ class SpeechAnalysis(Base):
     buyer_stage: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    objections = relationship("Objection", back_populates="call")
-
-
 class Objection(Base):
     __tablename__ = "objections"
 
