@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import wsLogo from '../../assets/Whatsapp.png';
 // import loadimg from "../../assets/loading.lottie";
@@ -7,6 +7,7 @@ function SocialCard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(false);
+  const [isLinked, setIsLinked] = useState(false);
 
   const link = async () => {
     setIsLoading(true);
@@ -18,6 +19,7 @@ function SocialCard() {
 
       if (Math.random() > 0.3) {
         console.log('Linked Succesfully');
+        setIsLinked(true);
         setNotification(true);
       } else {
         throw new Error('Account failed to linked, Please try again');
@@ -43,7 +45,7 @@ function SocialCard() {
     <div>
       {/* Main DaisyUI Card Component */}
       <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm h-full backdrop-blur-md">
-        <div className="card-body p-8 gap-6">
+        <div className="card-body p-6 gap-5">
           {/* Header Section */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -63,51 +65,40 @@ function SocialCard() {
             </div>
 
             {/* Status Badge */}
-            <span className="badge badge-neutral badge-outline py-3 text-xs uppercase font-mono tracking-wider">
-              Disconnected
+            <span
+              className={`badge ${isLinked ? 'badge-success text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
+            >
+              {isLinked ? 'Connected' : 'Disconnected'}
             </span>
           </div>
 
-          {/* FIX: Set to flex layout container so all components scale 100% horizontally */}
-          <div className="flex flex-col gap-4">
-            {/* Account ID Field */}
-            <div className="form-control w-full">
-              <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
-                Account ID
-              </label>
+          {/* Account ID Field */}
+          <div className="form-control w-full">
+            <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
+              Account ID
+            </label>
+            <input
+              type="text"
+              placeholder="Enter Business ID"
+              className="input input-bordered w-full text-sm"
+            />
+          </div>
+
+          {/* Form Checkbox Control */}
+          <div className="form-control">
+            <label className="label cursor-pointer justify-start gap-3 p-0">
               <input
-                type="text"
-                placeholder="Enter Business ID"
-                className="input input-bordered w-full text-sm"
+                type="checkbox"
+                className="checkbox checkbox-success checkbox-sm rounded"
               />
-            </div>
-
-            {/* Message Template Select Dropdown */}
-            <div className="form-control w-full">
-              <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
-                Message Template
-              </label>
-              <select className="select select-bordered w-full text-sm font-normal">
-                <option>New Lead Greeting</option>
-              </select>
-            </div>
-
-            {/* Form Checkbox Control */}
-            <div className="form-control mt-1">
-              <label className="label cursor-pointer justify-start gap-3 p-0">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-success checkbox-sm rounded"
-                />
-                <span className="label-text text-xs text-base-content/80">
-                  Enable AI Auto-responder
-                </span>
-              </label>
-            </div>
+              <span className="label-text text-xs text-base-content/80">
+                Enable AI Auto-responder
+              </span>
+            </label>
           </div>
 
           {/* Primary CTA Action Button */}
-          <div className="card-actions mt-auto pt-2">
+          <div className="card-actions mt-auto">
             <button
               className="btn btn-success text-white w-full normal-case font-medium gap-2 shadow-sm"
               onClick={handleLinkAccount}

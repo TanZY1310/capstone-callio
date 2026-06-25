@@ -4,7 +4,7 @@ import ConvoHistory from '../components/LeadWhatsapp/ConvoHistory.jsx';
 import LeadHeader from '../components/LeadWhatsapp/LeadHeader.jsx';
 import StatusCards from '../components/Home/StatusCards.jsx';
 import { useState, useEffect, useRef } from 'react';
-import users from '../data/dummyData.js';
+//import users from '../data/dummyData.js';
 import dummyWAHistory from '../data/dummyWAHistory.js';
 import dummyAIResponse from '../data/dummyAIResponse.js';
 import { useLocation } from 'react-router-dom';
@@ -32,6 +32,7 @@ function LeadDetail() {
   const FASTAPI_BASE_URL = "http://127.0.0.1:8000/whatsapp";
   const { state } = useLocation();
   const inputRef = useRef(null);
+  const [users, setUsers] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [responses, setResponses] = useState([]);
@@ -43,12 +44,19 @@ function LeadDetail() {
 
   // Load user from navigation state
   useEffect(() => {
-    const customer = state?.customer;
-    const customerFound = customer
-      ? users.find((u) => u.id === customer.id)
-      : users[0];
-    setShowUser(customerFound ?? users[0]);
-    console.log(customerFound);
+    const loading = async () => {
+      const customer = state?.customer;
+      const usersResponse = await axios.get(`${FASTAPI_BASE_URL}/details/all`);
+      const users = await usersResponse.data;
+      const customerFound = customer
+        ? users.find((u) => u.cust_id === customer.cust_id)
+        : users[0];
+      setUsers(users);
+      setShowUser(customerFound ?? users[0]);
+      console.log(customerFound);}
+
+    loading();
+
   }, [state]);
 
   // Load chat history when user changes
@@ -56,17 +64,17 @@ function LeadDetail() {
     if (!showUser || showUser.id === 0) return;
 
     const fetchChatHistory = async () => {
-      // placeholder for real WA Business API call later
-      let waApiUrl = 'https://jsonplaceholder.typicode.com/users';
-      const response = await fetch(waApiUrl);
-      const data = await response.json();
-      const userHistory = dummyWAHistory.find((u) => u.userID === showUser.id);
-      const userMessages = userHistory?.messages ?? [];
-      setMessages(userMessages);
+      const response = await axios.get(`${FASTAPI_BASE_URL}/history/${showUser.cust_id}`);
+      const data = await response.data;
+      console.log(JSON.stringify(data,null,2));
+      //change the logic below, 
+      //the get request directly choose the cust_id to access by its .phone attribute
+      //for userMessages, need to figure out the shape of the returned .data
+      setMessages(data);
     };
 
     fetchChatHistory();
-  }, [showUser]);
+  }, [showUser, platformStatus]);
 
   useEffect(() => {
     // assuming API fetching is done outside of this component for now
@@ -74,9 +82,9 @@ function LeadDetail() {
     const updateResponse = async () => {
       if (!dummyAIResponse || !showUser || showUser.id === 0) return; // guard clause
 
-      console.log(`user id is ${showUser.id}`);
+      console.log(`user id is ${showUser.user_id}`);
       const properUser = dummyAIResponse.find(
-        (response) => response.userID === showUser.id,
+        (response) => response.userID === showUser.user_id,
       );
       const properResponse = properUser?.responses ?? [];
       console.log(`properResponse looks like ${properResponse}`);
@@ -135,7 +143,7 @@ function LeadDetail() {
     inputRef.current.value = '';
   };
 
-  // Called by AIResponseReview Edit button
+  // Called by AIResponseReview Edit button, need to hit DB
   const handleEditAIResponse = (id, newText) => {
     setResponses((prev) =>
       prev.map((r) => (r.id === id ? { ...r, content: newText } : r)),
