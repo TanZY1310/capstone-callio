@@ -71,12 +71,17 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
     if not cid:
         raise HTTPException(status_code=400, detail="No customer associated")
 
-    summary = task["data"].get("summary", "")
-    buyer_stage = task["data"].get("buyerStage")
     analysis_id = task["data"].get("analysisId")
 
     db: Session = SessionLocal()
     try:
+        analysis_record = None
+        if analysis_id:
+            analysis_record = db.query(SpeechAnalysis).filter(SpeechAnalysis.id == analysis_id).first()
+
+        summary = analysis_record.summary if analysis_record else task["data"].get("summary", "")
+        buyer_stage = analysis_record.buyer_stage if analysis_record else task["data"].get("buyerStage")
+
         customer = db.query(Customers).filter(Customers.cust_id == cid).first()
         if not customer:
             raise HTTPException(status_code=404, detail="Customer not found")
@@ -186,7 +191,6 @@ async def _analyze_phase(task_id: str):
                 next_actions=analysis.get("nextActions", []),
                 preferences=analysis.get("preferences", {}),
                 summary=summary_text,
-                objections=objections,
                 buyer_stage=buyer_stage,
             )
             db.add(record)
