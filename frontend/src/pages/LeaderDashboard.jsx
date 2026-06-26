@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
-import TopCard from "./TopCard";
-import PerformanceCard from "./PerformanceCard";
-import FunnelCard from "./FunnelCard";
-import TeamFunnelCard from "./TeamFunnelCard";
-import Objections from "./Objections";
-import LeadsByRegion from "./LeadsByRegion";
-import Header from "../Layout/Header";
-import { AlignRight } from "lucide-react";
-import CallUpload from "./CallUpload";
-import BudgetBreakdown from "./BudgetBreakdown";
-import { CiSearch } from "react-icons/ci";
-import { dummyAgentPerformance } from "../../data/dummyAgentPerformance";
-import { dummyAgentData } from "../../data/dummyAgentData";
-import { dummyTeamData } from "../../data/dummyTeamData";
+import { useState, useEffect } from 'react';
+import TopCard from '../components/Metrics/TopCard';
+import PerformanceCard from '../components/Metrics/PerformanceCard';
+import FunnelCard from '../components/Metrics/FunnelCard';
+import TeamFunnelCard from '../components/Metrics/TeamFunnelCard';
+import Objections from '../components/Metrics/Objections';
+import LeadsByRegion from '../components/Metrics/LeadsByRegion';
+import Header from '../components/Layout/Header';
+import { AlignRight } from 'lucide-react';
+import CallUpload from '../components/Metrics/CallUpload';
+import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
+import { CiSearch } from 'react-icons/ci';
+import { dummyAgentPerformance } from '../../data/dummyAgentPerformance';
+import { dummyAgentData } from '../../data/dummyAgentData';
+import { dummyTeamData } from '../../data/dummyTeamData';
 
 function LeaderDashboard() {
   // const [teamStats, setTeamStats] = useState({});

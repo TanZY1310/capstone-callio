@@ -16,7 +16,8 @@ const ProtectedRoute = lazy(
 );
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LeadDetail = lazy(() => import('./pages/LeadDetail'));
-const MainDashboard = lazy(() => import('./pages/MainDashboard'));
+const AgentDashboard = lazy(() => import('./pages/AgentDashboard'));
+const LeaderDashboard = lazy(() => import('./pages/LeaderDashboard'));
 const Speech = lazy(() => import('./pages/Speech'));
 const Sidebar = lazy(() => import('./components/Layout/Sidebar'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
@@ -62,14 +63,15 @@ function App() {
                   loading={loading}
                   redirectTo="/login"
                 >
-                  <Sidebar logout={logout} />
+                  <Sidebar logout={logout} profile={profile} />
                 </ProtectedRoute>
               }
             >
               {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
               <Route index element={<HomePage />} />
               <Route path="whatsapp" element={<LeadDetail />} />
-              <Route path="metrics" element={<MainDashboard />} />
+              <Route path="agent-dashboard" element={<AgentDashboard />} />
+              <Route path="team-dashboard" element={<LeaderDashboard />} />
               <Route path="speech" element={<Speech />} />
               <Route path="profile" element={<UserProfile />} />
               <Route path="profile/*" element={<UserProfile />} />
