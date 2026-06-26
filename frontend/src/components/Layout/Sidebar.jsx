@@ -28,9 +28,10 @@ const SIDEBAR_COLORS = {
   },
 };
 
-function Sidebar({ logout }) {
+function Sidebar({ logout, profile }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const navigate = useNavigate();
+  const role = profile?.role || 'agent';
 
   //For Theme Toggle
   const [theme, setTheme] = useState(
@@ -144,10 +145,10 @@ function Sidebar({ logout }) {
                 transition={{ duration: 0.15 }}
               >
                 <span className="text-sm font-semibold text-base-content whitespace-nowrap">
-                  Jane Doe
+                  {profile?.full_name || 'User'}
                 </span>
-                <span className="text-xs text-base-content/50 whitespace-nowrap">
-                  Agent
+                <span className="text-xs text-base-content/50 whitespace-nowrap capitalize">
+                  {role === 'team_lead' ? 'Team Lead' : 'Agent'}
                 </span>
               </motion.div>
             )}
@@ -156,7 +157,7 @@ function Sidebar({ logout }) {
 
         {/* ── Navigation items ── */}
         <div className="flex-1 overflow-hidden">
-          <Navigation isDrawerOpen={isDrawerOpen} />
+          <Navigation isDrawerOpen={isDrawerOpen} role={role} />
         </div>
 
         {/* ── Bottom actions ── */}
