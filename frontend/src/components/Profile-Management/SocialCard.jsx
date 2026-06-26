@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import axios from 'axios';
 import wsLogo from '../../assets/Whatsapp.png';
 // import loadimg from "../../assets/loading.lottie";
 
@@ -9,23 +10,25 @@ function SocialCard() {
   const [notification, setNotification] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
   const link = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      //simulate API calling
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      if (Math.random() > 0.3) {
-        console.log('Linked Succesfully');
-        setIsLinked(true);
-        setNotification(true);
-      } else {
-        throw new Error('Account failed to linked, Please try again');
+      const res = await axios.post(`${API_URL}/whatsapp/connect`);
+      
+      // The backend returns a JSON with an explicit error status if Node.js fails
+      if (res.data && res.data.status === 'error') {
+        throw new Error(res.data.message || 'Account failed to link, Please try again');
       }
+
+      console.log('Linked Succesfully');
+      setIsLinked(true);
+      setNotification(true);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message || 'Account failed to link, Please try again');
     } finally {
       setIsLoading(false);
     }
