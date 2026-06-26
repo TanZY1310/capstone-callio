@@ -320,8 +320,19 @@ function CustomerListings({ customerData, onDataChange }) {
                     </button>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-base-content/60 max-w-xs truncate">
-                  {customer.remarks?.speechAnalysis?.summary || '-'}
+                <td className="px-6 py-4 text-xs text-base-content/60 leading-relaxed min-w-[220px]">
+                  {customer.remarks?.speechAnalysis ? (
+                    <>
+                      <div><span className="font-semibold text-base-content/80">Call Datetime:</span> {customer.remarks.speechAnalysis.callDatetime ? new Date(customer.remarks.speechAnalysis.callDatetime).toLocaleString() : '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Buyer Stage:</span> {customer.remarks.speechAnalysis.buyerStage || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Purpose:</span> {customer.remarks.speechAnalysis.purpose || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Sentiment:</span> {customer.remarks.speechAnalysis.sentiment || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Next Action:</span> {customer.remarks.speechAnalysis.nextActions?.[0] || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Preferrance:</span> {customer.remarks.speechAnalysis.preferences || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Next Follow Up:</span> {customer.remarks.speechAnalysis.nextActions?.[1] || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Summary:</span> {customer.remarks.speechAnalysis.summary || '-'}</div>
+                    </>
+                  ) : '-'}
                 </td>
               </motion.tr>
             ))}

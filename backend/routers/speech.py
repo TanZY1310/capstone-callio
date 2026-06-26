@@ -81,6 +81,9 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
 
         summary = analysis_record.summary if analysis_record else task["data"].get("summary", "")
         buyer_stage = analysis_record.buyer_stage if analysis_record else task["data"].get("buyerStage")
+        preferences = analysis_record.preferences if analysis_record else task["data"].get("preferences", {})
+        next_actions = analysis_record.next_actions if analysis_record else task["data"].get("nextActions", [])
+        sentiment = analysis_record.sentiment if analysis_record else task["data"].get("sentiment", {})
 
         customer = db.query(Customers).filter(Customers.cust_id == cid).first()
         if not customer:
@@ -93,6 +96,11 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
             "analysisId": analysis_id,
             "summary": summary,
             "buyerStage": buyer_stage,
+            "purpose": (preferences or {}).get("purpose"),
+            "sentiment": (sentiment or {}).get("overallSentiment"),
+            "nextActions": next_actions,
+            "preferences": (preferences or {}).get("preferences"),
+            "callDatetime": analysis_record.created_at.isoformat() if analysis_record else None,
             "lastAnalysis": datetime.utcnow().isoformat(),
         }
         customer.remarks = remarks_entry
