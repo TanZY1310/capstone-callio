@@ -2,10 +2,11 @@ import AIResponseReview from '../components/LeadWhatsapp/AIResponseReview.jsx';
 import ContactInfo from '../components/LeadWhatsapp/ContactInfo.jsx';
 import ConvoHistory from '../components/LeadWhatsapp/ConvoHistory.jsx';
 import LeadHeader from '../components/LeadWhatsapp/LeadHeader.jsx';
+import QRModal from '../components/LeadWhatsapp/QRModal.jsx'
 import StatusCards from '../components/Home/StatusCards.jsx';
 import { useState, useEffect, useRef } from 'react';
 //import users from '../data/dummyData.js';
-import dummyWAHistory from '../data/dummyWAHistory.js';
+//import dummyWAHistory from '../data/dummyWAHistory.js';
 import dummyAIResponse from '../data/dummyAIResponse.js';
 import { useLocation } from 'react-router-dom';
 import { STATUS_NAME } from '../data/constants';
@@ -223,8 +224,9 @@ function LeadDetail() {
         )}
       </div>
 
-      {/* QR modal — overlays everything, doesn't replace anything */} 
-      {showQrModal && (
+      {/* QR modal — overlays everything, doesn't replace anything */}
+      <QRModal showQRModal = {showQrModal} qrCode = {qrCode}/> 
+      {/* {showQrModal && (
         <dialog className="modal modal-open">
           <div className="modal-box items-center text-center">
             <h3 className="font-bold text-lg">Scan QR Code</h3>
@@ -236,7 +238,7 @@ function LeadDetail() {
             )}
           </div>
         </dialog>
-      )}
+      )} */}
     </div>
   );
 }
