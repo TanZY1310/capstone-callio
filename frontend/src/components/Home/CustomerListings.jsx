@@ -320,6 +320,9 @@ function CustomerListings({ customerData, onDataChange }) {
                     </button>
                   </div>
                 </td>
+                <td className="px-6 py-4 text-base-content/60 max-w-xs truncate">
+                  {customer.remarks?.speechAnalysis?.summary || '-'}
+                </td>
               </motion.tr>
             ))}
           </tbody>
