@@ -27,14 +27,27 @@ const NAV_ITEMS = [
   },
   {
     id: 4,
-    label: 'Metrics',
+    label: 'Agent Dashboard',
     icon: <ChartArea />,
-    path: '/metrics',
+    path: '/agent-dashboard',
     activeColour: 'text-purple-500',
+    roles: ['agent', 'team_lead'],
+  },
+  {
+    id: 5,
+    label: 'Team Dashboard',
+    icon: <ChartArea />,
+    path: '/team-dashboard',
+    activeColour: 'text-purple-500',
+    roles: ['team_lead'],
   },
 ];
 
-function Navigation({ isDrawerOpen }) {
+function Navigation({ isDrawerOpen, role }) {
+  const filteredItems = NAV_ITEMS.filter(
+    (item) => !item.roles || item.roles.includes(role),
+  );
+
   return (
     <motion.ul
       className="menu w-full grow"
@@ -42,7 +55,7 @@ function Navigation({ isDrawerOpen }) {
       animate="visible"
       variants={{ visible: { transition: { delayChildren: 0.07 } } }}
     >
-      {NAV_ITEMS.map((item) => (
+      {filteredItems.map((item) => (
         <motion.li
           key={item.id}
           variants={{
