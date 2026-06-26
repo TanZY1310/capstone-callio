@@ -98,7 +98,8 @@ def analyze_transcript(transcript: list) -> dict:
         '    "preferenceNote": "detail",\n'
         '    "signals": ["signal1"],\n'
         '    "budgetValue": "budget range",\n'
-        '    "budgetNote": "flexibility note"\n'
+        '    "budgetNote": "flexibility note",\n'
+        '    "purpose": "Brief description of the main purpose of this call"\n'
         "  },\n"
         '  "objections": ["duplicate of sentiment.objections for easy storage"],\n'
         f'  "buyerStage": "one of {buyer_stages}",\n'
