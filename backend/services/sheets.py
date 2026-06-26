@@ -3,12 +3,14 @@ import uuid
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from fastapi import HTTPException
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
 
 from database import db_dependency
 from models.customer import Customers
+from models.user import Users
 from schemas.customer import CustomerSheetRow, SyncResult
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -153,3 +155,23 @@ async def fetch_status():
     )
     service = build("sheets", "v4", credentials=creds)
     service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
+
+
+async def get_sheets_id(db: db_dependency, user_id: uuid.UUID) -> str | None:
+    result = db.execute(select(Users.sheets_id).where(Users.user_id == user_id))
+    row = result.one_or_none()
+    if row is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return row[0]
+
+
+async def update_sheets_id(db: db_dependency, user_id: uuid.UUID, sheets_id: str | None) -> str | None:
+    result = db.execute(select(Users).where(Users.user_id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.sheets_id = sheets_id
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user.sheets_id
