@@ -139,8 +139,6 @@ async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> d
             c.location or "",
             c.status,
             c.last_contact.isoformat() if c.last_contact else "",
-            str(c.user_id),
-            str(c.cust_id),
         ])
 
     result = await run_in_threadpool(_write_rows_to_sheet, rows)

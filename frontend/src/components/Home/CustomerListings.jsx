@@ -22,7 +22,7 @@ const formatDate = (dateStr) => {
   });
 };
 
-function CustomerListings({ customerData, onDataChange }) {
+function CustomerListings({ customerData, onDataChange, commitVersion }) {
   const [customers, setCustomers] = useState([]);
   const [originalStatus, setOriginalStatus] = useState({});
   const [loading, setLoading] = useState(false);
@@ -79,6 +79,12 @@ function CustomerListings({ customerData, onDataChange }) {
 
     syncData();
   }, [customerData]);
+
+  useEffect(() => {
+    if (commitVersion > 0) {
+      setOriginalStatus({ ...status });
+    }
+  }, [commitVersion]);
 
   const filteredAndSortedCustomers = useMemo(() => {
     let filtered = customers.filter((customer) => {
@@ -283,13 +289,13 @@ function CustomerListings({ customerData, onDataChange }) {
                   <select
                     name="status"
                     className={`select select-bordered select-sm w-full ${
-                      status[customer.id] !== originalStatus[customer.id]
+                      status[customer.cust_id] !== originalStatus[customer.cust_id]
                         ? 'border-warning text-warning'
                         : ''
                     }`}
-                    value={customer.status}
+                    value={status[customer.cust_id] ?? customer.status}
                     onChange={(e) =>
-                      handleStatusChange(customer.id, e.target.value)
+                      handleStatusChange(customer.cust_id, e.target.value)
                     }
                   >
                     {statusList.map((eachStatus) => (

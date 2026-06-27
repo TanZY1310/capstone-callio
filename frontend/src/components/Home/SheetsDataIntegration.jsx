@@ -14,6 +14,12 @@ function SheetsDataIntegration({
   const [exporting, setExporting] = useState(false);
 
   const handleImport = async () => {
+    if (changedRecords.length > 0) {
+      const msg =
+        `You have ${changedRecords.length} unsaved change${changedRecords.length > 1 ? 's' : ''}. ` +
+        'Importing will discard them. Continue?';
+      if (!window.confirm(msg)) return;
+    }
     setImporting(true);
     try {
       await onImport(); // parent will call POST /sheets/sync
@@ -29,8 +35,7 @@ function SheetsDataIntegration({
   const handleExport = async () => {
     setExporting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      onExport?.();
+      await onExport?.();
       document.getElementById('export_confirm_modal').close();
       toast.success('Data exported to Google Sheets');
     } catch (err) {

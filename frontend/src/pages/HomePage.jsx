@@ -22,6 +22,7 @@ function HomePage() {
   });
   //Summary Changed Records
   const [changedRecords, setChangedRecords] = useState([]);
+  const [commitVersion, setCommitVersion] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -86,7 +87,7 @@ function HomePage() {
       setChangedRecords([]);
       handleUpdateStatus();
     } catch (err) {
-      toast.error('Failed to load customers after sync.');
+      toast.error('Failed to load customers after sync.', err.message);
     }
   };
 
@@ -94,12 +95,32 @@ function HomePage() {
     setChangedRecords(changed);
   };
 
-  const handleExport = () => {
-    setChangedRecords([]); //Clear change records after export
-    setPlatformStatus((prev) => ({
-      ...prev,
-      sheets: { ...prev.sheets, lastSync: Date.now() },
-    }));
+  const handleExport = async () => {
+    try {
+      const headers = await getAuthHeader();
+
+      await axios.patch(
+        `${API_URL}/customers/batch-status`,
+        {
+          updates: changedRecords.map((r) => ({
+            cust_id: r.cust_id,
+            status: r.newStatus,
+          })),
+        },
+        { headers },
+      );
+
+      await axios.post(`${API_URL}/sheets/export`, {}, { headers });
+
+      setChangedRecords([]);
+      setCommitVersion((v) => v + 1);
+      setPlatformStatus((prev) => ({
+        ...prev,
+        sheets: { ...prev.sheets, lastSync: Date.now() },
+      }));
+    } catch (err) {
+      toast.error('Failed to export customers.', err.message);
+    }
   };
 
   return (
@@ -177,6 +198,7 @@ function HomePage() {
           <CustomerListings
             customerData={customerData}
             onDataChange={handleDataChange}
+            commitVersion={commitVersion}
           />
         </motion.div>
       </div>

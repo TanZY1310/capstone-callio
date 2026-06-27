@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Mic, ChartArea } from 'lucide-react';
+import { LayoutDashboard, Mic, ChartArea, Users } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -36,7 +36,7 @@ const NAV_ITEMS = [
   {
     id: 5,
     label: 'Team Dashboard',
-    icon: <ChartArea />,
+    icon: <Users />,
     path: '/team-dashboard',
     activeColour: 'text-purple-500',
     roles: ['team_lead'],
