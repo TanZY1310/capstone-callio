@@ -3,17 +3,18 @@ import uuid
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from fastapi import HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
 
 from database import db_dependency
 from models.customer import Customers
+from models.user import Users
 from schemas.customer import CustomerSheetRow, SyncResult
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SERVICE_ACCOUNT_FILE = "sheets_credentials.json"   # path to your JSON key
-SPREADSHEET_ID = "1eN1XOgQ7VbaXCCX2iUq0DJrglThdzGkdqjBb6L_z8E8"
 SHEET_RANGE = "Sheet1!A2:G"                 # skip header row, 7 columns, Sheet1 follow name of sheet below
 SHEET_HEADER_RANGE = "Sheet1!A1:H"          # header + data range for export
 
@@ -27,7 +28,18 @@ SHEET_HEADER_RANGE = "Sheet1!A1:H"          # header + data range for export
 # Column order expected in the sheet:
 # Cust_Name | Phone | Budget | Location | Status | Last_Contact | UserID
 
-def _fetch_sheet_rows() -> list[dict]:
+MISSING_MSG = "No spreadsheet ID configured. Go to Profile > Sheets Card to add your spreadsheet ID."
+
+def _get_user_sheets_id(db: db_dependency, user_id: uuid.UUID) -> str:
+    user = db.query(Users).filter(Users.user_id == user_id).first()
+    if not user or not user.sheets_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"SHEETS_ID_MISSING:{MISSING_MSG}",
+        )
+    return user.sheets_id
+
+def _fetch_sheet_rows(spreadsheet_id: str) -> list[dict]:
     """Sync Google Sheets call — runs in threadpool."""
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES
@@ -36,7 +48,7 @@ def _fetch_sheet_rows() -> list[dict]:
     result = (
         service.spreadsheets()
         .values()
-        .get(spreadsheetId=SPREADSHEET_ID, range=SHEET_RANGE)
+        .get(spreadsheetId=spreadsheet_id, range=SHEET_RANGE)
         .execute()
     )
     rows = result.get("values", [])
@@ -51,8 +63,8 @@ def _fetch_sheet_rows() -> list[dict]:
 
 
 async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> SyncResult:
-    # Google SDK is sync — offload to threadpool
-    raw_rows = await run_in_threadpool(_fetch_sheet_rows)
+    sheets_id = _get_user_sheets_id(db, user_id)
+    raw_rows = await run_in_threadpool(_fetch_sheet_rows, sheets_id)
 
     synced = 0
     skipped = 0
@@ -95,7 +107,7 @@ async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> S
     db.commit()
     return SyncResult(synced=synced, skipped=skipped, total=len(raw_rows))
 
-def _write_rows_to_sheet(rows: list[list]) -> dict:
+def _write_rows_to_sheet(rows: list[list], spreadsheet_id: str) -> dict:
     """Sync Google Sheets write call — runs in threadpool."""
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES
@@ -104,7 +116,7 @@ def _write_rows_to_sheet(rows: list[list]) -> dict:
 
     # Clear existing data (preserve header row by clearing from A2)
     service.spreadsheets().values().clear(
-        spreadsheetId=SPREADSHEET_ID,
+        spreadsheetId=spreadsheet_id,
         range="Sheet1!A2:H",
     ).execute()
 
@@ -116,7 +128,7 @@ def _write_rows_to_sheet(rows: list[list]) -> dict:
         service.spreadsheets()
         .values()
         .update(
-            spreadsheetId=SPREADSHEET_ID,
+            spreadsheetId=spreadsheet_id,
             range="Sheet1!A2",
             valueInputOption="USER_ENTERED",
             body=body,
@@ -127,6 +139,7 @@ def _write_rows_to_sheet(rows: list[list]) -> dict:
 
 
 async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> dict:
+    sheets_id = _get_user_sheets_id(db, user_id)
     stmt = select(Customers).where(Customers.user_id == user_id)
     customers = db.execute(stmt).scalars().all()
 
@@ -141,13 +154,13 @@ async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> d
             c.last_contact.isoformat() if c.last_contact else "",
         ])
 
-    result = await run_in_threadpool(_write_rows_to_sheet, rows)
+    result = await run_in_threadpool(_write_rows_to_sheet, rows, sheets_id)
     return {"exported": len(rows), "updatedCells": result.get("updatedCells", 0)}
 
 
-async def fetch_status():
+async def fetch_status(spreadsheet_id: str):
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES
     )
     service = build("sheets", "v4", credentials=creds)
-    service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
+    service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()

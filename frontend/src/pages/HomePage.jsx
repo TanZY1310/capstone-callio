@@ -46,10 +46,10 @@ function HomePage() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Both calls are independent
+        const headers = await getAuthHeader();
         const [customerResponse, sheetsStatusResponse] = await Promise.all([
-          axios.get(`${API_URL}/customers`, { headers: await getAuthHeader() }),
-          axios.get(`${API_URL}/sheets/status`),
+          axios.get(`${API_URL}/customers`, { headers }),
+          axios.get(`${API_URL}/sheets/status`, { headers }),
         ]);
 
         // Set status based on connection
@@ -71,24 +71,20 @@ function HomePage() {
   }, []);
 
   const handleImport = async () => {
-    try {
-      const response = await axios.post(
-        `${API_URL}/sheets/sync`,
-        {},
-        { headers: await getAuthHeader() },
-      );
+    const response = await axios.post(
+      `${API_URL}/sheets/sync`,
+      {},
+      { headers: await getAuthHeader() },
+    );
 
-      // Re-fetch the customer list (GET returns an array)
-      const customerResponse = await axios.get(`${API_URL}/customers`, {
-        headers: await getAuthHeader(),
-      });
-      setCustomerData(customerResponse.data);
+    // Re-fetch the customer list (GET returns an array)
+    const customerResponse = await axios.get(`${API_URL}/customers`, {
+      headers: await getAuthHeader(),
+    });
+    setCustomerData(customerResponse.data);
 
-      setChangedRecords([]);
-      handleUpdateStatus();
-    } catch (err) {
-      toast.error('Failed to load customers after sync.', err.message);
-    }
+    setChangedRecords([]);
+    handleUpdateStatus();
   };
 
   const handleDataChange = (changed) => {
