@@ -16,6 +16,19 @@ class ConnectionError extends Error {
   } 
 } 
 
+function isExpectedReadMiss(error) {
+  const message = error?.message || '';
+  return (
+    message.includes('Attempted to use detached Frame') ||
+    message.includes('Cannot read properties of undefined') ||
+    message.includes('Cannot read property') ||
+    message.includes('Evaluation failed') ||
+    message.includes('Protocol error') ||
+    message.includes('Session closed') ||
+    message.includes('Target closed')
+  );
+}
+
 function initializeClient() {
   // guard: if already connecting/connected, do nothing
   if (state.status == 'connected'){
@@ -114,9 +127,21 @@ async function getMessages(phone, limit){
   };
 
   try {
+    if (!phone || typeof phone !== 'string') {
+      return [];
+    }
+
     const chatId = phone.includes("@c.us") ? phone : `${phone}@c.us`;
     const chat = await client.getChatById(chatId);
+    if (!chat) {
+      return [];
+    }
+
     const messages = await chat.fetchMessages({ limit: parseInt(limit) });
+    if (!Array.isArray(messages)) {
+      return [];
+    }
+
     return(messages.map(m => ({
       id: m.id._serialized,
       from: m.from,
@@ -129,6 +154,11 @@ async function getMessages(phone, limit){
     })));
   }
   catch (e) {
+    if (isExpectedReadMiss(e)) {
+      console.warn(`No readable chat history for ${phone}: ${e.message}`);
+      return [];
+    }
+
     throw new Error(`Error in read message: ${e.message}`, {cause: e});
   }
 }

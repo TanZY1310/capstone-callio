@@ -8,7 +8,8 @@ import { motion } from 'motion/react';
 import { Users, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { getAuth } from 'firebase/auth';
+// import { getAuth } from 'firebase/auth';
+import { getAuthHeader } from '../utils/getAuthHeader';
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
@@ -38,11 +39,7 @@ function HomePage() {
     setIsConnected(true);
   };
 
-  const getAuthHeader = async () => {
-    const token = await getAuth().currentUser.getIdToken();
-    return { Authorization: `Bearer ${token}` };
-  };
-
+ 
   useEffect(() => {
     const initialize = async () => {
       try {
