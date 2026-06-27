@@ -40,7 +40,8 @@ PENDING_STATUSES = ["draft", "edited"]
 def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
     
     # get the datetime for today starting from 00:00:00
-    today_start = datetime.combine(datetime.now(datetime.UTC).date(), datetime.min.time())
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time())
+
     # timedelta is a class from Python's datetime module that represents a duration or difference between two dates/times. 
     # It allows you to add or subtract units of time.
     today_end = today_start + timedelta(days=1)
@@ -52,9 +53,9 @@ def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
                          .scalar() or 0
                          )
     
-    total_leads = ( db.query(func.count(Customers))
+    total_leads = ( db.query(func.count(Customers.cust_id))
                    .filter(Customers.user_id == user_id)
-                   .scalar()
+                   .scalar() or 0
                    )
     
     # --- KPI: pending follow-ups (AIResponse, latest-contact(row)-per-customer) ---

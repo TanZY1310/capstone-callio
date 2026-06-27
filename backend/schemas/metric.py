@@ -25,9 +25,9 @@ class ObjectionCount(BaseModel):
 
 class AgentDashboardResponse(BaseModel):
     kpis: AgentStats
-    total_region: RegionCount
-    top_objection: ObjectionCount
-    daily_calls: DailyCallCount
+    total_region: list[RegionCount]
+    top_objection: list[ObjectionCount]
+    daily_calls: list[DailyCallCount]
     
 # LEADER AGENT DASHBOARD
 

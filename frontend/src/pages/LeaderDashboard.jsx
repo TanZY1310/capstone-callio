@@ -10,9 +10,9 @@ import { AlignRight } from 'lucide-react';
 import CallUpload from '../components/Metrics/CallUpload';
 import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
 import { CiSearch } from 'react-icons/ci';
-import { dummyAgentPerformance } from '../../data/dummyAgentPerformance';
-import { dummyAgentData } from '../../data/dummyAgentData';
-import { dummyTeamData } from '../../data/dummyTeamData';
+import { dummyAgentPerformance } from '../data/dummyAgentPerformance';
+import { dummyAgentData } from '../data/dummyAgentData';
+import { dummyTeamData } from '../data/dummyTeamData';
 
 function LeaderDashboard() {
   // const [teamStats, setTeamStats] = useState({});

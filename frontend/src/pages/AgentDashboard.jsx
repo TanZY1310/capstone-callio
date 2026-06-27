@@ -6,50 +6,50 @@ import CallUpload from '../components/Metrics/CallUpload';
 import Header from '../components/Layout/Header';
 import Objections from '../components/Metrics/Objections';
 import axios from 'axios';
+import { useAuth } from '../hooks/useAuth.js';
 
 function AgentDashboard() {
   const [agent, setAgent] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // start TRUE
   const [error, setError] = useState(null);
 
   const API_URL = 'http://localhost:8000';
+  const { profile } = useAuth();
 
   useEffect(() => {
+    if (!profile?.user_id) return; // wait until profile is ready
+
     async function fetchKPIs() {
+      setLoading(true);
       try {
-        const response = await axios.get('${API_URL}/dashboard/agent'); //, {credentials: "include"})
-
-        if (!response.ok) {
-          throw new Error(`Server responded with ${response.status}`);
-        }
-
-        const data = await response.json();
-        setAgent(data);
+        const response = await axios.get(
+          `${API_URL}/dashboard/agent/${profile.user_id}`,
+        );
+        // ^ use your real endpoint - sounds like it's /dashboard/agent per your backend,
+        //   not /dashboard/{userID} — role comes from the session, not the URL
+        setAgent(response.data);
       } catch (err) {
         setError(err.message);
-        console.log('Error fetching books:', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchKPIs;
-  }, []);
+    fetchKPIs(); // <-- called now
+  }, [profile]); // <-- re-runs when profile loads
 
-  if (loading) {
+  if (loading)
     return (
-      <div className="card bg-base-100 border border-base-200 shadow-sm p-6">
+      <div className="card ...">
         <span className="loading loading-spinner loading-md"></span>
       </div>
     );
-  }
-
-  if (error) {
+  if (error)
     return (
-      <div className="card bg-base-100 border border-error shadow-sm p-6">
+      <div className="card ...">
         <p className="text-error">Couldn't load dashboard stats: {error}</p>
       </div>
     );
-  }
+  if (!agent) return null; // belt-and-suspenders guard
 
   return (
     <>
