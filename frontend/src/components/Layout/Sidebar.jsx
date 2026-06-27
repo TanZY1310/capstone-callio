@@ -145,7 +145,7 @@ function Sidebar({ logout, profile }) {
                 transition={{ duration: 0.15 }}
               >
                 <span className="text-sm font-semibold text-base-content whitespace-nowrap">
-                  {profile?.full_name || 'User'}
+                  {profile?.first_name} {profile?.last_name}
                 </span>
                 <span className="text-xs text-base-content/50 whitespace-nowrap capitalize">
                   {role === 'team_lead' ? 'Team Lead' : 'Agent'}
