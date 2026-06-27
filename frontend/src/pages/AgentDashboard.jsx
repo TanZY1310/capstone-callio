@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
-import TopCard from './TopCard';
-import FunnelCard from './FunnelCard';
-import LeadsByRegion from './LeadsByRegion';
-import BudgetBreakdown from './BudgetBreakdown';
-import CallUpload from './CallUpload';
-import { data } from 'react-router-dom';
-import Header from '../Layout/Header';
-import Objections from './Objections';
-import { dummyAgentData } from '../../data/dummyAgentData';
+import TopCard from '../components/Metrics/TopCard';
+import LeadsByRegion from '../components/Metrics/LeadsByRegion';
+import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
+import CallUpload from '../components/Metrics/CallUpload';
+import Header from '../components/Layout/Header';
+import Objections from '../components/Metrics/Objections';
 import axios from 'axios';
 
 function AgentDashboard() {

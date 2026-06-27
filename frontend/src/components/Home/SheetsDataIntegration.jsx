@@ -1,6 +1,7 @@
 import { RefreshCw } from 'lucide-react';
 import { SiGooglesheets } from 'react-icons/si';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
 
@@ -12,15 +13,21 @@ function SheetsDataIntegration({
 }) {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const navigate = useNavigate();
 
   const handleImport = async () => {
+    if (changedRecords.length > 0) {
+      const msg =
+        `You have ${changedRecords.length} unsaved change${changedRecords.length > 1 ? 's' : ''}. ` +
+        'Importing will discard them. Continue?';
+      if (!window.confirm(msg)) return;
+    }
     setImporting(true);
     try {
       await onImport(); // parent will call POST /sheets/sync
       toast.success('Data imported successfully.');
     } catch (err) {
-      toast.error('Import failed. Please try again.');
-      console.log(err);
+      handleSheetsError(err, 'Import');
     } finally {
       setImporting(false);
     }
@@ -29,16 +36,30 @@ function SheetsDataIntegration({
   const handleExport = async () => {
     setExporting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      onExport?.();
+      await onExport?.();
       document.getElementById('export_confirm_modal').close();
       toast.success('Data exported to Google Sheets');
     } catch (err) {
-      toast.error('Export failed. Please try again.');
-      console.log(err);
+      handleSheetsError(err, 'Export');
     } finally {
       setExporting(false);
     }
+  };
+
+  const handleSheetsError = (err, label) => {
+    const detail = err?.response?.data?.detail || '';
+    if (detail.includes('SHEETS_ID_MISSING')) {
+      toast.error('No spreadsheet linked. Go to Profile to add your spreadsheet ID.', {
+        action: {
+          label: 'Go to Profile',
+          onClick: () => navigate('/profile'),
+        },
+        duration: 8000,
+      });
+    } else {
+      toast.error(`${label} failed. Please try again.`);
+    }
+    console.log(err);
   };
   return (
     <>

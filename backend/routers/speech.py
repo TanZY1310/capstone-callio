@@ -71,12 +71,20 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
     if not cid:
         raise HTTPException(status_code=400, detail="No customer associated")
 
-    summary = task["data"].get("summary", "")
-    buyer_stage = task["data"].get("buyerStage")
     analysis_id = task["data"].get("analysisId")
 
     db: Session = SessionLocal()
     try:
+        analysis_record = None
+        if analysis_id:
+            analysis_record = db.query(SpeechAnalysis).filter(SpeechAnalysis.id == analysis_id).first()
+
+        summary = analysis_record.summary if analysis_record else task["data"].get("summary", "")
+        buyer_stage = analysis_record.buyer_stage if analysis_record else task["data"].get("buyerStage")
+        preferences = analysis_record.preferences if analysis_record else task["data"].get("preferences", {})
+        next_actions = analysis_record.next_actions if analysis_record else task["data"].get("nextActions", [])
+        sentiment = analysis_record.sentiment if analysis_record else task["data"].get("sentiment", {})
+
         customer = db.query(Customers).filter(Customers.cust_id == cid).first()
         if not customer:
             raise HTTPException(status_code=404, detail="Customer not found")
@@ -88,6 +96,11 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
             "analysisId": analysis_id,
             "summary": summary,
             "buyerStage": buyer_stage,
+            "purpose": (preferences or {}).get("purpose"),
+            "sentiment": (sentiment or {}).get("overallSentiment"),
+            "nextActions": next_actions,
+            "preferences": (preferences or {}).get("preferences"),
+            "callDatetime": analysis_record.created_at.isoformat() if analysis_record else None,
             "lastAnalysis": datetime.utcnow().isoformat(),
         }
         customer.remarks = remarks_entry
@@ -186,7 +199,6 @@ async def _analyze_phase(task_id: str):
                 next_actions=analysis.get("nextActions", []),
                 preferences=analysis.get("preferences", {}),
                 summary=summary_text,
-                objections=objections,
                 buyer_stage=buyer_stage,
             )
             db.add(record)
