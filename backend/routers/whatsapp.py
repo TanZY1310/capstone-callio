@@ -53,6 +53,11 @@ async def get_customer_info(cust_id: uuid.UUID, db: db_dependency):
 @router.get("/history/{cust_id}")
 async def get_chat_history(cust_id: uuid.UUID, db: db_dependency):
     search = db.query(Customers).filter(Customers.cust_id == cust_id).first()
+    if not search:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    if not search.phone:
+        return []
+
     response = await fetch_chat_messages(search.phone)
     return response
 
@@ -85,7 +90,7 @@ async def generate_ai_draft(cust_id: uuid.UUID, db: db_dependency):
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
 
-    chat_history = await fetch_chat_messages(cust_id)
+    chat_history = await fetch_chat_messages(customer.phone)
 
     customer_info = {
         "name": customer.cust_name,
@@ -120,8 +125,8 @@ async def regenerate_ai_draft(cust_id: uuid.UUID, response_id: int, db: db_depen
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
 
-    chat_history = await fetch_chat_messages(cust_id)
-    customer_info = {"name": customer.name, "phone": customer.phone}
+    chat_history = await fetch_chat_messages(customer.phone)
+    customer_info = {"name": customer.cust_name, "phone": customer.phone}
 
     content = await generate_reply_draft(
         chat_history=chat_history,

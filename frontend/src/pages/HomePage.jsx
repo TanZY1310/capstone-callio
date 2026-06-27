@@ -8,7 +8,8 @@ import { motion } from 'motion/react';
 import { Users, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { getAuth } from 'firebase/auth';
+// import { getAuth } from 'firebase/auth';
+import { getAuthHeader } from '../utils/getAuthHeader';
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
@@ -22,6 +23,7 @@ function HomePage() {
   });
   //Summary Changed Records
   const [changedRecords, setChangedRecords] = useState([]);
+  const [commitVersion, setCommitVersion] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -37,18 +39,14 @@ function HomePage() {
     setIsConnected(true);
   };
 
-  const getAuthHeader = async () => {
-    const token = await getAuth().currentUser.getIdToken();
-    return { Authorization: `Bearer ${token}` };
-  };
-
+ 
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Both calls are independent
+        const headers = await getAuthHeader();
         const [customerResponse, sheetsStatusResponse] = await Promise.all([
-          axios.get(`${API_URL}/customers`, { headers: await getAuthHeader() }),
-          axios.get(`${API_URL}/sheets/status`),
+          axios.get(`${API_URL}/customers`, { headers }),
+          axios.get(`${API_URL}/sheets/status`, { headers }),
         ]);
 
         // Set status based on connection
@@ -70,36 +68,52 @@ function HomePage() {
   }, []);
 
   const handleImport = async () => {
-    try {
-      const response = await axios.post(
-        `${API_URL}/sheets/sync`,
-        {},
-        { headers: await getAuthHeader() },
-      );
+    const response = await axios.post(
+      `${API_URL}/sheets/sync`,
+      {},
+      { headers: await getAuthHeader() },
+    );
 
-      // Re-fetch the customer list (GET returns an array)
-      const customerResponse = await axios.get(`${API_URL}/customers`, {
-        headers: await getAuthHeader(),
-      });
-      setCustomerData(customerResponse.data);
+    // Re-fetch the customer list (GET returns an array)
+    const customerResponse = await axios.get(`${API_URL}/customers`, {
+      headers: await getAuthHeader(),
+    });
+    setCustomerData(customerResponse.data);
 
-      setChangedRecords([]);
-      handleUpdateStatus();
-    } catch (err) {
-      toast.error('Failed to load customers after sync.');
-    }
+    setChangedRecords([]);
+    handleUpdateStatus();
   };
 
   const handleDataChange = (changed) => {
     setChangedRecords(changed);
   };
 
-  const handleExport = () => {
-    setChangedRecords([]); //Clear change records after export
-    setPlatformStatus((prev) => ({
-      ...prev,
-      sheets: { ...prev.sheets, lastSync: Date.now() },
-    }));
+  const handleExport = async () => {
+    try {
+      const headers = await getAuthHeader();
+
+      await axios.patch(
+        `${API_URL}/customers/batch-status`,
+        {
+          updates: changedRecords.map((r) => ({
+            cust_id: r.cust_id,
+            status: r.newStatus,
+          })),
+        },
+        { headers },
+      );
+
+      await axios.post(`${API_URL}/sheets/export`, {}, { headers });
+
+      setChangedRecords([]);
+      setCommitVersion((v) => v + 1);
+      setPlatformStatus((prev) => ({
+        ...prev,
+        sheets: { ...prev.sheets, lastSync: Date.now() },
+      }));
+    } catch (err) {
+      toast.error('Failed to export customers.', err.message);
+    }
   };
 
   return (
@@ -177,6 +191,7 @@ function HomePage() {
           <CustomerListings
             customerData={customerData}
             onDataChange={handleDataChange}
+            commitVersion={commitVersion}
           />
         </motion.div>
       </div>

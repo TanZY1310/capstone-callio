@@ -22,7 +22,7 @@ const formatDate = (dateStr) => {
   });
 };
 
-function CustomerListings({ customerData, onDataChange }) {
+function CustomerListings({ customerData, onDataChange, commitVersion }) {
   const [customers, setCustomers] = useState([]);
   const [originalStatus, setOriginalStatus] = useState({});
   const [loading, setLoading] = useState(false);
@@ -79,6 +79,12 @@ function CustomerListings({ customerData, onDataChange }) {
 
     syncData();
   }, [customerData]);
+
+  useEffect(() => {
+    if (commitVersion > 0) {
+      setOriginalStatus({ ...status });
+    }
+  }, [commitVersion]);
 
   const filteredAndSortedCustomers = useMemo(() => {
     let filtered = customers.filter((customer) => {
@@ -283,13 +289,13 @@ function CustomerListings({ customerData, onDataChange }) {
                   <select
                     name="status"
                     className={`select select-bordered select-sm w-full ${
-                      status[customer.id] !== originalStatus[customer.id]
+                      status[customer.cust_id] !== originalStatus[customer.cust_id]
                         ? 'border-warning text-warning'
                         : ''
                     }`}
-                    value={customer.status}
+                    value={status[customer.cust_id] ?? customer.status}
                     onChange={(e) =>
-                      handleStatusChange(customer.id, e.target.value)
+                      handleStatusChange(customer.cust_id, e.target.value)
                     }
                   >
                     {statusList.map((eachStatus) => (
@@ -319,6 +325,20 @@ function CustomerListings({ customerData, onDataChange }) {
                       <Mic size={15} />
                     </button>
                   </div>
+                </td>
+                <td className="px-6 py-4 text-xs text-base-content/60 leading-relaxed min-w-[220px]">
+                  {customer.remarks?.speechAnalysis ? (
+                    <>
+                      <div><span className="font-semibold text-base-content/80">Call Datetime:</span> {customer.remarks.speechAnalysis.callDatetime ? new Date(customer.remarks.speechAnalysis.callDatetime).toLocaleString() : '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Buyer Stage:</span> {customer.remarks.speechAnalysis.buyerStage || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Purpose:</span> {customer.remarks.speechAnalysis.purpose || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Sentiment:</span> {customer.remarks.speechAnalysis.sentiment || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Next Action:</span> {customer.remarks.speechAnalysis.nextActions?.[0] || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Preferrance:</span> {customer.remarks.speechAnalysis.preferences || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Next Follow Up:</span> {customer.remarks.speechAnalysis.nextActions?.[1] || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Summary:</span> {customer.remarks.speechAnalysis.summary || '-'}</div>
+                    </>
+                  ) : '-'}
                 </td>
               </motion.tr>
             ))}

@@ -2,6 +2,7 @@ from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import Optional
 import uuid
+from typing import List
 
 class CustomerResponse(BaseModel):
     cust_id: uuid.UUID
@@ -31,6 +32,13 @@ class CustomerSheetRow(BaseModel):
         if v == "" or v is None:
             return None
         return v
+
+class StatusUpdateItem(BaseModel):
+    cust_id: uuid.UUID
+    status: str
+
+class BatchStatusUpdate(BaseModel):
+    updates: List[StatusUpdateItem]
 
 class SyncResult(BaseModel):
     synced: int
