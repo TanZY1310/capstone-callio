@@ -2,14 +2,13 @@ import { SendHorizontal } from "lucide-react";
 
 function ConvoHistory({ messages, inputRef, onSend, onEnter }) {
   return (
-    <div className="flex">
-      <div className="grow rounded-2xl ml-18 mt-5 p-4 card w-full bg-base-100 shadow-sm">
+    <div className="rounded-2xl p-4 card w-full bg-base-100 shadow-sm min-h-[400px] flex flex-col">
         <p className="font-semibold text-md text-base-content">WhatsApp Conversation History</p>
         <p className="text-sm text-base-content/40">End-to-end encrypted backup</p>
 
         {messages.length > 0 ? (
-          <div>
-            <div className="py-4">
+          <div className="flex flex-col flex-1">
+            <div className="py-4 flex-1 overflow-y-auto max-h-[500px]">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -40,7 +39,6 @@ function ConvoHistory({ messages, inputRef, onSend, onEnter }) {
         ) : (
           <p className="py-4 text-base-content/50">No chat history for this lead yet.</p>
         )}
-      </div>
     </div>
   );
 }

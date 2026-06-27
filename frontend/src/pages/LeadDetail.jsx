@@ -227,46 +227,38 @@ function LeadDetail() {
 
   return (
     <div className="flex h-screen bg-base-200">
-      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
         <LeadHeader
           user={showUser}
           users={users}
           onHeaderChange={handleHeaderChange}
         />
-        <div className="flex flex-row">
-          <div className="basis-1/3">
-            <ContactInfo 
-              user={showUser} 
-              onLocationChange = {handleLocationChange}
-              onStatusChange = {handleStatusChange}
-              statusList = {statusList} />
-            <div className="mt-6">
-              <StatusCards
-                platformName="whatsapp"
-                status={platformStatus.whatsapp}
-                onUpdate={handleUpdateStatus}
-              />
-            </div>
-          </div>
-          {isConnected ? (
-            <div className="basis-2/3">
+        <div className="grid grid-cols-[240px_1fr] gap-4 items-start">
+          <ContactInfo
+            user={showUser}
+            onLocationChange = {handleLocationChange}
+            onStatusChange = {handleStatusChange}
+            statusList = {statusList} />
+          <div className="flex flex-col gap-3">
+            <StatusCards
+              platformName="whatsapp"
+              status={platformStatus.whatsapp}
+              onUpdate={handleUpdateStatus}
+            />
+            {isConnected ? (
               <ConvoHistory
                 messages={messages}
                 inputRef={inputRef}
                 onSend={handleSendMessage}
                 onEnter={handleEnterMessage}
               />
-            </div>
-          ) : (
-            <div className="basis-2/3 flex items-center justify-center">
-              <div className="card bg-base-100 shadow-sm w-96">
-                <div className="card-body items-center text-center">
-                  <h2 className="card-title">Not Connected to WhatsApp</h2>
-                  <p>Please connect to view conversation history.</p>
-                </div>
+            ) : (
+              <div className="card bg-base-100 shadow-sm p-6 text-center">
+                <h2 className="font-semibold">Not Connected to WhatsApp</h2>
+                <p className="text-sm text-base-content/50 mt-1">Connect above to view conversation history.</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         {isConnected && (
           <AIResponseReview
