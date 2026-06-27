@@ -15,14 +15,14 @@ function LeadHeader({ user, users, onHeaderChange }) {
 
       <div className="flex justify-between items-center rounded-2xl pl-8 pt-6 pb-6 bg-base-100">
         <div className="flex justify-start items-center gap-2">
-          <p className="font-semibold text-sm text-base-content">
+          <p className="font-semibold text-base text-base-content pr-2 pt-2">
             Lead Pipeline
           </p>
-          <button className="btn btn-sm">
-            <select value={user.id} onChange = {onHeaderChange}>
+          <button className="btn btn-md">
+            <select value={user?.cust_id ?? ""} onChange = {onHeaderChange}>{/* optional chain: user may not have cust_id on first render */}
               {users.map((u) => (
-                <option key={u.cust_id} value={u.cust_id}>
-                  {u.name}
+                <option key={u.cust_id} value={u.cust_id}>{/* value changed from cust_name to cust_id so handleHeaderChange find() comparison matches */}
+                  {u.cust_name}
                 </option>
               ))}
             </select>

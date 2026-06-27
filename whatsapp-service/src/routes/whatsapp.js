@@ -21,11 +21,15 @@ router.get('/whatsapp/read/:phone', async (req, res) =>{
     
     try{
         const {phone} = req.params;
+        if (!phone) {
+            return res.status(400).json({ error: 'Phone number is required' });
+        }
+
         const result = await getMessages(phone,'20');
         return res.json(result);
     }
     catch (e){
-        res.status(500).json({error:e.message})
+        res.status(e.statusCode || 500).json({error:e.message})
     }
 });
 
@@ -34,6 +38,10 @@ router.post('/whatsapp/send', async (req, res) => {
 
     try{
         const { phone, message } = req.body;
+        if (!phone || !message) {
+            return res.status(400).json({ error: 'Phone and message are required' });
+        }
+
         // phone and message come from req.body (the json= payload from Python)
         const result = await sendMessage(phone, message);
         res.json(result);

@@ -2,11 +2,12 @@ import AIResponseReview from '../components/LeadWhatsapp/AIResponseReview.jsx';
 import ContactInfo from '../components/LeadWhatsapp/ContactInfo.jsx';
 import ConvoHistory from '../components/LeadWhatsapp/ConvoHistory.jsx';
 import LeadHeader from '../components/LeadWhatsapp/LeadHeader.jsx';
-import QRModal from '../components/LeadWhatsapp/QRModal.jsx'
 import StatusCards from '../components/Home/StatusCards.jsx';
+import { statusList } from '../data/statusList.js';
 import { useState, useEffect, useRef } from 'react';
+import { getAuthHeader } from '../utils/getAuthHeader';
 //import users from '../data/dummyData.js';
-//import dummyWAHistory from '../data/dummyWAHistory.js';
+// import dummyWAHistory from '../data/dummyWAHistory.js';
 import dummyAIResponse from '../data/dummyAIResponse.js';
 import { useLocation } from 'react-router-dom';
 import { STATUS_NAME } from '../data/constants';
@@ -31,8 +32,10 @@ function LeadDetail() {
   });
 
   const FASTAPI_BASE_URL = "http://127.0.0.1:8000/whatsapp";
+  const API_URL = import.meta.env.VITE_API_URL;
   const { state } = useLocation();
   const inputRef = useRef(null);
+  const [location, setLocation] = useState({});
   const [users, setUsers] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -65,13 +68,15 @@ function LeadDetail() {
     if (!showUser || showUser.id === 0) return;
 
     const fetchChatHistory = async () => {
-      const response = await axios.get(`${FASTAPI_BASE_URL}/history/${showUser.cust_id}`);
-      const data = await response.data;
-      console.log(JSON.stringify(data,null,2));
-      //change the logic below, 
-      //the get request directly choose the cust_id to access by its .phone attribute
-      //for userMessages, need to figure out the shape of the returned .data
-      setMessages(data);
+      try {
+        const response = await axios.get(`${FASTAPI_BASE_URL}/history/${showUser.cust_id}`);
+        const data = await response.data;
+        console.log(JSON.stringify(data,null,2));
+        setMessages(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch WhatsApp history:', error);
+        setMessages([]);
+      }
     };
 
     fetchChatHistory();
@@ -128,20 +133,44 @@ function LeadDetail() {
     const text = inputRef.current?.value.trim();
     if (!text) return;
 
-    await axios.post(`${FASTAPI_BASE_URL}/send/00000000-0000-0000-0000-000000000067`, {message:text});
+    await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {message:text});
 
     setMessages((prev) => [
       ...prev,
       {
-        id: prev.length + 1,
-        role: 'agent',
-        content: text,
-        timestamp: new Date().toISOString(),
-        seen: null,
+        id: `local_${Date.now()}`,
+        body: text, // "body" not "content" — matches API response shape
+        timestamp: Math.floor(Date.now() / 1000), // Unix epoch seconds, not ISO string
+        fromMe: true, // "fromMe" not "role" — matches API response shape
+        type: 'chat',
+        hasMedia: false,
       },
     ]);
 
     inputRef.current.value = '';
+  };
+
+  const handleEnterMessage = async (e) => {
+    if (e.key !== 'Enter') return; // only act on Enter, don't block other keys
+    if (e.shiftKey) return; //avoid sending on Shift + Enter
+    e.preventDefault();
+    const text = inputRef.current?.value.trim();
+    if (!text) return;
+      await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {message:text});
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `local_${Date.now()}`,
+          body: text, // "body" not "content" — matches API response shape
+          timestamp: Math.floor(Date.now() / 1000), // Unix epoch seconds, not ISO string
+          fromMe: true, // "fromMe" not "role" — matches API response shape
+          type: 'chat',
+          hasMedia: false,
+        },
+      ]);
+
+      inputRef.current.value = '';
   };
 
   // Called by AIResponseReview Edit button, need to hit DB
@@ -157,11 +186,12 @@ function LeadDetail() {
     setMessages((prev) => [
       ...prev,
       {
-        id: prev.length + 1,
-        role: 'agent',
-        content,
-        timestamp: new Date().toISOString(),
-        seen: null,
+        id: `local_${Date.now()}`,
+        body: content, // matches API response shape
+        timestamp: Math.floor(Date.now() / 1000), // Unix epoch seconds
+        fromMe: true, // matches API response shape
+        type: 'chat',
+        hasMedia: false,
       },
     ]);
 
@@ -173,8 +203,26 @@ function LeadDetail() {
   };
 
   const handleHeaderChange = (e) => {
-    setShowUser(users.find((u) => u.id === parseInt(e.target.value)));
+    setShowUser(users.find((u) => u.cust_id === e.target.value)); // now works: e.target.value is cust_id (was cust_name before, which never matched)
     console.log(showUser);
+  };
+  // TODO: need endpoint from sheets team — no existing route handles location updates
+  // either extend PATCH /customers/batch-status to accept location, or add a new endpoint
+  const handleLocationChange = (e) => {
+    return;
+  };
+
+  const handleStatusChange = async (e) => {
+    const newStatus = e.target.value;
+    setShowUser(prev => ({...prev, status: newStatus}));
+    try {
+      const headers = await getAuthHeader();
+      await axios.patch(`${API_URL}/customers/batch-status`, {
+        updates: [{ cust_id: showUser.cust_id, status: newStatus }]
+      }, { headers });
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    }
   };
 
   return (
@@ -187,7 +235,11 @@ function LeadDetail() {
         />
         <div className="flex flex-row">
           <div className="basis-1/3">
-            <ContactInfo user={showUser} users={users} />
+            <ContactInfo 
+              user={showUser} 
+              onLocationChange = {handleLocationChange}
+              onStatusChange = {handleStatusChange}
+              statusList = {statusList} />
             <div className="mt-6">
               <StatusCards
                 platformName="whatsapp"
@@ -202,6 +254,7 @@ function LeadDetail() {
                 messages={messages}
                 inputRef={inputRef}
                 onSend={handleSendMessage}
+                onEnter={handleEnterMessage}
               />
             </div>
           ) : (
@@ -224,9 +277,8 @@ function LeadDetail() {
         )}
       </div>
 
-      {/* QR modal — overlays everything, doesn't replace anything */}
-      <QRModal showQRModal = {showQrModal} qrCode = {qrCode}/> 
-      {/* {showQrModal && (
+      {/* QR modal — overlays everything, doesn't replace anything */} 
+      {showQrModal && (
         <dialog className="modal modal-open">
           <div className="modal-box items-center text-center">
             <h3 className="font-bold text-lg">Scan QR Code</h3>
@@ -238,7 +290,7 @@ function LeadDetail() {
             )}
           </div>
         </dialog>
-      )} */}
+      )}
     </div>
   );
 }
