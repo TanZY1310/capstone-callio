@@ -15,19 +15,6 @@ def _get_llm():
     return ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=key)
 
 
-def _detect_mime_type(file_path: str) -> str:
-    ext = os.path.splitext(file_path)[1].lower()
-    mapping = {
-        ".wav": "audio/wav",
-        ".mp3": "audio/mpeg",
-        ".m4a": "audio/mp4",
-        ".ogg": "audio/ogg",
-        ".flac": "audio/flac",
-        ".webm": "audio/webm",
-    }
-    return mapping.get(ext, "audio/wav")
-
-
 def _parse_json(text: str) -> dict:
     text = text.strip()
     if "```json" in text:
@@ -37,13 +24,10 @@ def _parse_json(text: str) -> dict:
     return json.loads(text)
 
 
-def transcribe_audio(file_path: str) -> list:
+def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
     llm = _get_llm()
 
-    with open(file_path, "rb") as f:
-        audio_b64 = base64.b64encode(f.read()).decode()
-
-    mime_type = _detect_mime_type(file_path)
+    audio_b64 = base64.b64encode(audio_bytes).decode()
 
     prompt = (
         "Transcribe this phone call between a real estate agent and a buyer. "

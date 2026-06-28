@@ -1,4 +1,3 @@
-import os
 import uuid
 import asyncio
 
@@ -17,8 +16,14 @@ class PipelineRequest(BaseModel):
 
 router = APIRouter(prefix="/speech", tags=["Speech"])
 
-AUDIO_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "audio_files")
-os.makedirs(AUDIO_DIR, exist_ok=True)
+AUDIO_MIME_MAP = {
+    ".wav": "audio/wav",
+    ".mp3": "audio/mpeg",
+    ".m4a": "audio/mp4",
+    ".ogg": "audio/ogg",
+    ".flac": "audio/flac",
+    ".webm": "audio/webm",
+}
 
 tasks = {}
 
@@ -28,25 +33,21 @@ async def transcribe(
     file: UploadFile = File(...),
     customer_id: str = Form(None),
 ):
-    ext = os.path.splitext(file.filename or "audio.wav")[1] or ".wav"
-    unique_name = f"{uuid.uuid4()}{ext}"
-    file_path = os.path.join(AUDIO_DIR, unique_name)
-
     contents = await file.read()
-    with open(file_path, "wb") as f:
-        f.write(contents)
+    ext = (file.filename or "audio.wav").rsplit(".", 1)[-1]
+    ext = f".{ext}" if ext else ".wav"
+    mime_type = AUDIO_MIME_MAP.get(ext, "audio/wav")
 
     task_id = str(uuid.uuid4())
     tasks[task_id] = {
         "step": 0,
         "status": "processing",
-        "audio_url": f"/audio/{unique_name}",
         "filename": file.filename,
         "customer_id": customer_id,
         "data": None,
     }
 
-    asyncio.create_task(_process(task_id, file_path))
+    asyncio.create_task(_process(task_id, contents, mime_type))
 
     return {"task_id": task_id}
 
@@ -114,11 +115,11 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
         db.close()
 
 
-async def _process(task_id: str, file_path: str):
+async def _process(task_id: str, audio_bytes: bytes, mime_type: str):
     try:
         tasks[task_id]["step"] = 1
         await asyncio.sleep(0.1)
-        transcript = await asyncio.to_thread(transcribe_audio, file_path)
+        transcript = await asyncio.to_thread(transcribe_audio, audio_bytes, mime_type)
 
         tasks[task_id]["step"] = 2
         tasks[task_id]["status"] = "awaiting_approval"
