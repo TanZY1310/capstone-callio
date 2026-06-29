@@ -12,7 +12,7 @@ function ProfileCard({
 }) {
   return (
     <div className=" w-full box-border">
-      <div className="card card-side bg-base-100/70 backdrop-blur-md border border-base-200 p-6 shadow-sm flex items-center justify-between w-full gap-8">
+      <div className="card card-side bg-base-100 backdrop-blur-md border border-base-200 p-6 shadow-sm flex items-center justify-between w-full gap-8">
         <div className="flex items-center gap-6">
           <div className="relative h-20 w-20 shrink-0">
             <img

@@ -33,7 +33,7 @@ function RagUpload() {
         </div>
 
         <div className="card-actions justify-end mt-4">
-          <button className="btn btn-neutral normal-case font-medium text-white shadow-sm w-full lg:w-auto">
+          <button className="btn bg-base-content text-base-100 hover:bg-base-content/80 border-none normal-case font-medium shadow-sm w-full lg:w-auto">
             Upload Document
           </button>
         </div>
