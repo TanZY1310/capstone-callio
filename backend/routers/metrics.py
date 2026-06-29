@@ -350,7 +350,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
 # DAILY CALLS CHART — month-aware, for the prev/next arrow UI.
 # ---------------------------------------------------------------------
 
-@router.get("/agent/daily-calls", response_model=List(DailyCallCount))
+@router.get("/agent/daily-calls", response_model=List[DailyCallCount])
 # get the year and month requested
 async def get_agent_daily_calls(db: db_dependency, user_id: uuid.UUID, year: Optional[int] = None, month: Optional[int] =  None):
     
