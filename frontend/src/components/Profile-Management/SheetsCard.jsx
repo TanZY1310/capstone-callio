@@ -130,7 +130,7 @@ function SheetsCard() {
   return (
     <div>
       {/* Main Card */}
-      <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm h-full backdrop-blur-md">
+      <div className="card w-full bg-base-100 border border-base-200 shadow-sm h-full backdrop-blur-md">
         <div className="card-body p-6 gap-5">
           {/* Header Section */}
           <div className="flex items-start justify-between">
@@ -207,7 +207,7 @@ function SheetsCard() {
           {/* Action Footer */}
           <div className="card-actions flex gap-2.5 pt-1">
             <button
-              className={`btn btn-neutral flex-1 normal-case font-medium`}
+              className={`btn bg-base-content text-base-100 hover:bg-base-content/80 border-none flex-1 normal-case font-medium`}
               disabled={isSyncing}
               onClick={handleSync}
             >

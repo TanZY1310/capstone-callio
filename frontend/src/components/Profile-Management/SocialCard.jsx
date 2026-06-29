@@ -68,7 +68,7 @@ function SocialCard() {
   return (
     <div>
       {/* Main DaisyUI Card Component */}
-      <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm h-full backdrop-blur-md">
+      <div className="card w-full bg-base-100 border border-base-200 shadow-sm h-full backdrop-blur-md">
         <div className="card-body p-6 gap-5">
           {/* Header Section */}
           <div className="flex items-start justify-between">
@@ -215,7 +215,7 @@ function SocialCard() {
           <div className="modal-action justify-center mt-6">
             <form method="dialog">
               <button
-                className={`btn min-w-30 ${notification && !error ? 'btn-success text-white' : 'btn-ghost border border-neutral-300'}`}
+                className={`btn min-w-30 ${notification && !error ? 'btn-success text-white' : 'btn-ghost border border-base-300'}`}
                 onClick={handleClose}
                 disabled={isLoading}
               >
