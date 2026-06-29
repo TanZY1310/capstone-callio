@@ -1,9 +1,4 @@
-function CredentialCard() {
-  const agent = {
-    renNumber: 123456,
-    agency: 'AIA',
-  };
-
+function CredentialCard({ license_number, agency_branch, bio }) {
   return (
     <div className="w-full">
       {/* Removed max-w-2xl so it scales 100% horizontally.
@@ -32,7 +27,7 @@ function CredentialCard() {
               <input
                 type="text"
                 id="license"
-                value="REN 12345"
+                value={license_number}
                 disabled
                 className="input input-bordered w-full text-sm bg-base-200/50 border-base-300 text-base-content/80 disabled:bg-base-200/50 disabled:text-base-content/80 disabled:border-base-300"
               />
@@ -48,7 +43,7 @@ function CredentialCard() {
               <input
                 type="text"
                 id="branch"
-                value="IQI Global - Klang Valley"
+                value={agency_branch}
                 disabled
                 className="input input-bordered w-full text-sm bg-base-200/50 border-base-300 text-base-content/80 disabled:bg-base-200/50 disabled:text-base-content/80 disabled:border-base-300"
               />
@@ -62,7 +57,8 @@ function CredentialCard() {
             </label>
             <input
               type="text"
-              value="I am the wolf of wall street"
+              id="bio"
+              value={bio}
               disabled
               className="input input-bordered w-full text-sm bg-base-200/50 border-base-300 text-base-content/80 disabled:bg-base-200/50 disabled:text-base-content/80 disabled:border-base-300"
             />

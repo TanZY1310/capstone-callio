@@ -21,7 +21,11 @@ function UserProfile() {
         <SheetsCard />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
-        <CredentialCard />
+        <CredentialCard 
+          license_number={profile?.license_number || ''}
+          agency_branch={profile?.agency_branch || ''}
+          bio={profile?.bio || ''}
+        />
         <RagUpload />
       </div>
     </div>
