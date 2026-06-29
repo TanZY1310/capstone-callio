@@ -83,6 +83,8 @@ def analyze_transcript(transcript: list) -> dict:
         '    "signals": ["signal1"],\n'
         '    "budgetValue": "budget range",\n'
         '    "budgetNote": "flexibility note",\n'
+        '    "location": "preferred city/area/neighborhood",\n'
+        '    "locationNote": "details about location preference",\n'
         '    "purpose": "Brief description of the main purpose of this call"\n'
         "  },\n"
         '  "objections": ["duplicate of sentiment.objections for easy storage"],\n'

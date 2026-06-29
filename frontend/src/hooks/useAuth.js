@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import axios from 'axios';
@@ -9,8 +9,14 @@ export function useAuth() {
   const [user, setUser] = useState(null); // Firebase user object
   const [profile, setProfile] = useState(null); // Your DB user profile
   const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
+  const abortRef = useRef(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    abortRef.current = controller;
+    mountedRef.current = true;
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
@@ -21,14 +27,16 @@ export function useAuth() {
             setLoading(false);
             return;
           }
-          const idToken = await firebaseUser.getIdToken(true);
+          const idToken = await firebaseUser.getIdToken(false);
           const response = await axios.post(`${API_URL}/auth/session`, null, {
             headers: { Authorization: `Bearer ${idToken}` },
+            signal: controller.signal,
           });
-          setProfile(response.data);
+          if (mountedRef.current) setProfile(response.data);
         } catch (err) {
+          if (axios.isCancel(err)) return;
           console.error('Failed to fetch user profile:', err);
-          setProfile(null);
+          if (mountedRef.current) setProfile(null);
         }
       } else {
         // Logged out
@@ -36,11 +44,14 @@ export function useAuth() {
         setProfile(null);
       }
 
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     });
 
-    // Cleanup listener on unmount
-    return () => unsubscribe();
+    return () => {
+      controller.abort();
+      mountedRef.current = false;
+      unsubscribe();
+    };
   }, []);
 
   const logout = async () => {
