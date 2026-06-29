@@ -29,7 +29,7 @@ SHEET_HEADER_RANGE = "Sheet1!A1:H"          # header + data range for export
 # Column order expected in the sheet:
 # Cust_Name | Phone | Budget | Location | Status | Last_Contact | UserID
 
-def _fetch_sheet_rows() -> list[dict]:
+def _fetch_sheet_rows(spreadsheet_id: str = SPREADSHEET_ID) -> list[dict]:
     """Sync Google Sheets call — runs in threadpool."""
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES
@@ -38,7 +38,7 @@ def _fetch_sheet_rows() -> list[dict]:
     result = (
         service.spreadsheets()
         .values()
-        .get(spreadsheetId=SPREADSHEET_ID, range=SHEET_RANGE)
+        .get(spreadsheetId=spreadsheet_id, range=SHEET_RANGE)
         .execute()
     )
     rows = result.get("values", [])
@@ -97,7 +97,7 @@ async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> S
     db.commit()
     return SyncResult(synced=synced, skipped=skipped, total=len(raw_rows))
 
-def _write_rows_to_sheet(rows: list[list]) -> dict:
+def _write_rows_to_sheet(rows: list[list], spreadsheet_id: str = SPREADSHEET_ID) -> dict:
     """Sync Google Sheets write call — runs in threadpool."""
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES
@@ -106,7 +106,7 @@ def _write_rows_to_sheet(rows: list[list]) -> dict:
 
     # Clear existing data (preserve header row by clearing from A2)
     service.spreadsheets().values().clear(
-        spreadsheetId=SPREADSHEET_ID,
+        spreadsheetId=spreadsheet_id,
         range="Sheet1!A2:H",
     ).execute()
 
@@ -118,7 +118,7 @@ def _write_rows_to_sheet(rows: list[list]) -> dict:
         service.spreadsheets()
         .values()
         .update(
-            spreadsheetId=SPREADSHEET_ID,
+            spreadsheetId=spreadsheet_id,
             range="Sheet1!A2",
             valueInputOption="USER_ENTERED",
             body=body,
@@ -149,12 +149,12 @@ async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> d
     return {"exported": len(rows), "updatedCells": result.get("updatedCells", 0)}
 
 
-async def fetch_status():
+async def fetch_status(spreadsheet_id: str = SPREADSHEET_ID):
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES
     )
     service = build("sheets", "v4", credentials=creds)
-    service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
+    service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
 
 
 async def get_sheets_id(db: db_dependency, user_id: uuid.UUID) -> str | None:
@@ -175,3 +175,52 @@ async def update_sheets_id(db: db_dependency, user_id: uuid.UUID, sheets_id: str
     db.commit()
     db.refresh(user)
     return user.sheets_id
+
+
+async def sync_customers_from_user_sheet(db: db_dependency, user_id: uuid.UUID) -> SyncResult:
+    """Sync from the spreadsheet stored on the user's profile (sheets_id column)."""
+    sheets_id = await get_sheets_id(db, user_id)
+    if not sheets_id:
+        raise HTTPException(status_code=400, detail="No sheets_id configured for this user")
+
+    raw_rows = await run_in_threadpool(_fetch_sheet_rows, sheets_id)
+
+    synced = 0
+    skipped = 0
+
+    for row in raw_rows:
+        try:
+            validated = CustomerSheetRow(**row)
+        except Exception as e:
+            print(f"Skipped row {row} — reason: {e}")
+            skipped += 1
+            continue
+
+        stmt = (
+            insert(Customers)
+            .values(
+                cust_id=uuid.uuid4(),
+                cust_name=validated.cust_name,
+                phone=validated.phone,
+                budget=validated.budget,
+                location=validated.location,
+                status=validated.status or "Not Yet Call",
+                last_contact=validated.last_contact,
+                user_id=user_id,
+            )
+            .on_conflict_do_update(
+                index_elements=["phone"],
+                set_={
+                    "cust_name": validated.cust_name,
+                    "budget": validated.budget,
+                    "location": validated.location,
+                    "status": validated.status or "Not Yet Call",
+                    "last_contact": validated.last_contact,
+                },
+            )
+        )
+        db.execute(stmt)
+        synced += 1
+
+    db.commit()
+    return SyncResult(synced=synced, skipped=skipped, total=len(raw_rows))
