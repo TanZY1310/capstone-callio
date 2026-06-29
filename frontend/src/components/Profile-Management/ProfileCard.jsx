@@ -6,7 +6,7 @@ import { NavLink } from 'react-router-dom';
 function ProfileCard({
   role,
   registered_year,
-  profilePic,
+  profilePic = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
   first_name,
   last_name,
 }) {

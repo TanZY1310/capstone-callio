@@ -9,9 +9,9 @@ function CredentialCard() {
       {/* Removed max-w-2xl so it scales 100% horizontally.
         Changed bg-base-100/70 to match the exact background style profileCard uses.
       */}
-      <div className="card w-full bg-base-100/70 border border-base-200 shadow-sm backdrop-blur-md">
+      <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm backdrop-blur-md">
         <div className="card-body p-6">
-          {/* Card Header Title */}
+          {/* Card Header Title */} 
           <div className="mb-2">
             <h2 className="card-title text-lg font-bold text-base-content">
               Professional Details
