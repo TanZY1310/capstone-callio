@@ -9,7 +9,7 @@ function CredentialCard() {
       {/* Removed max-w-2xl so it scales 100% horizontally.
         Changed bg-base-100/70 to match the exact background style profileCard uses.
       */}
-      <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm backdrop-blur-md">
+      <div className="card w-full bg-base-100 border border-base-200 shadow-sm backdrop-blur-md">
         <div className="card-body p-6">
           {/* Card Header Title */} 
           <div className="mb-2">
@@ -25,7 +25,7 @@ function CredentialCard() {
             {/* License Input Control Group */}
             <div className="form-control w-full">
               <label className="label p-0 mb-1.5" htmlFor="license">
-                <span className="label-text text-xs text-slate-400 font-medium">
+                <span className="label-text text-xs text-base-content/50 font-medium">
                   License Number (REN)
                 </span>
               </label>
@@ -34,14 +34,14 @@ function CredentialCard() {
                 id="license"
                 value="REN 12345"
                 disabled
-                className="input input-bordered w-full text-sm bg-slate-50/50 border-slate-200 text-slate-700 disabled:bg-slate-50/50 disabled:text-slate-700 disabled:border-slate-200"
+                className="input input-bordered w-full text-sm bg-base-200/50 border-base-300 text-base-content/80 disabled:bg-base-200/50 disabled:text-base-content/80 disabled:border-base-300"
               />
             </div>
 
             {/* Agency Branch Input Control Group */}
             <div className="form-control w-full">
               <label className="label p-0 mb-1.5" htmlFor="branch">
-                <span className="label-text text-xs text-slate-400 font-medium">
+                <span className="label-text text-xs text-base-content/50 font-medium">
                   Agency Branch
                 </span>
               </label>
@@ -50,13 +50,13 @@ function CredentialCard() {
                 id="branch"
                 value="IQI Global - Klang Valley"
                 disabled
-                className="input input-bordered w-full text-sm bg-slate-50/50 border-slate-200 text-slate-700 disabled:bg-slate-50/50 disabled:text-slate-700 disabled:border-slate-200"
+                className="input input-bordered w-full text-sm bg-base-200/50 border-base-300 text-base-content/80 disabled:bg-base-200/50 disabled:text-base-content/80 disabled:border-base-300"
               />
             </div>
           </div>
           <div className="form-control w-full">
             <label className="label p-0 mb-1.5" htmlFor="branch">
-              <span className="label-text text-xs text-slate-400 font-medium">
+              <span className="label-text text-xs text-base-content/50 font-medium">
                 Bio
               </span>
             </label>
@@ -64,7 +64,7 @@ function CredentialCard() {
               type="text"
               value="I am the wolf of wall street"
               disabled
-              className="input input-bordered w-full text-sm bg-slate-50/50 border-slate-200 text-slate-700 disabled:bg-slate-50/50 disabled:text-slate-700 disabled:border-slate-200"
+              className="input input-bordered w-full text-sm bg-base-200/50 border-base-300 text-base-content/80 disabled:bg-base-200/50 disabled:text-base-content/80 disabled:border-base-300"
             />
           </div>
         </div>

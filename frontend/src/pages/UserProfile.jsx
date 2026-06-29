@@ -3,6 +3,7 @@ import SheetsCard from '../components/Profile-Management/SheetsCard';
 import SocialCard from '../components/Profile-Management/SocialCard';
 import { useAuth } from '../hooks/useAuth';
 import CredentialCard from '../components/Profile-Management/CredentialCard';
+import RagUpload from '../components/Profile-Management/RagUpload';
 
 function UserProfile() {
   const { profile } = useAuth();
@@ -19,7 +20,10 @@ function UserProfile() {
         <SocialCard />
         <SheetsCard />
       </div>
-      <CredentialCard />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
+        <CredentialCard />
+        <RagUpload />
+      </div>
     </div>
   );
 }
