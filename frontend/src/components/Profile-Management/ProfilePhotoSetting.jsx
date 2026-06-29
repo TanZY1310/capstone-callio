@@ -3,7 +3,7 @@ import { Pencil } from 'lucide-react';
 
 function ProfilePhotoSetting() {
   const [profilePic, setProfilePic] = useState(
-    'https://unsplash.com/s/photos/photo-contest',
+    'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
   );
 
   //  Create a ref to link the custom button to the hidden file input

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Depends, Path, HTTPException, status
 from sqlalchemy import func, extract, select, and_
 import uuid
-from typing import List
+from typing import List, Optional
 
 from datetime import datetime, timezone, timedelta, date
 from database import db_dependency
@@ -20,6 +20,7 @@ from schemas.metric import (
     ObjectionCount,
     LeaderDashboardResponse,
     # TeamOverviewResponse,
+    TeamStats,
     AgentDashboardResponse
 )
 
@@ -37,7 +38,7 @@ PENDING_STATUSES = ["draft", "edited"]
 # -----------------------#
 
 @router.get("/agent/{user_id}", response_model=AgentDashboardResponse)
-def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
+async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
     
     # get the datetime for today starting from 00:00:00
     today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time())
@@ -149,17 +150,270 @@ def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
     )
 
 
-@router.get("/leader/{user_id}", response_model=LeaderDashboardResponse)
-def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role: str):
+@router.get("/leader", response_model=LeaderDashboardResponse)
+async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role: str):
     
     if user_role !=  UserRole.TEAM_LEAD:
         raise HTTPException(status_code= 400, detail= "Leader access only")
     
-    team_members = db.query(Users).filter(Users.manager_id == user_id).all()
-    team_ids = [m.user_id for m in team_members]
+    team_members = db.query(Users).filter(Users.team_lead_id == user_id).all()
+    team_agent_ids = [m.user_id for m in team_members]
+
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time())
+    today_end  = today_start + timedelta(days=1)
+
+    month_start = today_start.replace(day=1)
+
+    # Team stats calculation
+
+    # checking if the leader has any agents under him
+    if not team_agent_ids:
+        team_kpis = AgentStats(calls = 0, leads=0, followUps=0, appointments=0)
+        total_agents = 0,
+
+        team_regions, team_objections = [], []
+
+    else:
+        team_calls_today = ( 
+            db.query(func.count(SpeechAnalysis.id)) 
+            .filter(SpeechAnalysis.created_at >= today_start, SpeechAnalysis.created_at < today_end)
+            .scalar() or 0
+            )
+        
+        team_leads = (
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .scalar() or 0
+        )
+
+        ## modify it later if in case the status customer is using manual method
+
+        team_latest_per_customer = (
+            db.query(AIResponse.cust_id, func.max(AIResponse.created_at).label("latest_time"))
+            .group_by(AIResponse.cust_id)
+            .subquery()
+        )
+        # .subquery() says the opposite: "don't finish yet — 
+        # package this up as a temporary, nameless table that another query can use as one of its ingredients.
+
+        team_followUps = (
+            db.query(func.count(AIResponse.response_id))
+            .join(team_latest_per_customer, and_ (AIResponse.cust_id == team_latest_per_customer.c.cust_id, AIResponse.created_at == team_latest_per_customer.c.latest_time))
+            .join(Customers, AIResponse.cust_id == Customers.cust_id)
+            .filter(AIResponse.status.in_(PENDING_STATUSES))
+            .scalar() or 0
+        )
+
+        team_appoinments = (
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(Customers.status == "appoinment")
+            .scalar() or 0
+        )
+
+        # Total agents under the leader
+        # option 2- look at the return LeaderDashbpoardResponse
+
+        # total_agents = (
+        #     db.query(func.count(Users.user_id))
+        #     .filter(Users.team_lead_id == user_id)
+        #     .scalar() or 0
+        # )
+
+        # Overall total kpis (call today, leads, followUps, appoinments)
+
+        team_kpis = AgentStats(
+            calls= team_calls_today,
+            leads= team_leads,
+            followUps= team_followUps,
+            appointments= team_followUps
+        )
+
+        # Total team regions
+
+        team_region_rows = (
+            db.query(Customers.location, func.count(Customers.cust_id).label("count"))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(Customers.location.isnot(None)) # filter out rows with empty location
+            .group_by(Customers.location)
+            .order_by(func.count(Customers.cust_id).desc())
+            .all()
+        )
+
+        # looping through all the rows and insert it into RegionCount list
+        team_regions = [RegionCount(region = r.location, region_count= r.count) for r in team_region_rows]
+
+        # Total team objections
+
+        team_objection_rows = (
+            db.query(Objection.objection_type, func.count(Objection.objection_id).label("count"))
+            .join(SpeechAnalysis, Objection.call_id == SpeechAnalysis.id)
+            .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
+            .group_by(Objection.objection_type)
+            .order_by(func.count(Objection.objection_id).desc)
+            .all()
+        )
+
+        # looping through all the rows and insert it into ObjectionCount list
+        team_objections = [ObjectionCount(objection_type= r.objection_type, objection_count= r.count) for r in team_objection_rows]
+
+        team_stats = TeamStats(
+            team_kpis= team_kpis,
+            team_objections= team_objections,
+            team_regions= team_regions
+        )
+
+        # AGENT TABLE:
+        ## This section is for the agent table (each row consists of the agent details: kpis, etc)
+
+        if not team_agent_ids:
+            team_overview = []
+
+        else:
+            lead_rows = (
+                db.query(Customers.user_id, func.count(Customers.cust_id).lead("count"))
+                .filter(Customers.user_id.in_(team_agent_ids))
+                .group_by(Customers.user_id)
+                .all()
+            )
+
+            leads_map = { r.user_id: r.count for r in lead_rows}
+
+            call_today_rows = (
+                db.query(SpeechAnalysis.user_id, func.count(SpeechAnalysis.id).label("count"))
+                .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
+                .filter(SpeechAnalysis.created_at >= today_start, SpeechAnalysis.created_at < today_end)
+                .group_by(SpeechAnalysis.user_id)
+                .all()
+            )
+
+            calls_today_map = { r.user_id: r.count for r in call_today_rows}
+
+            overview_latest_per_customer = (
+            db.query(
+                AIResponse.cust_id,
+                func.max(AIResponse.created_at).label("latest_time"),
+            )
+            .group_by(AIResponse.cust_id)
+            .subquery()
+        )
+        follow_up_rows = (
+            db.query(
+                Customers.user_id,
+                func.count(AIResponse.response_id).label("count"),
+            )
+            .join(
+                overview_latest_per_customer,
+                and_(
+                    AIResponse.cust_id == overview_latest_per_customer.c.cust_id,
+                    AIResponse.created_at == overview_latest_per_customer.c.latest_time,
+                ),
+            )
+            .join(Customers, AIResponse.cust_id == Customers.cust_id)
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(AIResponse.status.in_(PENDING_STATUSES))
+            .group_by(Customers.user_id)
+            .all()
+        )
+        follow_up_map = {r.user_id: r.count for r in follow_up_rows}
+
+        appointment_rows = (
+            db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(Customers.status == "appoinment")
+            .group_by(Customers.user_id)
+            .all()
+        )
+
+        appoinments_map = { r.user_id: r.count for r in appointment_rows}
+
+        team_overview = [ AgentTable(
+            agent_id= m.user_id,
+            agent_name= f'{m.first_name} {m.last_name}',
+            total_leads= leads_map(m.user_id, 0),
+            total_calls= calls_today_map(m.user_id, 0),
+            follow_ups= follow_up_map(m.user_id, 0),
+            appointments= appoinments_map(m.user_id, 0),
+        
+        )  for m in team_agent_ids ]
+
+        # What the API returns to frontend
+        return LeaderDashboardResponse(
+            # total_agents=total_agents,
+            team_stats= team_kpis,
+            team_overview=team_overview,
+            total_agents = len(team_agent_ids)
+        )
+    
+
+# ---------------------------------------------------------------------
+# DAILY CALLS CHART — month-aware, for the prev/next arrow UI.
+# ---------------------------------------------------------------------
+
+@router.get("/agent/daily-calls", response_model=List[DailyCallCount])
+# get the year and month requested
+async def get_agent_daily_calls(db: db_dependency, user_id: uuid.UUID, year: Optional[int] = None, month: Optional[int] =  None):
+    
+    today = datetime.now(timezone.utc).date()
+
+    # Step 2 — defaulting to "today" if nothing was sent
+    if year is None:
+        year = today.year
+    if month is None:
+        month = today.month
+
+    # Step 3 — validation, before anything risky happens
+    # Checking if the month is between 1 and 12
+    if not (1 <= month <= 12):
+        raise(HTTPException(status_code= 400, detail= "Invalid month. Month must be between 1 and 12"))
+    
+    # Checking if the year is between 2020 and 2030
+    if not (2020 <= year <= 2030):
+        raise(HTTPException(status_code= 400, detail= "Invalid year. Year must be between 2020 and 2030"))
+    
+    # Step 4 — building the month's boundaries
+    month_start = date(year, month, 1)
+
+    if month == 12:
+        month_end = date(year + 1, 1, 1) # nak tunjuk rolling year, instead of become month 13
+    else:
+        month_end = date(year, month + 1, 1)
+
+    rows = (
+        db.query(func.date(SpeechAnalysis.created_at).label("call_date"),
+                 func.count(SpeechAnalysis.id).label("call_count"))
+        .filter(SpeechAnalysis.user_id == user_id)
+        .filter(SpeechAnalysis.created_at >= month_start)
+        .filter(SpeechAnalysis.created_at < month_end)
+        .group_by(func.date(SpeechAnalysis.created_at))
+        .order_by(func.date(SpeechAnalysis.created_at))
+        .all()
+    )
+    
+    return [DailyCallCount(call_date= r.call_date, call_count= r.call_count) for r in rows]
+
+
+
+
+
 
 
     
+
+
+
+
+        
+            
+            
+
+
+
+
+
+
+
+
 
     
 

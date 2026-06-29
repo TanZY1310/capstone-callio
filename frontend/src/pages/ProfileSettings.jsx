@@ -1,4 +1,5 @@
-import { useState, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
@@ -25,12 +26,14 @@ function ProfileSetting() {
       const last_name = fullName.slice(1).join(' ') || '';
       const license_number = formData.get('license_number');
       const agency_branch = formData.get('agency_branch');
+      const bio = formData.get('bio');
 
       const payload = {
         first_name,
         last_name,
         license_number,
         agency_branch,
+        bio,
       };
 
       const token = await user.getIdToken();

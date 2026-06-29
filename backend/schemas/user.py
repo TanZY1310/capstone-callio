@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     agency_branch: str | None = None
     team_lead_id: uuid.UUID | None = None
     sheets_id: str | None = None
+    bio: str | None = None
 
 class UserVerification(BaseModel):
     password: str = Field(..., description="Current password")
@@ -37,3 +38,4 @@ class UserProfileUpdate(BaseModel):
     agency_branch: str | None = Field(None, max_length=100)
     team_lead_id: uuid.UUID | None = None
     sheets_id: str | None = Field(None, max_length=255)
+    bio: str | None = Field(None, max_length=1000)

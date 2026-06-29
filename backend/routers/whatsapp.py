@@ -31,9 +31,9 @@ async def connect():
 
 # Get all customers
 # DB
-@router.get("/details/all")
-async def get_all_customers(db: db_dependency):
-    response = db.query(Customers).all()
+@router.get("/details/all/{user_id}")
+async def get_all_customers(db: db_dependency, user_id: uuid.UUID):
+    response = db.query(Customers).filter(Customers.user_id == user_id).all()
     if not response:
         raise HTTPException(status_code=404, detail="Customer not found")
     return response

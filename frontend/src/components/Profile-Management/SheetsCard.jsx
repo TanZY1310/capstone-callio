@@ -11,6 +11,7 @@ function SheetsCard() {
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(false);
   const [sheetsId, setSheetsId] = useState('');
+  const [isLinked, setIsLinked] = useState(false);
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('2026-05-12 14:22:10');
@@ -28,6 +29,20 @@ function SheetsCard() {
           });
           if (response.data.sheets_id) {
             setSheetsId(response.data.sheets_id);
+          }
+
+          try {
+            const statusRes = await axios.get(`${API_URL}/sheets/status`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (statusRes.data && statusRes.data.connected) {
+              setIsLinked(true);
+            } else {
+              setIsLinked(false);
+            }
+          } catch (statusErr) {
+            setIsLinked(false);
+            console.error('Failed to fetch Sheets status:', statusErr);
           }
         } catch (err) {
           console.error('Failed to fetch profile data:', err);
@@ -48,11 +63,16 @@ function SheetsCard() {
           { sheets_id: sheetsId },
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        toast.success('Sheets ID saved successfully!');
+        
+        const syncResponse = await axios.post(
+          `${API_URL}/sheets/sync`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        setIsLinked(true);
+        toast.success(`Sync successful: ${syncResponse.data.synced} synced, ${syncResponse.data.skipped} skipped`);
       }
-
-      // Simulate sync delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Format current time: YYYY-MM-DD HH:mm:ss
       const now = new Date();
@@ -110,7 +130,7 @@ function SheetsCard() {
   return (
     <div>
       {/* Main Card */}
-      <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm h-full backdrop-blur-md">
+      <div className="card w-full bg-base-100 border border-base-200 shadow-sm h-full backdrop-blur-md">
         <div className="card-body p-6 gap-5">
           {/* Header Section */}
           <div className="flex items-start justify-between">
@@ -142,8 +162,10 @@ function SheetsCard() {
             </div>
 
             {/* Status Badge */}
-            <span className="badge badge-success text-white border-none py-3 text-xs uppercase font-mono tracking-wider">
-              Connected
+            <span
+              className={`badge ${isLinked ? 'badge-success text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
+            >
+              {isLinked ? 'Connected' : 'Disconnected'}
             </span>
           </div>
 
@@ -185,7 +207,7 @@ function SheetsCard() {
           {/* Action Footer */}
           <div className="card-actions flex gap-2.5 pt-1">
             <button
-              className={`btn btn-neutral flex-1 normal-case font-medium`}
+              className={`btn bg-base-content text-base-100 hover:bg-base-content/80 border-none flex-1 normal-case font-medium`}
               disabled={isSyncing}
               onClick={handleSync}
             >

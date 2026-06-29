@@ -79,8 +79,10 @@ function CredentialCardSetting() {
             </span>
           </label>
           <textarea
+            name="bio"
+            key={`bio-${profile?.bio}`}
+            defaultValue={profile?.bio || "Over 12 years of experience in enterprise sales and strategic account management. Specialized in high-ticket real estate and digital infrastructure licensing within the EMEA region."}
             rows={4}
-            defaultValue="Over 12 years of experience in enterprise sales and strategic account management. Specialized in high-ticket real estate and digital infrastructure licensing within the EMEA region."
             className="textarea textarea-bordered w-full bg-base-100 border-base-300 text-sm focus:outline-none focus:border-primary resize-y leading-relaxed"
           />
         </div>
