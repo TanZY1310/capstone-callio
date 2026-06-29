@@ -1,4 +1,4 @@
-import os
+import json
 import uuid
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -6,7 +6,7 @@ from googleapiclient.errors import HttpError
 from fastapi import HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from database import db_dependency
 from models.customer import Customers
@@ -29,6 +29,8 @@ SHEET_HEADER_RANGE = "Sheet1!A1:H"          # header + data range for export
 # Cust_Name | Phone | Budget | Location | Status | Last_Contact | UserID
 
 MISSING_MSG = "No spreadsheet ID configured. Go to Profile > Sheets Card to add your spreadsheet ID."
+
+EXPORT_HEADERS = ["Cust_Name", "Phone", "Budget", "Location", "Status", "Last_Contact", "Remarks"]
 
 def _get_user_sheets_id(db: db_dependency, user_id: uuid.UUID) -> str:
     user = db.query(Users).filter(Users.user_id == user_id).first()
@@ -97,6 +99,7 @@ async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> S
                     "location": validated.location,
                     "status": validated.status or "Not Yet Call",
                     "last_contact": validated.last_contact,
+                    "updated_at": func.now(),
                 },
             )
         )
@@ -113,6 +116,14 @@ def _write_rows_to_sheet(rows: list[list], spreadsheet_id: str) -> dict:
         SERVICE_ACCOUNT_FILE, scopes=SCOPES
     )
     service = build("sheets", "v4", credentials=creds)
+
+    # Write header row
+    service.spreadsheets().values().update(
+        spreadsheetId=spreadsheet_id,
+        range="Sheet1!A1",
+        valueInputOption="USER_ENTERED",
+        body={"values": [EXPORT_HEADERS]},
+    ).execute()
 
     # Clear existing data (preserve header row by clearing from A2)
     service.spreadsheets().values().clear(
@@ -152,6 +163,7 @@ async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> d
             c.location or "",
             c.status,
             c.last_contact.isoformat() if c.last_contact else "",
+            json.dumps(c.remarks) if c.remarks is not None else "",
         ])
 
     result = await run_in_threadpool(_write_rows_to_sheet, rows, sheets_id)

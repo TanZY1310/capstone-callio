@@ -71,7 +71,7 @@ function CallUpload({ daily_calls }) {
     datasets: [
       {
         label: 'Total Calls Today',
-        data: call.map((item) => item.call_count),
+        data: filledData.map((item) => item.call_count),
         backgroundColor: '#1a3a7c',
         borderColor: '#1a3a7c',
         // borderRadius: 5,
@@ -83,9 +83,29 @@ function CallUpload({ daily_calls }) {
   const chartOptions = {
     maintainAspectRatio: false,
     scales: {
-      x: { grid: { display: false } },
-
-      y: { grid: { display: false } },
+      x: {
+        grid: { display: false },
+        ticks: {
+          autoSkip: false,
+          callback: function (value, index, ticks) {
+            const date = this.getLabelForValue(value);
+            const day = parseInt(date.split('-')[2], 10);
+            // show only 1st, 8th, 15th, 22nd, end of month (roughly weekly/quarter-month marks)
+            if (
+              day === 1 ||
+              day === 8 ||
+              day === 15 ||
+              day === 22 ||
+              index === ticks.length - 1
+            ) {
+              return date.slice(5); // "MM-DD", drop the year for compactness
+            }
+            return null; // null = skip rendering this label, point still exists
+          },
+          maxRotation: 0,
+        },
+      },
+      y: { grid: { display: false }, min: 0, ticks: { display: false } },
     },
 
     responsive: true,
@@ -93,7 +113,7 @@ function CallUpload({ daily_calls }) {
       legend: { position: 'top', display: false },
       tooltip: {
         callbacks: {
-          label: (item) => `${item.label} - ${item.raw}`,
+          label: (item) => ` ${item.raw}`,
         },
       },
     },
@@ -104,13 +124,26 @@ function CallUpload({ daily_calls }) {
     <div className="card bg-base-100 border border-base-200 shadow-sm">
       <div className="card-body">
         <h2 className="card-title text-base-content">Daily Call Volume</h2>
+
         <p className="text-xs text-base-content/50">This Month</p>
+
         <div style={{ height: '300px' }}>
           <Line data={lineChart} options={chartOptions} />
         </div>
       </div>
     </div>
   );
+}
+
+// dropdown button code
+{
+  /* <div className="dropdown flex justify-end">
+  <div tabIndex={0} role="button" className="btn m-1">Click</div>
+  <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+    <li><a>Item 1</a></li>
+    <li><a>Item 2</a></li>
+  </ul>
+</div> */
 }
 
 export default CallUpload;

@@ -10,9 +10,9 @@ import { AlignRight } from 'lucide-react';
 import CallUpload from '../components/Metrics/CallUpload';
 import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
 import { CiSearch } from 'react-icons/ci';
-import { dummyAgentPerformance } from '../../data/dummyAgentPerformance';
-import { dummyAgentData } from '../../data/dummyAgentData';
-import { dummyTeamData } from '../../data/dummyTeamData';
+import { dummyAgentPerformance } from '../data/dummyAgentPerformance';
+import { dummyAgentData } from '../data/dummyAgentData';
+import { dummyTeamData } from '../data/dummyTeamData';
 
 function LeaderDashboard() {
   // const [teamStats, setTeamStats] = useState({});
@@ -56,46 +56,27 @@ function LeaderDashboard() {
 
           {/* 1. Top Card - Personal Metrics Performance */}
 
-          <h1 className="font-sans ... text-2xl font-bold">My Dashboard</h1>
-
           <TopCard dummyAgentData={dummyAgentData} />
 
-          {/* 2. Bar Chart Card - Call Upload*/}
-
-          <CallUpload />
-
           {/* 3. Team Performance*/}
-
-          <h1 className="font-sans ... text-2xl font-bold">Agents Overview</h1>
 
           <PerformanceCard dummyAgentPerformance={dummyAgentPerformance} />
 
           {/* 4. Bottom Card */}
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* <!-- Main content spanning 2 columns --> */}
             <div className="col-span-2 card  bg-base-100 ">
               <BudgetBreakdown />
             </div>
 
-            {/* <!-- Main content spanning 2 columns --> */}
             <div className="col-span-2 card  bg-base-100">
               <LeadsByRegion />
             </div>
 
-            {/* <!-- Sidebar spanning 1 column --> */}
             <div className="col-span-1 card bg-base-100 ">
               <Objections />
             </div>
           </div>
-
-          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <BudgetBreakdown />
-
-            <Objections />
-
-            <LeadsByRegion />
-          </div> */}
         </div>
       </div>
     </>
