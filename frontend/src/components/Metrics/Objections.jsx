@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 
 function Objections({ objection }) {
+  const [issue, setIssues] = useState();
+
   if (!objection || objection.length === 0) {
     return (
       <div className="card bg-base-100 p-5">
@@ -13,35 +15,30 @@ function Objections({ objection }) {
       </div>
     );
   }
+
+  useEffect(() => {
+    const data = objection;
+    setIssues(data);
+  }, []);
+
+  return (
+    <div className="card bg-base-100   p-5">
+      <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
+        Top Objections
+      </h2>
+
+      {objection.map((item) => (
+        <div
+          key={item.objection_type}
+          className="badge badge-md badge-soft badge-error"
+          style={{ marginBottom: '10px' }}
+        >
+          {item.objection_type}
+          {/* <p>No Objections</p> */}
+        </div>
+      ))}
+    </div>
+  );
 }
-
-// useEffect(() => {
-//   const data = [
-//     "Too Expensive",
-//     "Not Interested",
-//     "Wrong Area",
-//     "Call Back Later",
-//     "Wrong Number",
-//   ];
-//   setIssues(data);
-// }, []);
-
-// return (
-//   <div className="card bg-base-100   p-5">
-//     <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
-//       Top Objections
-//     </h2>
-
-//     {objection.map((item, index) => (
-//       <div
-//         key={index}
-//         className="badge badge-md badge-soft badge-error"
-//         style={{ marginBottom: '10px' }}
-//       >
-//         {item.objection_type}
-//       </div>
-//     ))}
-//   </div>
-// );
 
 export default Objections;

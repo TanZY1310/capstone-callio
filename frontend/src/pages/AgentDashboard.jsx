@@ -5,51 +5,56 @@ import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
 import CallUpload from '../components/Metrics/CallUpload';
 import Header from '../components/Layout/Header';
 import Objections from '../components/Metrics/Objections';
+import ConversionFunnel from '../components/Metrics/FunnelCard.jsx';
 import axios from 'axios';
+import { useAuth } from '../hooks/useAuth.js';
+import FunnelCard from '../components/Metrics/FunnelCard.jsx';
 
 function AgentDashboard() {
   const [agent, setAgent] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // start TRUE
   const [error, setError] = useState(null);
 
   const API_URL = 'http://localhost:8000';
+  const { profile } = useAuth();
 
   useEffect(() => {
+    if (!profile?.user_id) return; // wait until profile is ready
+
     async function fetchKPIs() {
+      setLoading(true);
       try {
-        const response = await axios.get('${API_URL}/dashboard/agent'); //, {credentials: "include"})
-
-        if (!response.ok) {
-          throw new Error(`Server responded with ${response.status}`);
-        }
-
-        const data = await response.json();
-        setAgent(data);
+        const response = await axios.get(
+          `${API_URL}/dashboard/agent/${profile.user_id}`,
+        );
+        setAgent(response.data);
       } catch (err) {
         setError(err.message);
-        console.log('Error fetching books:', err);
+        console.log(err);
       } finally {
         setLoading(false);
       }
     }
-    fetchKPIs;
-  }, []);
+    fetchKPIs();
+  }, [profile]); // re-runs when profile loads
 
-  if (loading) {
+  console.log(agent);
+
+  if (loading)
     return (
-      <div className="card bg-base-100 border border-base-200 shadow-sm p-6">
+      <div className="card ...">
         <span className="loading loading-spinner loading-md"></span>
       </div>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
-      <div className="card bg-base-100 border border-error shadow-sm p-6">
+      <div className="card ...">
         <p className="text-error">Couldn't load dashboard stats: {error}</p>
       </div>
     );
-  }
+
+  if (!agent) return null; // belt-and-suspenders guard
 
   return (
     <>
@@ -95,12 +100,22 @@ function AgentDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* <!-- Main content spanning 2 columns --> */}
             <div className="col-span-2 card  bg-base-100 ">
-              <BudgetBreakdown />
+              {/* <BudgetBreakdown /> */}
+              <ConversionFunnel
+                stages={[
+                  { label: 'Total Leads', count: agent.kpis.leads },
+                  {
+                    label: 'Pending Follow-ups',
+                    count: agent.kpis.followUps,
+                  },
+                  { label: 'Appointments Set', count: agent.kpis.appointments },
+                ]}
+              />
             </div>
 
             {/* <!-- Main content spanning 2 columns --> */}
             <div className="col-span-2 card  bg-base-100">
-              <LeadsByRegion region={agent.total_region} />
+              <LeadsByRegion regions={agent.total_region} />
             </div>
 
             {/* <!-- Sidebar spanning 1 column --> */}
