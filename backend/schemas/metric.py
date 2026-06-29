@@ -42,7 +42,7 @@ class AgentTable(BaseModel):
 
 
 class LeaderDashboardResponse(BaseModel):
-    own_stats: AgentStats
+    
     total_agents: int
     team_calls: int
     team_followUp: int

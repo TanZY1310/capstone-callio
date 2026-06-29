@@ -105,7 +105,7 @@ function CallUpload({ daily_calls }) {
           maxRotation: 0,
         },
       },
-      y: { grid: { display: false }, min: 0 },
+      y: { grid: { display: false }, min: 0, ticks: { display: false } },
     },
 
     responsive: true,
@@ -124,13 +124,26 @@ function CallUpload({ daily_calls }) {
     <div className="card bg-base-100 border border-base-200 shadow-sm">
       <div className="card-body">
         <h2 className="card-title text-base-content">Daily Call Volume</h2>
+
         <p className="text-xs text-base-content/50">This Month</p>
+
         <div style={{ height: '300px' }}>
           <Line data={lineChart} options={chartOptions} />
         </div>
       </div>
     </div>
   );
+}
+
+// dropdown button code
+{
+  /* <div className="dropdown flex justify-end">
+  <div tabIndex={0} role="button" className="btn m-1">Click</div>
+  <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+    <li><a>Item 1</a></li>
+    <li><a>Item 2</a></li>
+  </ul>
+</div> */
 }
 
 export default CallUpload;

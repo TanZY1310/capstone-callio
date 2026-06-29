@@ -30,10 +30,14 @@ function LeadsByRegion({ regions }) {
           Team Regions Breakdown
         </h2>
 
-        <p className="text-base-content/60 text-sm">No region data yet.</p>
+        <p className="text-base-content/60 text-sm " style={{ padding: '5px' }}>
+          No region data yet.
+        </p>
       </div>
     );
   }
+
+  console.log(regions);
 
   // define your data into chart
   const chartBarAgent = {
@@ -66,7 +70,7 @@ function LeadsByRegion({ regions }) {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (item) => `${item.label} - ${item.raw}`,
+          label: (item) => ` ${item.raw}`,
         },
       },
     },

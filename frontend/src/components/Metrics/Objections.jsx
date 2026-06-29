@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 
 function Objections({ objection }) {
+  const [issue, setIssues] = useState();
+
   if (!objection || objection.length === 0) {
     return (
       <div className="card bg-base-100 p-5">
@@ -15,13 +17,7 @@ function Objections({ objection }) {
   }
 
   useEffect(() => {
-    const data = [
-      'Too Expensive',
-      'Not Interested',
-      'Wrong Area',
-      'Call Back Later',
-      'Wrong Number',
-    ];
+    const data = objection;
     setIssues(data);
   }, []);
 
@@ -31,14 +27,14 @@ function Objections({ objection }) {
         Top Objections
       </h2>
 
-      {objection.map((item, index) => (
+      {objection.map((item) => (
         <div
-          key={index}
+          key={item.objection_type}
           className="badge badge-md badge-soft badge-error"
           style={{ marginBottom: '10px' }}
         >
-          {/* {item.objection_type} */}
-          <p>No Objections</p>
+          {item.objection_type}
+          {/* <p>No Objections</p> */}
         </div>
       ))}
     </div>

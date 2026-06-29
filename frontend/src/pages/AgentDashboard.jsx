@@ -5,8 +5,10 @@ import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
 import CallUpload from '../components/Metrics/CallUpload';
 import Header from '../components/Layout/Header';
 import Objections from '../components/Metrics/Objections';
+import ConversionFunnel from '../components/Metrics/FunnelCard.jsx';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth.js';
+import FunnelCard from '../components/Metrics/FunnelCard.jsx';
 
 function AgentDashboard() {
   const [agent, setAgent] = useState(null);
@@ -25,17 +27,18 @@ function AgentDashboard() {
         const response = await axios.get(
           `${API_URL}/dashboard/agent/${profile.user_id}`,
         );
-        // ^ use your real endpoint - sounds like it's /dashboard/agent per your backend,
-        //   not /dashboard/{userID} — role comes from the session, not the URL
         setAgent(response.data);
       } catch (err) {
         setError(err.message);
+        console.log(err);
       } finally {
         setLoading(false);
       }
     }
-    fetchKPIs(); // <-- called now
-  }, [profile]); // <-- re-runs when profile loads
+    fetchKPIs();
+  }, [profile]); // re-runs when profile loads
+
+  console.log(agent);
 
   if (loading)
     return (
@@ -43,12 +46,14 @@ function AgentDashboard() {
         <span className="loading loading-spinner loading-md"></span>
       </div>
     );
+
   if (error)
     return (
       <div className="card ...">
         <p className="text-error">Couldn't load dashboard stats: {error}</p>
       </div>
     );
+
   if (!agent) return null; // belt-and-suspenders guard
 
   return (
@@ -95,12 +100,22 @@ function AgentDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* <!-- Main content spanning 2 columns --> */}
             <div className="col-span-2 card  bg-base-100 ">
-              <BudgetBreakdown />
+              {/* <BudgetBreakdown /> */}
+              <ConversionFunnel
+                stages={[
+                  { label: 'Total Leads', count: agent.kpis.leads },
+                  {
+                    label: 'Pending Follow-ups',
+                    count: agent.kpis.followUps,
+                  },
+                  { label: 'Appointments Set', count: agent.kpis.appointments },
+                ]}
+              />
             </div>
 
             {/* <!-- Main content spanning 2 columns --> */}
             <div className="col-span-2 card  bg-base-100">
-              <LeadsByRegion region={agent.total_region} />
+              <LeadsByRegion regions={agent.total_region} />
             </div>
 
             {/* <!-- Sidebar spanning 1 column --> */}

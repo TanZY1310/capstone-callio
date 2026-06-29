@@ -82,7 +82,7 @@ def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
     
     total_appointments = ( db.query(func.count(Customers.cust_id))
                           .filter(Customers.user_id == user_id)
-                          .filter(Customers.status == "appoinment")
+                          .filter(Customers.status == "appointment")
                           .scalar() or 0
                           )
     
@@ -155,7 +155,11 @@ def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role: str):
     if user_role !=  UserRole.TEAM_LEAD:
         raise HTTPException(status_code= 400, detail= "Leader access only")
     
-    team_members = db.query(Users).filter(Users.mana)
+    team_members = db.query(Users).filter(Users.manager_id == user_id).all()
+    team_ids = [m.user_id for m in team_members]
+
+
+    
 
     
 
@@ -240,58 +244,6 @@ def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role: str):
 #                   .all()
 #                   )
     
-    
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -352,36 +304,3 @@ def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role: str):
 
 
     
-
-# @router.get("/agent/{user_id}/customers", response_model=List[CustomerOut])
-# def agent_customers(
-#     user_id: int,
-#     db:      Session = Depends(get_db),
-# ):
-#     """
-#     Returns the customer list for this agent.
-#     Optionally filtered by status.
- 
-#     React calls:
-#       GET /dashboard/agent/1/customers              → all customers
-#       GET /dashboard/agent/1/customers?status=follow_up  → only follow-ups
-#       GET /dashboard/agent/1/customers?status=appointment → only appointments
-#     """
-#     get_user(db, user_id)
- 
-#     query = db.query(Customers).filter(Customers.user_id == user_id)
- 
-#     # If a status filter was provided, validate it and apply it
-#     if status:
-#         try:
-#             # StatusEnum(status) validates the value.
-#             # If status = "blah", this raises ValueError → caught below → 400 error
-#             query = query.filter(Customers.status == StatusEnum(status))
-#         except ValueError:
-#             valid = [s.value for s in StatusEnum]
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail=f"Invalid status '{status}'. Valid values: {valid}",
-#             )
- 
-#     return query.order_by(Customers.last_contact.desc()).all()
