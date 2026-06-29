@@ -74,7 +74,6 @@ function App() {
               <Route path="team-dashboard" element={<LeaderDashboard />} />
               <Route path="speech" element={<Speech />} />
               <Route path="profile" element={<UserProfile />} />
-              <Route path="profile/*" element={<UserProfile />} />
               <Route path="profile-setting" element={<ProfileSetting />} />
             </Route>
           </Routes>
