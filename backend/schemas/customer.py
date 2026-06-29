@@ -44,3 +44,7 @@ class SyncResult(BaseModel):
     synced: int
     skipped: int
     total: int
+
+class ChangesResponse(BaseModel):
+    count: int
+    updated_ids: list[uuid.UUID]

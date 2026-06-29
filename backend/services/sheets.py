@@ -1,5 +1,4 @@
 import json
-import os
 import uuid
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -7,7 +6,7 @@ from googleapiclient.errors import HttpError
 from fastapi import HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from database import db_dependency
 from models.customer import Customers
@@ -100,6 +99,7 @@ async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> S
                     "location": validated.location,
                     "status": validated.status or "Not Yet Call",
                     "last_contact": validated.last_contact,
+                    "updated_at": func.now(),
                 },
             )
         )

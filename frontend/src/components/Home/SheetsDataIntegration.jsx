@@ -10,16 +10,17 @@ function SheetsDataIntegration({
   changedRecords = [],
   onExport,
   hasExistingData,
+  pendingCount = 0,
 }) {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
 
   const handleImport = async () => {
-    if (changedRecords.length > 0) {
+    if (pendingCount > 0) {
       const msg =
-        `You have ${changedRecords.length} unsaved change${changedRecords.length > 1 ? 's' : ''}. ` +
-        'Importing will discard them. Continue?';
+        `You have ${pendingCount} unsaved change${pendingCount > 1 ? 's' : ''}. ` +
+        'Importing may overwrite local changes. Continue?';
       if (!window.confirm(msg)) return;
     }
     setImporting(true);
@@ -85,11 +86,9 @@ function SheetsDataIntegration({
               </p>
             </div>
           </div>
-          {/* ✅ Badge showing pending changes */}
-          {changedRecords.length > 0 && (
+          {pendingCount > 0 && (
             <span className="badge badge-warning badge-sm">
-              {changedRecords.length} unsaved change
-              {changedRecords.length > 1 ? 's' : ''}
+              {pendingCount} unsaved change{pendingCount > 1 ? 's' : ''}
             </span>
           )}
         </div>
@@ -117,16 +116,16 @@ function SheetsDataIntegration({
           {/* Export — opens modal */}
           <button
             className="btn btn-warning flex-1"
-            disabled={changedRecords.length === 0 || exporting}
+            disabled={exporting}
             onClick={() =>
               document.getElementById('export_confirm_modal').showModal()
             }
           >
             <RefreshCw size={15} />
             Upload To Google Sheets
-            {changedRecords.length > 0 && (
+            {pendingCount > 0 && (
               <span className="badge badge-warning badge-sm ml-1">
-                {changedRecords.length}
+                {pendingCount}
               </span>
             )}
           </button>
@@ -139,42 +138,44 @@ function SheetsDataIntegration({
             Confirm Export
           </h3>
           <p className="text-sm text-base-content/50 mb-4">
-            The following {changedRecords.length} record
-            {changedRecords.length > 1 ? 's' : ''} will be updated in Google
-            Sheets:
+            {changedRecords.length > 0
+              ? `The following ${changedRecords.length} record${changedRecords.length > 1 ? 's' : ''} with status changes will be synced to Google Sheets:`
+              : `${pendingCount} record${pendingCount > 1 ? 's' : ''} pending export will be synced to Google Sheets.`}
           </p>
 
-          {/* Summary table */}
-          <div className="overflow-x-auto max-h-64">
-            <table className="table table-sm w-full">
-              <thead>
-                <tr className="text-xs text-base-content/40">
-                  <th>Customer</th>
-                  <th>Previous Status</th>
-                  <th>New Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {changedRecords.map((record) => (
-                  <tr key={record.cust_id}>
-                    <td className="text-sm font-medium text-base-content">
-                      {record.cust_name}
-                    </td>
-                    <td>
-                      <span className="badge badge-ghost badge-sm">
-                        {record.originalStatus || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-warning badge-sm">
-                        {record.newStatus}
-                      </span>
-                    </td>
+          {/* Summary table — only show when there are local status changes */}
+          {changedRecords.length > 0 && (
+            <div className="overflow-x-auto max-h-64">
+              <table className="table table-sm w-full">
+                <thead>
+                  <tr className="text-xs text-base-content/40">
+                    <th>Customer</th>
+                    <th>Previous Status</th>
+                    <th>New Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {changedRecords.map((record) => (
+                    <tr key={record.cust_id}>
+                      <td className="text-sm font-medium text-base-content">
+                        {record.cust_name}
+                      </td>
+                      <td>
+                        <span className="badge badge-ghost badge-sm">
+                          {record.originalStatus || '—'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge badge-warning badge-sm">
+                          {record.newStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="modal-action">
             <form method="dialog">
