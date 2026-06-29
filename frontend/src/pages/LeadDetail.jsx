@@ -3,6 +3,7 @@ import ContactInfo from '../components/LeadWhatsapp/ContactInfo.jsx';
 import ConvoHistory from '../components/LeadWhatsapp/ConvoHistory.jsx';
 import LeadHeader from '../components/LeadWhatsapp/LeadHeader.jsx';
 import StatusCards from '../components/Home/StatusCards.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 import { statusList } from '../data/statusList.js';
 import { useState, useEffect, useRef } from 'react';
 import { getAuthHeader } from '../utils/getAuthHeader';
@@ -31,7 +32,7 @@ function LeadDetail() {
     ],
   });
 
-  const FASTAPI_BASE_URL = "http://127.0.0.1:8000/whatsapp";
+  const FASTAPI_BASE_URL = 'http://127.0.0.1:8000/whatsapp';
   const API_URL = import.meta.env.VITE_API_URL;
   const { state } = useLocation();
   const inputRef = useRef(null);
@@ -46,22 +47,28 @@ function LeadDetail() {
     whatsapp: { connectionStatus: STATUS_NAME.NOT_CONNECTED, lastSync: null },
   });
 
+  const { profile } = useAuth();
+
   // Load user from navigation state
   useEffect(() => {
     const loading = async () => {
       const customer = state?.customer;
-      const usersResponse = await axios.get(`${FASTAPI_BASE_URL}/details/all`);
+      if (!profile?.user_id) return; // wait until profile is ready
+      // const agent = profile.user_id;
+      const usersResponse = await axios.get(
+        `${FASTAPI_BASE_URL}/details/all/${profile.user_id}`,
+      );
       const users = await usersResponse.data;
       const customerFound = customer
         ? users.find((u) => u.cust_id === customer.cust_id)
         : users[0];
       setUsers(users);
       setShowUser(customerFound ?? users[0]);
-      console.log(customerFound);}
+      console.log(customerFound);
+    };
 
     loading();
-
-  }, [state]);
+  }, [state, profile]);
 
   // Load chat history when user changes
   useEffect(() => {
@@ -69,9 +76,11 @@ function LeadDetail() {
 
     const fetchChatHistory = async () => {
       try {
-        const response = await axios.get(`${FASTAPI_BASE_URL}/history/${showUser.cust_id}`);
+        const response = await axios.get(
+          `${FASTAPI_BASE_URL}/history/${showUser.cust_id}`,
+        );
         const data = await response.data;
-        console.log(JSON.stringify(data,null,2));
+        console.log(JSON.stringify(data, null, 2));
         setMessages(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Failed to fetch WhatsApp history:', error);
@@ -133,7 +142,9 @@ function LeadDetail() {
     const text = inputRef.current?.value.trim();
     if (!text) return;
 
-    await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {message:text});
+    await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {
+      message: text,
+    });
 
     setMessages((prev) => [
       ...prev,
@@ -156,21 +167,23 @@ function LeadDetail() {
     e.preventDefault();
     const text = inputRef.current?.value.trim();
     if (!text) return;
-      await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {message:text});
+    await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {
+      message: text,
+    });
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `local_${Date.now()}`,
-          body: text, // "body" not "content" — matches API response shape
-          timestamp: Math.floor(Date.now() / 1000), // Unix epoch seconds, not ISO string
-          fromMe: true, // "fromMe" not "role" — matches API response shape
-          type: 'chat',
-          hasMedia: false,
-        },
-      ]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `local_${Date.now()}`,
+        body: text, // "body" not "content" — matches API response shape
+        timestamp: Math.floor(Date.now() / 1000), // Unix epoch seconds, not ISO string
+        fromMe: true, // "fromMe" not "role" — matches API response shape
+        type: 'chat',
+        hasMedia: false,
+      },
+    ]);
 
-      inputRef.current.value = '';
+    inputRef.current.value = '';
   };
 
   // Called by AIResponseReview Edit button, need to hit DB
@@ -181,8 +194,10 @@ function LeadDetail() {
   };
   // Called by AIResponseReview Confirm button
   const handleConfirmAIResponse = async (content) => {
-
-    await axios.post(`${FASTAPI_BASE_URL}/send/00000000-0000-0000-0000-000000000067`, {message:content});
+    await axios.post(
+      `${FASTAPI_BASE_URL}/send/00000000-0000-0000-0000-000000000067`,
+      { message: content },
+    );
     setMessages((prev) => [
       ...prev,
       {
@@ -214,12 +229,16 @@ function LeadDetail() {
 
   const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
-    setShowUser(prev => ({...prev, status: newStatus}));
+    setShowUser((prev) => ({ ...prev, status: newStatus }));
     try {
       const headers = await getAuthHeader();
-      await axios.patch(`${API_URL}/customers/batch-status`, {
-        updates: [{ cust_id: showUser.cust_id, status: newStatus }]
-      }, { headers });
+      await axios.patch(
+        `${API_URL}/customers/batch-status`,
+        {
+          updates: [{ cust_id: showUser.cust_id, status: newStatus }],
+        },
+        { headers },
+      );
     } catch (err) {
       console.error('Failed to update status:', err);
     }
@@ -236,9 +255,10 @@ function LeadDetail() {
         <div className="grid grid-cols-[240px_1fr] gap-4 items-start">
           <ContactInfo
             user={showUser}
-            onLocationChange = {handleLocationChange}
-            onStatusChange = {handleStatusChange}
-            statusList = {statusList} />
+            onLocationChange={handleLocationChange}
+            onStatusChange={handleStatusChange}
+            statusList={statusList}
+          />
           <div className="flex flex-col gap-3">
             <StatusCards
               platformName="whatsapp"
@@ -255,7 +275,9 @@ function LeadDetail() {
             ) : (
               <div className="card bg-base-100 shadow-sm p-6 text-center">
                 <h2 className="font-semibold">Not Connected to WhatsApp</h2>
-                <p className="text-sm text-base-content/50 mt-1">Connect above to view conversation history.</p>
+                <p className="text-sm text-base-content/50 mt-1">
+                  Connect above to view conversation history.
+                </p>
               </div>
             )}
           </div>
@@ -269,14 +291,20 @@ function LeadDetail() {
         )}
       </div>
 
-      {/* QR modal — overlays everything, doesn't replace anything */} 
+      {/* QR modal — overlays everything, doesn't replace anything */}
       {showQrModal && (
         <dialog className="modal modal-open">
           <div className="modal-box items-center text-center">
             <h3 className="font-bold text-lg">Scan QR Code</h3>
-            <p className="py-2">Open WhatsApp → Linked Devices → Link a Device</p>
+            <p className="py-2">
+              Open WhatsApp → Linked Devices → Link a Device
+            </p>
             {qrCode ? (
-              <img src={qrCode} alt="WhatsApp QR" className="mx-auto w-64 h-64" />
+              <img
+                src={qrCode}
+                alt="WhatsApp QR"
+                className="mx-auto w-64 h-64"
+              />
             ) : (
               <span className="loading loading-spinner loading-lg" />
             )}
