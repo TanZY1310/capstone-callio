@@ -42,6 +42,9 @@ function SocialCard() {
         throw new Error(res.data.message || 'Account failed to link, Please try again');
       }
 
+      // Add a 2-second delay to keep the loading animation visible
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       console.log('Linked Succesfully');
       setIsLinked(true);
       setNotification(true);
