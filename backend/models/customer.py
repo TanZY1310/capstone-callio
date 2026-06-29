@@ -19,6 +19,12 @@ class Customers(Base):
     status: Mapped[str] = mapped_column(String(100), nullable=False)
     last_contact: Mapped[datetime | None] = mapped_column(DateTime, onupdate=func.now(), nullable=True) #For datetime can be empty but should update based on status change or other triggers
     remarks: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=True,
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.user_id"),     # FK to user_id

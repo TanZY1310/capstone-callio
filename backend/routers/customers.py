@@ -1,9 +1,10 @@
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, HTTPException, Depends, Query
 from database import db_dependency
 from models.customer import Customers
-from schemas.customer import CustomerResponse, BatchStatusUpdate
+from schemas.customer import CustomerResponse, BatchStatusUpdate, ChangesResponse
 import uuid
-from typing import Annotated
+from typing import Annotated, Optional
+from datetime import datetime
 from sqlalchemy.sql import func
 from routers.auth import verify_firebase_token
 from services.auth_helper import resolve_user_id
@@ -30,6 +31,28 @@ async def get_customers(
         return customers
     
     raise HTTPException(status_code=400, detail="Customers not found")
+
+@router.get("/changes", response_model=ChangesResponse, status_code=status.HTTP_200_OK)
+async def get_changed_customers(
+    db: db_dependency,
+    current_user: Annotated[dict, Depends(verify_firebase_token)],
+    since: Optional[datetime] = Query(None, description="Return records updated after this ISO timestamp"),
+) -> ChangesResponse:
+    user_id = await resolve_user_id(db, current_user["uid"])
+
+    if since is None:
+        return ChangesResponse(count=0, updated_ids=[])
+
+    customers = (
+        db.query(Customers.cust_id)
+        .filter(
+            Customers.user_id == user_id,
+            Customers.updated_at > since,
+        )
+        .all()
+    )
+    ids = [row[0] for row in customers]
+    return ChangesResponse(count=len(ids), updated_ids=ids)
 
 # For updating status in customer listings page
 @router.patch("/batch-status", status_code=status.HTTP_200_OK)

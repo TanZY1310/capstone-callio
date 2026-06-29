@@ -25,8 +25,26 @@ function HomePage() {
   const [changedRecords, setChangedRecords] = useState([]);
   const [commitVersion, setCommitVersion] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [remoteChanges, setRemoteChanges] = useState([]);
 
   const API_URL = import.meta.env.VITE_API_URL;
+
+  const pendingCount = changedRecords.length + remoteChanges.length;
+
+  const fetchRemoteChanges = async () => {
+    if (!lastSyncedAt) return;
+    try {
+      const headers = await getAuthHeader();
+      const res = await axios.get(`${API_URL}/customers/changes`, {
+        headers,
+        params: { since: lastSyncedAt },
+      });
+      setRemoteChanges(res.data.updated_ids || []);
+    } catch {
+      // silent — non-critical background poll
+    }
+  };
 
   const handleUpdateStatus = () => {
     setPlatformStatus((prev) => ({
@@ -57,6 +75,7 @@ function HomePage() {
 
         if (customerResponse.data.length > 0) {
           setCustomerData(customerResponse.data);
+          setLastSyncedAt(new Date().toISOString());
         }
       } catch (err) {
         toast.error(err.message);
@@ -66,6 +85,12 @@ function HomePage() {
     };
     initialize();
   }, []);
+
+  useEffect(() => {
+    fetchRemoteChanges();
+    const interval = setInterval(fetchRemoteChanges, 15_000);
+    return () => clearInterval(interval);
+  }, [lastSyncedAt]);
 
   const handleImport = async () => {
     const response = await axios.post(
@@ -81,6 +106,8 @@ function HomePage() {
     setCustomerData(customerResponse.data);
 
     setChangedRecords([]);
+    setRemoteChanges([]);
+    setLastSyncedAt(new Date().toISOString());
     handleUpdateStatus();
   };
 
@@ -106,7 +133,9 @@ function HomePage() {
       await axios.post(`${API_URL}/sheets/export`, {}, { headers });
 
       setChangedRecords([]);
+      setRemoteChanges([]);
       setCommitVersion((v) => v + 1);
+      setLastSyncedAt(new Date().toISOString());
       setPlatformStatus((prev) => ({
         ...prev,
         sheets: { ...prev.sheets, lastSync: Date.now() },
@@ -161,7 +190,7 @@ function HomePage() {
                   Pending Sync Changes
                 </p>
                 <h3 className="text-2xl font-bold text-warning">
-                  {changedRecords.length}{' '}
+                  {pendingCount}{' '}
                   <span className="text-xs font-normal text-base-content/40">
                     Records
                   </span>
@@ -184,6 +213,7 @@ function HomePage() {
                 onExport={handleExport}
                 isConnected={isConnected}
                 hasExistingData={customerData?.length > 0}
+                pendingCount={pendingCount}
               />
             </div>
           </div>
