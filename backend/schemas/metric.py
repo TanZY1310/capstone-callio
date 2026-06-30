@@ -11,6 +11,7 @@ class AgentStats(BaseModel):
     leads: int
     followUps: int
     appointments: int
+    bookings: int
 
 class DailyCallCount(BaseModel):
     call_date: date
@@ -47,12 +48,13 @@ class TeamStats(BaseModel):
     team_kpis: AgentStats
     team_regions: list[RegionCount]
     team_objections: list[ObjectionCount]
+    
 
 
 class LeaderDashboardResponse(BaseModel):
     # total_agents: int
     # team_calls: int
-    # team_appoinments: int
+    # team_appointments: int
     total_agents: int
     team_stats: TeamStats
     team_overview: list[AgentTable]
@@ -60,35 +62,7 @@ class LeaderDashboardResponse(BaseModel):
 
 
 
-# # finalise
-# class LeaderDashboardResponse(BaseModel):
-#     own_stats: AgentStats
-#     team_stats: TeamOverviewResponse
 
-
-
-
-# class AgentDashboardStats(BaseModel): 
-#     total_calls: int
-#     total_leads: int
-#     total_region: str
-#     follow_ups: int
-#     appoinment_sets: int
-#     call_weekly: list[dict]
-
-# # for table agent overview
-# class AgentTable(BaseModel):
-#     agent_name: str
-#     total_calls: int
-#     total_leads: int
-#     total_region: str
-#     follow_ups: int
-#     appoinment_sets: int
-    
-# class LeaderStats(BaseModel):
-#     total_agents: int
-#     agent_overview: list[AgentTable]
-    
 
 
 
