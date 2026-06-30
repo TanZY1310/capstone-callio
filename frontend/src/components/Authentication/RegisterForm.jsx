@@ -16,9 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from '../../utils/api';
 
 const initialState = {
   first_name: '',
@@ -122,7 +120,7 @@ function RegisterForm() {
     if (state.role === 'agent') {
       const fetchTeamLeads = async () => {
         try {
-          const { data } = await axios.get(`${API_URL}/users/team-leads`);
+          const { data } = await api.get('/users/team-leads');
           setTeamLead(data);
         } catch {
           console.error('Failed to fetch team leads');
@@ -186,12 +184,10 @@ function RegisterForm() {
     });
   };
 
-  const registerUserProfile = async (payload, token) => {
+  const registerUserProfile = async (payload) => {
     for (let i = 0; i < 3; i++) {
       try {
-        return await axios.post(`${API_URL}/auth/register`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        return await api.post('/auth/register', payload);
       } catch (err) {
         if (err.response?.status === 401 && i < 2) {
           await new Promise((r) => setTimeout(r, 1000));
@@ -224,26 +220,20 @@ function RegisterForm() {
         displayName: `${state.first_name} ${state.last_name}`,
       });
 
-      // Get ID token
-      const idToken = await userCredential.user.getIdToken(true);
-
       // Create DB profile backend (with retry on 401)
-      const registerResponse = await registerUserProfile(
-        {
-          first_name: state.first_name,
-          last_name: state.last_name,
-          role: state.role,
-          email: state.email,
-          password: state.password,
-          registered_year: state.registered_year
-            ? parseInt(state.registered_year)
-            : null,
-          license_number: state.license_number || null,
-          agency_branch: state.agency_branch || null,
-          team_lead_id: state.team_lead_id || null,
-        },
-        idToken,
-      );
+      const registerResponse = await registerUserProfile({
+        first_name: state.first_name,
+        last_name: state.last_name,
+        role: state.role,
+        email: state.email,
+        password: state.password,
+        registered_year: state.registered_year
+          ? parseInt(state.registered_year)
+          : null,
+        license_number: state.license_number || null,
+        agency_branch: state.agency_branch || null,
+        team_lead_id: state.team_lead_id || null,
+      });
 
       console.log('Register response:', registerResponse.data);
       localStorage.setItem(
