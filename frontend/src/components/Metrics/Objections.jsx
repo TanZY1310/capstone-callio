@@ -9,7 +9,7 @@ function Objections({ objection }) {
         <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
           Top Objections
         </h2>
-        <p className="text-base-content/60 text-sm">
+        <p className="text-base-content/60 text-sm" style={{ padding: '5px' }}>
           No objections logged yet.
         </p>
       </div>

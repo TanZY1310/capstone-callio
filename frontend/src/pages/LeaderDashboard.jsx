@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import TopCard from '../components/Metrics/TopCard';
 import PerformanceCard from '../components/Metrics/PerformanceCard';
 import ConversionFunnel from '../components/Metrics/ConversionFunnel';
-import TeamFunnelCard from '../components/Metrics/TeamFunnelCard';
+// import TeamFunnelCard from '../components/Metrics/TeamFunnelCard';
 import Objections from '../components/Metrics/Objections';
 import LeadsByRegion from '../components/Metrics/LeadsByRegion';
 import Header from '../components/Layout/Header';
