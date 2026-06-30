@@ -52,11 +52,8 @@ function SheetsCard() {
     try {
       if (user) {
         await api.put('/user_profile/', { sheets_id: sheetsId });
-
-        const syncResponse = await api.post('/sheets/sync', {});
-        
         setIsLinked(true);
-        toast.success(`Sync successful: ${syncResponse.data.synced} synced, ${syncResponse.data.skipped} skipped`);
+        toast.success(`Sync successful`);
       }
 
       // Format current time: YYYY-MM-DD HH:mm:ss
