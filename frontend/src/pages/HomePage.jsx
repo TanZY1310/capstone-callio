@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CustomerListings from '../components/Home/CustomerListings';
 import SheetsDataIntegration from '../components/Home/SheetsDataIntegration';
 import StatusCards from '../components/Home/StatusCards';
@@ -6,9 +6,12 @@ import Header from '../components/Layout/Header';
 import { STATUS_NAME } from '../data/constants';
 import { motion } from 'motion/react';
 import { Users, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import api from '../utils/api';
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
+  const [initialLoading, setInitialLoading] = useState(true);
   //Status Card
   const [platformStatus, setPlatformStatus] = useState({
     sheets: {
@@ -18,25 +21,23 @@ function HomePage() {
   });
   //Summary Changed Records
   const [changedRecords, setChangedRecords] = useState([]);
+  const [commitVersion, setCommitVersion] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [remoteChanges, setRemoteChanges] = useState([]);
 
-  const handleImport = (data) => {
-    setCustomerData(data);
-    setChangedRecords([]); //Reset change records after import
-    //Update status after import
-    handleUpdateStatus();
-  };
+  const pendingCount = changedRecords.length + remoteChanges.length;
 
-  const handleDataChange = (changed) => {
-    setChangedRecords(changed);
-  };
-
-  const handleExport = () => {
-    setChangedRecords([]); //Clear change records after export
-    setPlatformStatus((prev) => ({
-      ...prev,
-      sheets: { ...prev.sheets, lastSync: Date.now() },
-    }));
+  const fetchRemoteChanges = async () => {
+    if (!lastSyncedAt) return;
+    try {
+      const res = await api.get('/customers/changes', {
+        params: { since: lastSyncedAt },
+      });
+      setRemoteChanges(res.data.updated_ids || []);
+    } catch {
+      // silent — non-critical background poll
+    }
   };
 
   const handleUpdateStatus = () => {
@@ -49,6 +50,87 @@ function HomePage() {
     }));
     setIsConnected(true);
   };
+
+ 
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        const [customerResponse, sheetsStatusResponse] = await Promise.all([
+          api.get('/customers'),
+          api.get('/sheets/status'),
+        ]);
+
+        // Set status based on connection
+        if (sheetsStatusResponse.data.connected) {
+          console.log('Google Sheets Connected!');
+          handleUpdateStatus();
+        }
+
+        if (customerResponse.data.length > 0) {
+          setCustomerData(customerResponse.data);
+          setLastSyncedAt(new Date().toISOString());
+        }
+      } catch (err) {
+        toast.error(err.message);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    initialize();
+  }, []);
+
+  useEffect(() => {
+    fetchRemoteChanges();
+    const interval = setInterval(fetchRemoteChanges, 15_000);
+    return () => clearInterval(interval);
+  }, [lastSyncedAt]);
+
+  const handleImport = async () => {
+    await api.post('/sheets/sync', {});
+
+    const customerResponse = await api.get('/customers');
+    setCustomerData(customerResponse.data);
+
+    setChangedRecords([]);
+    setRemoteChanges([]);
+    setLastSyncedAt(new Date().toISOString());
+    handleUpdateStatus();
+  };
+
+  const handleDataChange = (changed) => {
+    setChangedRecords(changed);
+  };
+
+  const handleExport = async () => {
+    try {
+      await api.patch('/customers/batch-status', {
+        updates: changedRecords.map((r) => ({
+          cust_id: r.cust_id,
+          status: r.newStatus,
+        })),
+      });
+
+      await api.post('/sheets/export', {});
+
+      setChangedRecords([]);
+      setRemoteChanges([]);
+      setCommitVersion((v) => v + 1);
+      setLastSyncedAt(new Date().toISOString());
+      setPlatformStatus((prev) => ({
+        ...prev,
+        sheets: { ...prev.sheets, lastSync: Date.now() },
+      }));
+    } catch (err) {
+      toast.error('Failed to export customers.', err.message);
+    }
+  };
+
+  if (initialLoading)
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-base-200/50">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
 
   return (
     <>
@@ -95,7 +177,7 @@ function HomePage() {
                   Pending Sync Changes
                 </p>
                 <h3 className="text-2xl font-bold text-warning">
-                  {changedRecords.length}{' '}
+                  {pendingCount}{' '}
                   <span className="text-xs font-normal text-base-content/40">
                     Records
                   </span>
@@ -117,18 +199,16 @@ function HomePage() {
                 changedRecords={changedRecords}
                 onExport={handleExport}
                 isConnected={isConnected}
+                hasExistingData={customerData?.length > 0}
+                pendingCount={pendingCount}
               />
             </div>
-            {/* <StatusCards
-              platformName="sheets"
-              status={platformStatus.sheets}
-              onUpdate={handleUpdateStatus}
-            /> */}
           </div>
           {/* Pass actual state value as prop to table */}
           <CustomerListings
             customerData={customerData}
             onDataChange={handleDataChange}
+            commitVersion={commitVersion}
           />
         </motion.div>
       </div>

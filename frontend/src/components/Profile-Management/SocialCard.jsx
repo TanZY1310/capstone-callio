@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import axios from 'axios';
 import wsLogo from '../../assets/Whatsapp.png';
 // import loadimg from "../../assets/loading.lottie";
 
@@ -7,23 +8,48 @@ function SocialCard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(false);
+  const [isLinked, setIsLinked] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/whatsapp/status`);
+        if (res.data && res.data.status === 'connected') {
+          setIsLinked(true);
+        } else {
+          setIsLinked(false);
+        }
+      } catch (err) {
+        setIsLinked(false);
+        console.error('Failed to fetch initial WhatsApp status:', err);
+      }
+    };
+    
+    fetchStatus();
+  }, [API_URL]);
 
   const link = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      //simulate API calling
+      const res = await axios.post(`${API_URL}/whatsapp/connect`);
+      
+      // The backend returns a JSON with an explicit error status if Node.js fails 
+      if (res.data && res.data.status === 'error') {
+        throw new Error(res.data.message || 'Account failed to link, Please try again');
+      }
+
+      // Add a 2-second delay to keep the loading animation visible
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      if (Math.random() > 0.3) {
-        console.log('Linked Succesfully');
-        setNotification(true);
-      } else {
-        throw new Error('Account failed to linked, Please try again');
-      }
+      console.log('Linked Succesfully');
+      setIsLinked(true);
+      setNotification(true);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message || 'Account failed to link, Please try again');
     } finally {
       setIsLoading(false);
     }
@@ -42,8 +68,8 @@ function SocialCard() {
   return (
     <div>
       {/* Main DaisyUI Card Component */}
-      <div className="card w-full bg-base-100 border border-neutral-200 shadow-sm h-full backdrop-blur-md">
-        <div className="card-body p-8 gap-6">
+      <div className="card w-full bg-base-100 border border-base-200 shadow-sm h-full backdrop-blur-md">
+        <div className="card-body p-6 gap-5">
           {/* Header Section */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -63,51 +89,40 @@ function SocialCard() {
             </div>
 
             {/* Status Badge */}
-            <span className="badge badge-neutral badge-outline py-3 text-xs uppercase font-mono tracking-wider">
-              Disconnected
+            <span
+              className={`badge ${isLinked ? 'badge-success text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
+            >
+              {isLinked ? 'Connected' : 'Disconnected'}
             </span>
           </div>
 
-          {/* FIX: Set to flex layout container so all components scale 100% horizontally */}
-          <div className="flex flex-col gap-4">
-            {/* Account ID Field */}
-            <div className="form-control w-full">
-              <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
-                Account ID
-              </label>
+          {/* Account ID Field */}
+          <div className="form-control w-full">
+            <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
+              Account ID
+            </label>
+            <input
+              type="text"
+              placeholder="Enter Business ID"
+              className="input input-bordered w-full text-sm"
+            />
+          </div>
+
+          {/* Form Checkbox Control */}
+          <div className="form-control">
+            <label className="label cursor-pointer justify-start gap-3 p-0">
               <input
-                type="text"
-                placeholder="Enter Business ID"
-                className="input input-bordered w-full text-sm"
+                type="checkbox"
+                className="checkbox checkbox-success checkbox-sm rounded"
               />
-            </div>
-
-            {/* Message Template Select Dropdown */}
-            <div className="form-control w-full">
-              <label className="label text-[10px] font-bold uppercase tracking-wider text-base-content/40 p-0 mb-1.5">
-                Message Template
-              </label>
-              <select className="select select-bordered w-full text-sm font-normal">
-                <option>New Lead Greeting</option>
-              </select>
-            </div>
-
-            {/* Form Checkbox Control */}
-            <div className="form-control mt-1">
-              <label className="label cursor-pointer justify-start gap-3 p-0">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-success checkbox-sm rounded"
-                />
-                <span className="label-text text-xs text-base-content/80">
-                  Enable AI Auto-responder
-                </span>
-              </label>
-            </div>
+              <span className="label-text text-xs text-base-content/80">
+                Enable AI Auto-responder
+              </span>
+            </label>
           </div>
 
           {/* Primary CTA Action Button */}
-          <div className="card-actions mt-auto pt-2">
+          <div className="card-actions mt-auto">
             <button
               className="btn btn-success text-white w-full normal-case font-medium gap-2 shadow-sm"
               onClick={handleLinkAccount}
@@ -192,9 +207,7 @@ function SocialCard() {
               <p className="text-sm font-medium text-error/80 bg-error/5 py-2 rounded-lg border border-error/10">
                 {error}
               </p>
-              <p className="text-xs text-base-content/50">
-                Please verify your inputs and try again.
-              </p>
+             
             </div>
           )}
 
@@ -202,7 +215,7 @@ function SocialCard() {
           <div className="modal-action justify-center mt-6">
             <form method="dialog">
               <button
-                className={`btn min-w-30 ${notification && !error ? 'btn-success text-white' : 'btn-ghost border border-neutral-300'}`}
+                className={`btn min-w-30 ${notification && !error ? 'btn-success text-white' : 'btn-ghost border border-base-300'}`}
                 onClick={handleClose}
                 disabled={isLoading}
               >

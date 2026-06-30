@@ -22,7 +22,7 @@ const formatDate = (dateStr) => {
   });
 };
 
-function CustomerListings({ customerData, onDataChange }) {
+function CustomerListings({ customerData, onDataChange, commitVersion }) {
   const [customers, setCustomers] = useState([]);
   const [originalStatus, setOriginalStatus] = useState({});
   const [loading, setLoading] = useState(false);
@@ -36,17 +36,17 @@ function CustomerListings({ customerData, onDataChange }) {
   });
   const navigate = useNavigate();
 
-  const handleStatusChange = (id, value) => {
+  const handleStatusChange = (cust_id, value) => {
     // setStatus((prev) => ({ ...prev, [id]: value }));
-    const updatedStatus = { ...status, [id]: value };
+    const updatedStatus = { ...status, [cust_id]: value };
     setStatus(updatedStatus);
 
     const changed = customers
-      .filter((c) => updatedStatus[c.id] !== originalStatus[c.id])
+      .filter((c) => updatedStatus[c.cust_id] !== originalStatus[c.cust_id])
       .map((c) => ({
         ...c,
-        originalStatus: originalStatus[c.id],
-        newStatus: updatedStatus[c.id],
+        originalStatus: originalStatus[c.cust_id],
+        newStatus: updatedStatus[c.cust_id],
       }));
 
     console.log('Changed Value', changed);
@@ -59,15 +59,13 @@ function CustomerListings({ customerData, onDataChange }) {
     const syncData = async () => {
       //Prevent first time loading no customer data
       if (!customerData) return;
-      //Simulate Data syncing with Google Sheets, implement fetch later
-      console.log('Function syncData has started');
       setLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log('CustomerData in syncData: ' + customerData);
-        setCustomers(customerData);
+        // setCustomers(customerData);
+        setCustomers(Array.isArray(customerData) ? customerData : []);
         const statusMap = Object.fromEntries(
-          customerData.map((b) => [b.id, b.status]),
+          customerData.map((customer) => [customer.cust_id, customer.status]),
         );
         setStatus(statusMap);
         setOriginalStatus(statusMap);
@@ -82,15 +80,21 @@ function CustomerListings({ customerData, onDataChange }) {
     syncData();
   }, [customerData]);
 
+  useEffect(() => {
+    if (commitVersion > 0) {
+      setOriginalStatus({ ...status });
+    }
+  }, [commitVersion]);
+
   const filteredAndSortedCustomers = useMemo(() => {
     let filtered = customers.filter((customer) => {
       const matchesStatus =
         filters.status === 'all' || customer.status === filters.status;
       const matchesSearch =
-        customer.name
+        customer.cust_name
           .toLowerCase()
           .includes(filters.searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(filters.searchTerm.toLowerCase());
+        String(customer.phone).includes(filters.searchTerm.toLowerCase());
 
       return matchesStatus && matchesSearch;
     });
@@ -259,40 +263,39 @@ function CustomerListings({ customerData, onDataChange }) {
           <tbody>
             {filteredAndSortedCustomers.map((customer) => (
               <motion.tr
-                key={customer.id}
+                key={customer.cust_id}
                 className="border-b border-base-200 hover:bg-base-200 transition-colors"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: customer.id * 0.05, duration: 0.2 }}
+                transition={{ delay: customer.cust_id * 0.05, duration: 0.2 }}
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <span className="font-medium text-base-content">
-                      {customer.name}
+                      {customer.cust_name}
                     </span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-base-content/60">
-                  <div>{customer.email}</div>
                   <div>{customer.phone}</div>
                 </td>
                 <td className="px-6 py-4 text-base-content/70">
-                  {customer.budgetMin} – {customer.budgetMax}
+                  {customer.budget ?? '-'}
                 </td>
                 <td className="px-6 py-4 text-base-content/60">
-                  {customer.location}
+                  {customer.location ?? '-'}
                 </td>
                 <td>
                   <select
                     name="status"
                     className={`select select-bordered select-sm w-full ${
-                      status[customer.id] !== originalStatus[customer.id]
+                      status[customer.cust_id] !== originalStatus[customer.cust_id]
                         ? 'border-warning text-warning'
                         : ''
                     }`}
-                    value={status[customer.id]}
+                    value={status[customer.cust_id] ?? customer.status}
                     onChange={(e) =>
-                      handleStatusChange(customer.id, e.target.value)
+                      handleStatusChange(customer.cust_id, e.target.value)
                     }
                   >
                     {statusList.map((eachStatus) => (
@@ -303,7 +306,7 @@ function CustomerListings({ customerData, onDataChange }) {
                   </select>
                 </td>
                 <td className="px-6 py-4 text-base-content/60">
-                  {formatDate(customer.lastContact)}
+                  {formatDate(customer.last_contact)}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
@@ -322,6 +325,20 @@ function CustomerListings({ customerData, onDataChange }) {
                       <Mic size={15} />
                     </button>
                   </div>
+                </td>
+                <td className="px-6 py-4 text-xs text-base-content/60 leading-relaxed min-w-[220px]">
+                  {customer.remarks?.speechAnalysis ? (
+                    <>
+                      <div><span className="font-semibold text-base-content/80">Call Datetime:</span> {customer.remarks.speechAnalysis.callDatetime ? new Date(customer.remarks.speechAnalysis.callDatetime).toLocaleString() : '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Buyer Stage:</span> {customer.remarks.speechAnalysis.buyerStage || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Purpose:</span> {customer.remarks.speechAnalysis.purpose || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Sentiment:</span> {customer.remarks.speechAnalysis.sentiment || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Next Action:</span> {customer.remarks.speechAnalysis.nextActions?.[0] || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Preferrance:</span> {customer.remarks.speechAnalysis.preferences || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Next Follow Up:</span> {customer.remarks.speechAnalysis.nextActions?.[1] || '-'}</div>
+                      <div><span className="font-semibold text-base-content/80">Summary:</span> {customer.remarks.speechAnalysis.summary || '-'}</div>
+                    </>
+                  ) : '-'}
                 </td>
               </motion.tr>
             ))}

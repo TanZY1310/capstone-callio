@@ -1,10 +1,7 @@
 import Header from "../Layout/Header";
 
 function LeadHeader({ user, users, onHeaderChange }) {
-  const openWhatsapp = (e) => {
-    e.preventDefault();
-    console.log("Opening whatsapp..."); //need to link to whatsapp page in the future
-  };
+ 
 
   return (
     <>
@@ -13,30 +10,22 @@ function LeadHeader({ user, users, onHeaderChange }) {
         p="View and chat with customers, AI powered response"
       />
 
-      <div className="flex justify-between items-center rounded-2xl pl-8 pt-6 pb-6 bg-base-100">
+      <div className="flex justify-between items-center rounded-2xl px-6 py-4 bg-base-100">
         <div className="flex justify-start items-center gap-2">
-          <p className="font-semibold text-sm text-base-content">
+          <p className="font-semibold text-base text-base-content pr-2 pt-2">
             Lead Pipeline
           </p>
-          <button className="btn btn-sm">
-            <select value={user.id} onChange = {onHeaderChange}>
+          <button className="btn btn-md">
+            <select value={user?.cust_id ?? ""} onChange = {onHeaderChange}>{/* optional chain: user may not have cust_id on first render */}
               {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
+                <option key={u.cust_id} value={u.cust_id}>{/* value changed from cust_name to cust_id so handleHeaderChange find() comparison matches */}
+                  {u.cust_name}
                 </option>
               ))}
             </select>
           </button>
         </div>
-        <div className="flex justify-end">
-          <button
-            className="btn btn-md btn-success mr-4 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
-            fdprocessedid="ufksnr"
-            onClick={openWhatsapp}
-          >
-            Open Whatsapp
-          </button>
-        </div>
+        
       </div>
     </>
   );

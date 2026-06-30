@@ -21,8 +21,7 @@ function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
   };
 
   return (
-    <div className="flex">
-      <div className="  rounded-2xl grow mt-5 p-4 card w-full bg-base-100 shadow-sm">
+    <div className="rounded-2xl mt-2 p-4 card w-full bg-base-100 shadow-sm">
         <p className="font-semibold text-sm text-base-content">
           AI Powered Response
         </p>
@@ -78,7 +77,6 @@ function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
             <p>No AI Response configured for this client yet.</p>
           </div>
         )}
-      </div>
     </div>
   );
 }

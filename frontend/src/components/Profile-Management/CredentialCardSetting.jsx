@@ -1,8 +1,11 @@
+import { useAuth } from '../../hooks/useAuth';
+
 function CredentialCardSetting() {
+  const { profile } = useAuth();
+
   return (
-  /* Panel Container matching ProfileCardSetting structural spacing precisely */
+    /* Panel Container matching ProfileCardSetting structural spacing precisely */
     <div className="card bg-base-100 border border-base-200 rounded-xl p-6 shadow-sm w-full">
-      
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-sm font-bold tracking-wider text-base-content/70 uppercase">
@@ -12,7 +15,6 @@ function CredentialCardSetting() {
 
       {/* Responsive Input Grid: 2 columns on desktop, 1 on mobile */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-        
         {/* License Number Input */}
         <div className="form-control w-full">
           <label className="label py-1">
@@ -22,7 +24,9 @@ function CredentialCardSetting() {
           </label>
           <input
             type="text"
-            defaultValue="REN-2023-8841-B"
+            name="license_number"
+            key={`license-${profile?.license_number}`}
+            defaultValue={profile?.license_number || ''}
             className="input input-bordered w-full bg-base-100 border-base-300 text-sm focus:outline-none focus:border-primary"
           />
         </div>
@@ -35,8 +39,12 @@ function CredentialCardSetting() {
             </span>
           </label>
           <div className="relative w-full">
-            <select 
-              defaultValue="Central District Head Office"
+            <select
+              name="agency_branch"
+              key={`agency-${profile?.agency_branch}`}
+              defaultValue={
+                profile?.agency_branch || 'Central District Head Office'
+              }
               className="select select-bordered w-full bg-base-100 border-base-300 text-sm font-normal focus:outline-none focus:border-primary pr-10 appearance-none"
             >
               <option>Central District Head Office</option>
@@ -45,8 +53,19 @@ function CredentialCardSetting() {
             </select>
             {/* Custom dropdown chevron arrow matching Figma layout */}
             <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-base-content/50">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </div>
           </div>
@@ -60,12 +79,13 @@ function CredentialCardSetting() {
             </span>
           </label>
           <textarea
+            name="bio"
+            key={`bio-${profile?.bio}`}
+            defaultValue={profile?.bio || "Over 12 years of experience in enterprise sales and strategic account management. Specialized in high-ticket real estate and digital infrastructure licensing within the EMEA region."}
             rows={4}
-            defaultValue="Over 12 years of experience in enterprise sales and strategic account management. Specialized in high-ticket real estate and digital infrastructure licensing within the EMEA region."
             className="textarea textarea-bordered w-full bg-base-100 border-base-300 text-sm focus:outline-none focus:border-primary resize-y leading-relaxed"
           />
         </div>
-
       </div>
     </div>
   );

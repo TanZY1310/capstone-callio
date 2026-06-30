@@ -1,44 +1,66 @@
 import { RefreshCw } from 'lucide-react';
-import sampleCustomers from '../../data/SampleCustomers';
 import { SiGooglesheets } from 'react-icons/si';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
 
-function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
+function SheetsDataIntegration({
+  onImport,
+  changedRecords = [],
+  onExport,
+  hasExistingData,
+  pendingCount = 0,
+}) {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const navigate = useNavigate();
 
-  // TODO implement fetch backend Google Sheets API here
   const handleImport = async () => {
+    if (pendingCount > 0) {
+      const msg =
+        `You have ${pendingCount} unsaved change${pendingCount > 1 ? 's' : ''}. ` +
+        'Importing may overwrite local changes. Continue?';
+      if (!window.confirm(msg)) return;
+    }
     setImporting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      //Call parent function to send value back to parent component (HomePage)
-      onImport(sampleCustomers);
+      await onImport(); // parent will call POST /sheets/sync
       toast.success('Data imported successfully.');
     } catch (err) {
-      toast.error('Import failed. Please try again.');
-      console.log(err);
+      handleSheetsError(err, 'Import');
     } finally {
       setImporting(false);
     }
   };
 
-  // TODO implement fetch backend Google Sheets API here
   const handleExport = async () => {
     setExporting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      onExport?.();
+      await onExport?.();
       document.getElementById('export_confirm_modal').close();
       toast.success('Data exported to Google Sheets');
     } catch (err) {
-      toast.error('Export failed. Please try again.');
-      console.log(err);
+      handleSheetsError(err, 'Export');
     } finally {
       setExporting(false);
     }
+  };
+
+  const handleSheetsError = (err, label) => {
+    const detail = err?.response?.data?.detail || '';
+    if (detail.includes('SHEETS_ID_MISSING')) {
+      toast.error('No spreadsheet linked. Go to Profile to add your spreadsheet ID.', {
+        action: {
+          label: 'Go to Profile',
+          onClick: () => navigate('/profile'),
+        },
+        duration: 8000,
+      });
+    } else {
+      toast.error(`${label} failed. Please try again.`);
+    }
+    console.log(err);
   };
   return (
     <>
@@ -58,15 +80,15 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
                 Google Sheets Data Transfer
               </p>
               <p className="text-xs text-base-content/40">
-                Import from or export data back to Google Sheets
+                {hasExistingData
+                  ? 'Re-sync data from Google Sheets'
+                  : 'No customers found - Import from Google Sheets to get started'}
               </p>
             </div>
           </div>
-          {/* ✅ Badge showing pending changes */}
-          {changedRecords.length > 0 && (
+          {pendingCount > 0 && (
             <span className="badge badge-warning badge-sm">
-              {changedRecords.length} unsaved change
-              {changedRecords.length > 1 ? 's' : ''}
+              {pendingCount} unsaved change{pendingCount > 1 ? 's' : ''}
             </span>
           )}
         </div>
@@ -84,23 +106,26 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
               </>
             ) : (
               <>
-                <RefreshCw size={15} /> Import From Google Sheets
+                <RefreshCw size={15} />{' '}
+                {hasExistingData
+                  ? 'Re-Sync Google Sheets Data'
+                  : 'Import From Google Sheets'}
               </>
             )}
           </button>
           {/* Export — opens modal */}
           <button
             className="btn btn-warning flex-1"
-            disabled={changedRecords.length === 0 || exporting}
+            disabled={exporting}
             onClick={() =>
               document.getElementById('export_confirm_modal').showModal()
             }
           >
             <RefreshCw size={15} />
             Upload To Google Sheets
-            {changedRecords.length > 0 && (
+            {pendingCount > 0 && (
               <span className="badge badge-warning badge-sm ml-1">
-                {changedRecords.length}
+                {pendingCount}
               </span>
             )}
           </button>
@@ -113,42 +138,44 @@ function SheetsDataIntegration({ onImport, changedRecords = [], onExport }) {
             Confirm Export
           </h3>
           <p className="text-sm text-base-content/50 mb-4">
-            The following {changedRecords.length} record
-            {changedRecords.length > 1 ? 's' : ''} will be updated in Google
-            Sheets:
+            {changedRecords.length > 0
+              ? `The following ${changedRecords.length} record${changedRecords.length > 1 ? 's' : ''} with status changes will be synced to Google Sheets:`
+              : `${pendingCount} record${pendingCount > 1 ? 's' : ''} pending export will be synced to Google Sheets.`}
           </p>
 
-          {/* Summary table */}
-          <div className="overflow-x-auto max-h-64">
-            <table className="table table-sm w-full">
-              <thead>
-                <tr className="text-xs text-base-content/40">
-                  <th>Customer</th>
-                  <th>Previous Status</th>
-                  <th>New Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {changedRecords.map((record) => (
-                  <tr key={record.id}>
-                    <td className="text-sm font-medium text-base-content">
-                      {record.name}
-                    </td>
-                    <td>
-                      <span className="badge badge-ghost badge-sm">
-                        {record.originalStatus || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-warning badge-sm">
-                        {record.newStatus}
-                      </span>
-                    </td>
+          {/* Summary table — only show when there are local status changes */}
+          {changedRecords.length > 0 && (
+            <div className="overflow-x-auto max-h-64">
+              <table className="table table-sm w-full">
+                <thead>
+                  <tr className="text-xs text-base-content/40">
+                    <th>Customer</th>
+                    <th>Previous Status</th>
+                    <th>New Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {changedRecords.map((record) => (
+                    <tr key={record.cust_id}>
+                      <td className="text-sm font-medium text-base-content">
+                        {record.cust_name}
+                      </td>
+                      <td>
+                        <span className="badge badge-ghost badge-sm">
+                          {record.originalStatus || '—'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge badge-warning badge-sm">
+                          {record.newStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="modal-action">
             <form method="dialog">

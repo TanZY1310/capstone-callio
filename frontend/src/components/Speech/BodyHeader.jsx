@@ -1,18 +1,40 @@
 import { AudioLines } from 'lucide-react';
 import Header from '../Layout/Header';
 import { useRef } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
-function BodyHeader() {
+const API_URL = 'http://localhost:8000';
+
+function BodyHeader({ onUpload, customerId, onFileSelect }) {
   const fileInputRef = useRef(null);
 
   const handleUploadClick = () => {
     fileInputRef.current.click();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    console.log('Selected file:', file);
+
+    // This enables the audio player before API call
+    onFileSelect?.(file);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    if (customerId) {
+      formData.append('customer_id', customerId);
+    }
+
+    try {
+      const res = await axios.post(`${API_URL}/speech/transcribe`, formData);
+      onUpload?.(res.data);
+      toast.success('Processing audio...');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Upload failed');
+    }
+
+    e.target.value = '';
   };
 
   return (

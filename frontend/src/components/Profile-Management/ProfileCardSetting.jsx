@@ -1,6 +1,11 @@
-import React from 'react';
+import { useAuth } from '../../hooks/useAuth';
 
 function ProfileCardSetting() {
+  const { profile, user } = useAuth();
+  const fullName = profile
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+    : '';
+
   return (
     <div className="card bg-base-100 border border-base-200 rounded-xl p-6 shadow-sm w-full">
       {/* Header Section with Title and Badge */}
@@ -24,7 +29,9 @@ function ProfileCardSetting() {
           </label>
           <input
             type="text"
-            defaultValue="Alexander Sterling"
+            name="fullName"
+            key={`name-${fullName}`} // force re-render when profile loads
+            defaultValue={fullName}
             className="input input-bordered w-full bg-base-100 border-base-300 text-sm focus:outline-none focus:border-primary"
           />
         </div>
@@ -37,7 +44,9 @@ function ProfileCardSetting() {
           </label>
           <input
             type="email"
-            defaultValue="a.sterling@callio-global.com"
+            defaultValue={user?.email || 'user@example.com'}
+            disabled
+            className="input input-bordered w-full bg-base-200/50 border-base-300 text-sm text-base-content/70 cursor-not-allowed"
             className="input input-bordered w-full bg-base-100 border-base-300 text-sm focus:outline-none focus:border-primary"
           />
         </div>
@@ -64,7 +73,8 @@ function ProfileCardSetting() {
           <div className="relative w-full">
             <input
               type="text"
-              defaultValue="Senior Consultant"
+              key={`role-${profile?.role}`}
+              defaultValue={profile?.role || 'Agent'}
               disabled
               className="input input-bordered w-full bg-base-200/50 border-base-300 text-sm text-base-content/70 pr-10 cursor-not-allowed select-none"
             />

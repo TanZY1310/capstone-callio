@@ -1,17 +1,20 @@
-import { MdCall } from "react-icons/md";
-import { IoPersonSharp } from "react-icons/io5";
-import { IoChatboxEllipsesSharp } from "react-icons/io5";
-import { TiTick } from "react-icons/ti";
+import { MdCall } from 'react-icons/md';
+import { IoPersonSharp } from 'react-icons/io5';
+import { IoChatboxEllipsesSharp } from 'react-icons/io5';
+import { TiTick } from 'react-icons/ti';
 
 const METRIC_CARDS = [
-  { label: "Total Leads", key: "leads" },
-  { label: "Total Calls Today", key: "calls" },
-
-  { label: "Pending Follow-Ups", key: "pendingFollowUps" },
-  { label: "Appointment Set", key: "appointments" },
+  { label: 'Total Leads', key: 'leads', icon: IoPersonSharp },
+  { label: 'Total Calls Today', key: 'calls', icon: MdCall },
+  {
+    label: 'Pending Follow-Ups',
+    key: 'pendingFollowUps',
+    icon: IoChatboxEllipsesSharp,
+  },
+  { label: 'Appointment Set', key: 'appointments', icon: TiTick },
 ];
 
-function TopCard({ dummyAgentData }) {
+function TopCard({ calls, leads, followUps, appointments }) {
   return (
     <>
       <div className="card bg-base-100 border border-base-200 shadow-sm">
@@ -23,7 +26,7 @@ function TopCard({ dummyAgentData }) {
               <IoPersonSharp size={32} />
             </div>
             <div className="stat-title">Total Leads</div>
-            <div className="stat-value">{dummyAgentData.leads}</div>
+            <div className="stat-value">{leads}</div>
           </div>
 
           {/* 2. Total Calls */}
@@ -32,8 +35,8 @@ function TopCard({ dummyAgentData }) {
             <div className="stat-figure text-secondary">
               <MdCall size={32} />
             </div>
-            <div className="stat-title">Total Calls </div>
-            <div className="stat-value">{dummyAgentData.calls}</div>
+            <div className="stat-title">Total Calls Today</div>
+            <div className="stat-value">{calls}</div>
           </div>
 
           {/* 3. Pending Follow-ups */}
@@ -42,8 +45,8 @@ function TopCard({ dummyAgentData }) {
             <div className="stat-figure text-secondary">
               <IoChatboxEllipsesSharp size={32} />
             </div>
-            <div className="stat-title">Follow-Ups</div>
-            <div className="stat-value">{dummyAgentData.followUps}</div>
+            <div className="stat-title">Pending Follow-Ups</div>
+            <div className="stat-value">{followUps}</div>
           </div>
 
           {/* 4. Booking confirmed */}
@@ -52,8 +55,8 @@ function TopCard({ dummyAgentData }) {
             <div className="stat-figure text-secondary">
               <TiTick size={32} />
             </div>
-            <div className="stat-title">Booking Sets</div>
-            <div className="stat-value">{dummyAgentData.appointments}</div>
+            <div className="stat-title">Appointment Sets</div>
+            <div className="stat-value">{appointments}</div>
           </div>
         </div>
       </div>
