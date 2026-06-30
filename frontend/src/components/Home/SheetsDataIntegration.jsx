@@ -50,13 +50,16 @@ function SheetsDataIntegration({
   const handleSheetsError = (err, label) => {
     const detail = err?.response?.data?.detail || '';
     if (detail.includes('SHEETS_ID_MISSING')) {
-      toast.error('No spreadsheet linked. Go to Profile to add your spreadsheet ID.', {
-        action: {
-          label: 'Go to Profile',
-          onClick: () => navigate('/profile'),
+      toast.error(
+        'No spreadsheet linked. Go to Profile to add your spreadsheet ID.',
+        {
+          action: {
+            label: 'Go to Profile',
+            onClick: () => navigate('/profile'),
+          },
+          duration: 8000,
         },
-        duration: 8000,
-      });
+      );
     } else {
       toast.error(`${label} failed. Please try again.`);
     }
@@ -122,7 +125,7 @@ function SheetsDataIntegration({
             }
           >
             <RefreshCw size={15} />
-            Upload To Google Sheets
+            Export To Google Sheets
             {pendingCount > 0 && (
               <span className="badge badge-warning badge-sm ml-1">
                 {pendingCount}
@@ -140,7 +143,7 @@ function SheetsDataIntegration({
           <p className="text-sm text-base-content/50 mb-4">
             {changedRecords.length > 0
               ? `The following ${changedRecords.length} record${changedRecords.length > 1 ? 's' : ''} with status changes will be synced to Google Sheets:`
-              : `${pendingCount} record${pendingCount > 1 ? 's' : ''} pending export will be synced to Google Sheets.`}
+              : ``}
           </p>
 
           {/* Summary table — only show when there are local status changes */}

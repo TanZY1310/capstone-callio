@@ -129,7 +129,7 @@ function Sidebar({ logout, profile }) {
             >
               <div className="w-10 h-10 rounded-full ring-2 ring-base-300">
                 <img
-                  src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80"
                   alt="User avatar"
                 />
               </div>
