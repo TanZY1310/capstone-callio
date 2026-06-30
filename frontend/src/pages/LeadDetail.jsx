@@ -234,6 +234,9 @@ function LeadDetail() {
       await api.patch('/customers/batch-status', {
         updates: [{ cust_id: showUser.cust_id, status: newStatus }],
       });
+
+      await api.post('/sheets/export', {});
+
     } catch (err) {
       console.error('Failed to update status:', err);
     }
