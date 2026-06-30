@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Settings, RefreshCcw } from 'lucide-react';
 import sheetsimg from '../../assets/sheets_icon.png';
 import { Info } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '../../hooks/useAuth';
+import api from '../../utils/api';
 
 function SheetsCard() {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,24 +17,18 @@ function SheetsCard() {
   const [lastSyncTime, setLastSyncTime] = useState('2026-05-12 14:22:10');
 
   const { user } = useAuth();
-  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
         try {
-          const token = await user.getIdToken();
-          const response = await axios.get(`${API_URL}/user_profile/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await api.get('/user_profile/');
           if (response.data.sheets_id) {
             setSheetsId(response.data.sheets_id);
           }
 
           try {
-            const statusRes = await axios.get(`${API_URL}/sheets/status`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            const statusRes = await api.get('/sheets/status');
             if (statusRes.data && statusRes.data.connected) {
               setIsLinked(true);
             } else {
@@ -50,25 +44,16 @@ function SheetsCard() {
       }
     };
     fetchProfile();
-  }, [user, API_URL]);
+  }, [user]);
 
   const handleSync = async () => {
     setIsSyncing(true);
 
     try {
       if (user) {
-        const token = await user.getIdToken();
-        await axios.put(
-          `${API_URL}/user_profile/`,
-          { sheets_id: sheetsId },
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-        
-        const syncResponse = await axios.post(
-          `${API_URL}/sheets/sync`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put('/user_profile/', { sheets_id: sheetsId });
+
+        const syncResponse = await api.post('/sheets/sync', {});
         
         setIsLinked(true);
         toast.success(`Sync successful: ${syncResponse.data.synced} synced, ${syncResponse.data.skipped} skipped`);

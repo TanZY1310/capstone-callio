@@ -6,7 +6,7 @@ import StatusCards from '../components/Home/StatusCards.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { statusList } from '../data/statusList.js';
 import { useState, useEffect, useRef } from 'react';
-import { getAuthHeader } from '../utils/getAuthHeader';
+import api from '../utils/api';
 //import users from '../data/dummyData.js';
 // import dummyWAHistory from '../data/dummyWAHistory.js';
 import dummyAIResponse from '../data/dummyAIResponse.js';
@@ -33,7 +33,6 @@ function LeadDetail() {
   });
 
   const FASTAPI_BASE_URL = 'http://127.0.0.1:8000/whatsapp';
-  const API_URL = import.meta.env.VITE_API_URL;
   const { state } = useLocation();
   const inputRef = useRef(null);
   const [location, setLocation] = useState({});
@@ -231,14 +230,9 @@ function LeadDetail() {
     const newStatus = e.target.value;
     setShowUser((prev) => ({ ...prev, status: newStatus }));
     try {
-      const headers = await getAuthHeader();
-      await axios.patch(
-        `${API_URL}/customers/batch-status`,
-        {
-          updates: [{ cust_id: showUser.cust_id, status: newStatus }],
-        },
-        { headers },
-      );
+      await api.patch('/customers/batch-status', {
+        updates: [{ cust_id: showUser.cust_id, status: newStatus }],
+      });
     } catch (err) {
       console.error('Failed to update status:', err);
     }

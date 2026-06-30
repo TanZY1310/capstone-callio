@@ -6,7 +6,7 @@ import { auth } from '../../../firebase';
 import { KeyRound, Mail, Eye, EyeOff } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const initialState = {
   email: '',
@@ -87,27 +87,14 @@ function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch({ type: ACTIONS.LOGIN_START });
 
     try {
-      // Sign in with Firebase
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        state.email,
-        state.password,
-      );
+      await signInWithEmailAndPassword(auth, state.email, state.password);
 
-      // Get Firebase ID token
-      const idToken = await userCredential.user.getIdToken(true);
-
-      // Exchange token for db user profile - replace localstorage which is not needed anymore
-      await axios.post(`${API_URL}/auth/session`, null, {
-        headers: { Authorization: `Bearer ${idToken}` },
-      });
+      await api.post('/auth/session', null);
 
       dispatch({ type: ACTIONS.LOGIN_SUCCESS });
       toast.success('Login successful!');
