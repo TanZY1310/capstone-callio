@@ -166,8 +166,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     if current_user is None:
         raise(HTTPException(status_code=404, detail= "User not found"))
     
-    if current_user.role !=  UserRole.TEAM_LEAD:
-        raise HTTPException(status_code= 403, detail= "Leader access only")
+    # if current_user.role is not 'team_lead':
+    #     raise HTTPException(status_code= 403, detail= "Leader access only")
     
     
     
