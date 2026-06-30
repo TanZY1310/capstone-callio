@@ -7,9 +7,7 @@ import { STATUS_NAME } from '../data/constants';
 import { motion } from 'motion/react';
 import { Users, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
-// import { getAuth } from 'firebase/auth';
-import { getAuthHeader } from '../utils/getAuthHeader';
+import api from '../utils/api';
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
@@ -28,16 +26,12 @@ function HomePage() {
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [remoteChanges, setRemoteChanges] = useState([]);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const pendingCount = changedRecords.length + remoteChanges.length;
 
   const fetchRemoteChanges = async () => {
     if (!lastSyncedAt) return;
     try {
-      const headers = await getAuthHeader();
-      const res = await axios.get(`${API_URL}/customers/changes`, {
-        headers,
+      const res = await api.get('/customers/changes', {
         params: { since: lastSyncedAt },
       });
       setRemoteChanges(res.data.updated_ids || []);
@@ -61,10 +55,9 @@ function HomePage() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        const headers = await getAuthHeader();
         const [customerResponse, sheetsStatusResponse] = await Promise.all([
-          axios.get(`${API_URL}/customers`, { headers }),
-          axios.get(`${API_URL}/sheets/status`, { headers }),
+          api.get('/customers'),
+          api.get('/sheets/status'),
         ]);
 
         // Set status based on connection
@@ -93,16 +86,9 @@ function HomePage() {
   }, [lastSyncedAt]);
 
   const handleImport = async () => {
-    const response = await axios.post(
-      `${API_URL}/sheets/sync`,
-      {},
-      { headers: await getAuthHeader() },
-    );
+    await api.post('/sheets/sync', {});
 
-    // Re-fetch the customer list (GET returns an array)
-    const customerResponse = await axios.get(`${API_URL}/customers`, {
-      headers: await getAuthHeader(),
-    });
+    const customerResponse = await api.get('/customers');
     setCustomerData(customerResponse.data);
 
     setChangedRecords([]);
@@ -117,20 +103,14 @@ function HomePage() {
 
   const handleExport = async () => {
     try {
-      const headers = await getAuthHeader();
+      await api.patch('/customers/batch-status', {
+        updates: changedRecords.map((r) => ({
+          cust_id: r.cust_id,
+          status: r.newStatus,
+        })),
+      });
 
-      await axios.patch(
-        `${API_URL}/customers/batch-status`,
-        {
-          updates: changedRecords.map((r) => ({
-            cust_id: r.cust_id,
-            status: r.newStatus,
-          })),
-        },
-        { headers },
-      );
-
-      await axios.post(`${API_URL}/sheets/export`, {}, { headers });
+      await api.post('/sheets/export', {});
 
       setChangedRecords([]);
       setRemoteChanges([]);

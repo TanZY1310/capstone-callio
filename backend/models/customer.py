@@ -14,7 +14,7 @@ class Customers(Base):
     )    
     cust_name:  Mapped[str] = mapped_column(String(100), nullable=False)
     phone: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, index=True) # Phone column is unique since id is generated after import google sheets need to make sure no duplicate
-    budget: Mapped[int | None] = mapped_column(Integer, nullable=True) # This means that the column can be empty or null
+    budget: Mapped[str | None] = mapped_column(String(255), nullable=True) # This means that the column can be empty or null
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[str] = mapped_column(String(100), nullable=False)
     last_contact: Mapped[datetime | None] = mapped_column(DateTime, onupdate=func.now(), nullable=True) #For datetime can be empty but should update based on status change or other triggers

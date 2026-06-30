@@ -1,11 +1,11 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from 'react-router-dom';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { useAuth } from './hooks/useAuth';
 
 // Include page or component imports here
@@ -24,8 +24,14 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const ProfileSetting = lazy(() => import('./pages/ProfileSettings'));
 
 function App() {
-  const { user, profile, loading, logout } = useAuth();
+  const { user, profile, loading, logout, authError } = useAuth();
   console.log('Profile Details in App.jsx', profile);
+
+  useEffect(() => {
+    if (authError) {
+      toast.error(authError, { duration: 6000 });
+    }
+  }, [authError]);
 
   return (
     <>

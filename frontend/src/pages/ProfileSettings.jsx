@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
+import api from '../utils/api';
 import ProfileCardSetting from '../components/Profile-Management/ProfileCardSetting';
 import ProfilePhotoSetting from '../components/Profile-Management/ProfilePhotoSetting';
 import CredentialCardSetting from '../components/Profile-Management/CredentialCardSetting';
@@ -12,7 +12,6 @@ function ProfileSetting() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -36,10 +35,7 @@ function ProfileSetting() {
         bio,
       };
 
-      const token = await user.getIdToken();
-      await axios.put(`${API_URL}/user_profile/`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.put('/user_profile/', payload);
 
       toast.success('Profile updated successfully!');
       setTimeout(() => navigate('/profile'), 1000);

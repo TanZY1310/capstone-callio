@@ -5,7 +5,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from database import SessionLocal
+from database import db_dependency
 from models.customer import Customers
 from models.speech import SpeechAnalysis
 from services.audio_service import transcribe_audio, analyze_transcript
@@ -61,7 +61,7 @@ async def get_status(task_id: str):
 
 
 @router.post("/pipeline/{task_id}")
-async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
+async def add_to_pipeline(db: db_dependency, task_id: str, body: PipelineRequest = None):
     task = tasks.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -74,7 +74,6 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
 
     analysis_id = task["data"].get("analysisId")
 
-    db: Session = SessionLocal()
     try:
         analysis_record = None
         if analysis_id:
@@ -108,6 +107,13 @@ async def add_to_pipeline(task_id: str, body: PipelineRequest = None):
 
         if buyer_stage:
             customer.status = buyer_stage
+
+        task_budget = task["data"].get("budget")
+        task_location = task["data"].get("location")
+        if task_budget is not None:
+            customer.budget = str(task_budget)
+        if task_location is not None:
+            customer.location = task_location
 
         db.commit()
         return {"success": True}
@@ -145,7 +151,7 @@ async def reject_transcript(task_id: str):
 
 
 @router.post("/approve/{task_id}")
-async def approve_transcript(task_id: str):
+async def approve_transcript(db: db_dependency, task_id: str):
     task = tasks.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -155,12 +161,12 @@ async def approve_transcript(task_id: str):
     task["status"] = "processing"
     task["step"] = 3
 
-    asyncio.create_task(_analyze_phase(task_id))
+    asyncio.create_task(_analyze_phase(db, task_id))
 
     return {"success": True}
 
 
-async def _analyze_phase(task_id: str):
+async def _analyze_phase(db:db_dependency, task_id: str):
     try:
         transcript = tasks[task_id]["data"]["transcription"]
 
@@ -180,7 +186,6 @@ async def _analyze_phase(task_id: str):
 
         objections = analysis.get("objections", analysis.get("sentiment", {}).get("objections", []))
 
-        db: Session = SessionLocal()
         try:
             customer_id = tasks[task_id].get("customer_id")
             user_id = None
@@ -212,6 +217,9 @@ async def _analyze_phase(task_id: str):
         finally:
             db.close()
 
+        budget = analysis.get("preferences", {}).get("budgetValue")
+        location = analysis.get("preferences", {}).get("location")
+
         tasks[task_id]["step"] = 4
         tasks[task_id]["status"] = "complete"
         tasks[task_id]["data"] = {
@@ -223,6 +231,8 @@ async def _analyze_phase(task_id: str):
             "buyerStage": buyer_stage,
             "objections": objections,
             "analysisId": analysis_id,
+            "budget": budget,
+            "location": location,
         }
 
     except Exception as e:
