@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { statusList } from '../data/statusList.js';
 import { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
+import { SendHorizontal } from "lucide-react";
 //import users from '../data/dummyData.js';
 // import dummyWAHistory from '../data/dummyWAHistory.js';
 import dummyAIResponse from '../data/dummyAIResponse.js';
@@ -241,41 +242,77 @@ function LeadDetail() {
   return (
     <div className="flex h-screen bg-base-200">
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-        <LeadHeader
-          user={showUser}
-          users={users}
-          onHeaderChange={handleHeaderChange}
-        />
-        <div className="grid grid-cols-[240px_1fr] gap-4 items-start">
-          <ContactInfo
+        <div>
+          <LeadHeader
             user={showUser}
-            onLocationChange={handleLocationChange}
-            onStatusChange={handleStatusChange}
-            statusList={statusList}
+            users={users}
+            onHeaderChange={handleHeaderChange}
           />
-          <div className="flex flex-col gap-3">
+        </div>
+        <div className="flex flex-row gap-4 items-stretch">
+          <div className="basis-1/2">
+            <ContactInfo
+              user={showUser}
+              onLocationChange={handleLocationChange}
+              onStatusChange={handleStatusChange}
+              statusList={statusList}
+            />
+          </div>
+          <div className="basis-1/2 flex flex-col gap-3">
             <StatusCards
               platformName="whatsapp"
               status={platformStatus.whatsapp}
               onUpdate={handleUpdateStatus}
             />
-            {isConnected ? (
-              <ConvoHistory
-                messages={messages}
-                inputRef={inputRef}
-                onSend={handleSendMessage}
-                onEnter={handleEnterMessage}
-              />
-            ) : (
-              <div className="card bg-base-100 shadow-sm p-6 text-center">
-                <h2 className="font-semibold">Not Connected to WhatsApp</h2>
-                <p className="text-sm text-base-content/50 mt-1">
-                  Connect above to view conversation history.
-                </p>
-              </div>
-            )}
           </div>
         </div>
+        {isConnected ? (
+          <ConvoHistory
+            messages={messages}
+            inputRef={inputRef}
+            onSend={handleSendMessage}
+            onEnter={handleEnterMessage}
+          />
+        ) : (
+          <div className="dashboard-card py-8 px-6 text-center">
+            <h2 className="font-semibold">Not Connected to WhatsApp</h2>
+            <p className="text-sm text-base-content/50 mt-1">
+              Connect above to view conversation history.
+            </p>
+            <div className="py-4 flex-1 overflow-y-auto max-h-[500px]">
+              <div className="chat chat-end">
+                <div className="chat-bubble whitespace-pre-wrap">
+                  Sample Chat
+                </div>
+                <div className="chat-footer opacity-50">
+                  {new Date().toString()}
+                </div>
+                
+              </div>
+              <div className="chat chat-start">
+                <div className="chat-bubble whitespace-pre-wrap">
+                  Sample Response
+                </div>
+                <div className="chat-footer opacity-50">
+                  {new Date().toString()}
+                </div>
+              </div>
+            </div>
+              <div className="flex items-center gap-2 p-4 border-t border-base-300">
+              <textarea
+                type="text"
+                placeholder="Only usable after connecting to whatsapp..."
+                className="input input-bordered w-full"
+              />
+              <button
+                className="btn btn-success btn-circle ml-2 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+              >
+                <SendHorizontal />
+              </button>
+            </div>
+          </div>
+        )}{' '}
+        {/*new Date(timestamp × 1000)*/}
         {isConnected && (
           <AIResponseReview
             aiResponses={responses}

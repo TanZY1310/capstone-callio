@@ -3,7 +3,7 @@ import UserPreferences from './UserPreferences.jsx';
 function ContactInfo({ user, onLocationChange, onStatusChange, statusList}) {
  
   return (
-    <div className="flex flex-col rounded-2xl justify-start p-4 card bg-base-100 shadow-sm">
+    <div className="dashboard-card flex flex-col justify-start p-4">
       <p className="font-semibold text-md text-base-content">
         Contact Information
       </p>
