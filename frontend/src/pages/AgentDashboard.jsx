@@ -5,10 +5,11 @@ import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
 import CallUpload from '../components/Metrics/CallUpload';
 import Header from '../components/Layout/Header';
 import Objections from '../components/Metrics/Objections';
-import ConversionFunnel from '../components/Metrics/FunnelCard.jsx';
+import ConversionFunnel from '../components/Metrics/ConversionFunnel.jsx';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth.js';
-import FunnelCard from '../components/Metrics/FunnelCard.jsx';
+import api from '../utils/api.js';
+import DailyCallPoint from '../components/Metrics/DailyCallPoint.jsx';
 
 function AgentDashboard() {
   const [agent, setAgent] = useState(null);
@@ -17,6 +18,7 @@ function AgentDashboard() {
 
   const API_URL = 'http://localhost:8000';
   const { profile } = useAuth();
+  console.log(profile);
 
   useEffect(() => {
     if (!profile?.user_id) return; // wait until profile is ready
@@ -24,9 +26,8 @@ function AgentDashboard() {
     async function fetchKPIs() {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `${API_URL}/dashboard/agent/${profile.user_id}`,
-        );
+        const response = await api.get(`/dashboard/agent/${profile.user_id}`);
+
         setAgent(response.data);
       } catch (err) {
         setError(err.message);
@@ -85,6 +86,8 @@ function AgentDashboard() {
           </div> */}
 
           <CallUpload daily_calls={agent.daily_calls} />
+          {/* <DailyCallPoint /> */}
+          {/* <CallUpload /> */}
 
           {/* 3. Divider Part - LeadsByRegion + Leads Budget Breakdown*/}
 
@@ -105,10 +108,15 @@ function AgentDashboard() {
                 stages={[
                   { label: 'Total Leads', count: agent.kpis.leads },
                   {
-                    label: 'Pending Follow-ups',
+                    label: 'Follow Ups',
                     count: agent.kpis.followUps,
                   },
+
                   { label: 'Appointments Set', count: agent.kpis.appointments },
+                  // {
+                  //   label: 'Bookings',
+                  //   count: agent.kpis.bookings,
+                  // },
                 ]}
               />
             </div>

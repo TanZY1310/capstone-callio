@@ -83,7 +83,13 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
     
     total_appointments = ( db.query(func.count(Customers.cust_id))
                           .filter(Customers.user_id == user_id)
-                          .filter(Customers.status == "appointment")
+                          .filter(Customers.status == "Appointment")
+                          .scalar() or 0
+                          )
+    
+    total_bookings = ( db.query(func.count(Customers.cust_id))
+                          .filter(Customers.user_id == user_id)
+                          .filter(Customers.status == "Booking")
                           .scalar() or 0
                           )
     
@@ -93,7 +99,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
         calls=total_calls_today,
         leads=total_leads,
         followUps=pending_follow_ups,
-        appointments=total_appointments
+        appointments=total_appointments,
+        bookings=total_bookings
     )
 
     # --- Daily calls line chart (last 31 days) ---
@@ -150,11 +157,17 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
     )
 
 
-@router.get("/leader", response_model=LeaderDashboardResponse)
-async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role: str):
+@router.get("/leader/{user_id}", response_model=LeaderDashboardResponse)
+async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
+
+    # get the current user info
+    current_user = db.query(Users).filter(Users.user_id == user_id).first()
+
+    if current_user is None:
+        raise(HTTPException(status_code=404, detail= "User not found"))
     
-    if user_role !=  UserRole.TEAM_LEAD:
-        raise HTTPException(status_code= 400, detail= "Leader access only")
+    if current_user.role !=  UserRole.TEAM_LEAD:
+        raise HTTPException(status_code= 403, detail= "Leader access only")
     
     team_members = db.query(Users).filter(Users.team_lead_id == user_id).all()
     team_agent_ids = [m.user_id for m in team_members]
@@ -162,20 +175,26 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
     today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time())
     today_end  = today_start + timedelta(days=1)
 
-    month_start = today_start.replace(day=1)
+    # month_start = today_start.replace(day=1)
 
     # Team stats calculation
 
     # checking if the leader has any agents under him
     if not team_agent_ids:
-        team_kpis = AgentStats(calls = 0, leads=0, followUps=0, appointments=0)
-        total_agents = 0,
-
+        team_kpis = AgentStats(calls = 0, leads=0, followUps=0, appointments=0, bookings=0)
+        team_overview = 0,
         team_regions, team_objections = [], []
-
+        team_stats = TeamStats(
+            team_kpis=team_kpis,
+            team_objections=team_objections,
+            team_regions=team_regions
+            
+        )
+    
     else:
         team_calls_today = ( 
             db.query(func.count(SpeechAnalysis.id)) 
+            .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
             .filter(SpeechAnalysis.created_at >= today_start, SpeechAnalysis.created_at < today_end)
             .scalar() or 0
             )
@@ -200,14 +219,22 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
             db.query(func.count(AIResponse.response_id))
             .join(team_latest_per_customer, and_ (AIResponse.cust_id == team_latest_per_customer.c.cust_id, AIResponse.created_at == team_latest_per_customer.c.latest_time))
             .join(Customers, AIResponse.cust_id == Customers.cust_id)
+            .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
             .filter(AIResponse.status.in_(PENDING_STATUSES))
             .scalar() or 0
         )
 
-        team_appoinments = (
+        team_appointments = (
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
-            .filter(Customers.status == "appoinment")
+            .filter(func.lower(Customers.status) == "appointment")
+            .scalar() or 0
+        )
+
+        team_bookings = (
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(func.lower(Customers.status) == "booking")
             .scalar() or 0
         )
 
@@ -220,13 +247,14 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
         #     .scalar() or 0
         # )
 
-        # Overall total kpis (call today, leads, followUps, appoinments)
+        # Overall total kpis (call today, leads, followUps, appointments)
 
         team_kpis = AgentStats(
             calls= team_calls_today,
             leads= team_leads,
             followUps= team_followUps,
-            appointments= team_followUps
+            appointments= team_appointments,
+            bookings=team_bookings
         )
 
         # Total team regions
@@ -250,7 +278,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
             .join(SpeechAnalysis, Objection.call_id == SpeechAnalysis.id)
             .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
             .group_by(Objection.objection_type)
-            .order_by(func.count(Objection.objection_id).desc)
+            .order_by(func.count(Objection.objection_id).desc())
             .all()
         )
 
@@ -259,8 +287,9 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
 
         team_stats = TeamStats(
             team_kpis= team_kpis,
-            team_objections= team_objections,
-            team_regions= team_regions
+            team_regions= team_regions,
+            team_objections= team_objections
+            
         )
 
         # AGENT TABLE:
@@ -271,7 +300,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
 
         else:
             lead_rows = (
-                db.query(Customers.user_id, func.count(Customers.cust_id).lead("count"))
+                db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
                 .filter(Customers.user_id.in_(team_agent_ids))
                 .group_by(Customers.user_id)
                 .all()
@@ -297,60 +326,63 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID, user_role:
             .group_by(AIResponse.cust_id)
             .subquery()
         )
-        follow_up_rows = (
-            db.query(
-                Customers.user_id,
-                func.count(AIResponse.response_id).label("count"),
+            follow_up_rows = (
+                db.query(
+                    Customers.user_id,
+                    func.count(AIResponse.response_id).label("count"),
+                )
+                .join(
+                    overview_latest_per_customer,
+                    and_(
+                        AIResponse.cust_id == overview_latest_per_customer.c.cust_id,
+                        AIResponse.created_at == overview_latest_per_customer.c.latest_time,
+                    ),
+                )
+                .join(Customers, AIResponse.cust_id == Customers.cust_id)
+                .filter(Customers.user_id.in_(team_agent_ids))
+                .filter(AIResponse.status.in_(PENDING_STATUSES)) # (func.lower(Customers.status) == "appointment")
+                .group_by(Customers.user_id)
+                .all()
             )
-            .join(
-                overview_latest_per_customer,
-                and_(
-                    AIResponse.cust_id == overview_latest_per_customer.c.cust_id,
-                    AIResponse.created_at == overview_latest_per_customer.c.latest_time,
-                ),
+            follow_up_map = {r.user_id: r.count for r in follow_up_rows}
+
+            appointment_rows = (
+                db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
+                .filter(Customers.user_id.in_(team_agent_ids))
+                .filter(func.lower(Customers.status) == "appointment")
+                .group_by(Customers.user_id)
+                .all()
             )
-            .join(Customers, AIResponse.cust_id == Customers.cust_id)
-            .filter(Customers.user_id.in_(team_agent_ids))
-            .filter(AIResponse.status.in_(PENDING_STATUSES))
-            .group_by(Customers.user_id)
-            .all()
-        )
-        follow_up_map = {r.user_id: r.count for r in follow_up_rows}
 
-        appointment_rows = (
-            db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
-            .filter(Customers.user_id.in_(team_agent_ids))
-            .filter(Customers.status == "appoinment")
-            .group_by(Customers.user_id)
-            .all()
-        )
+            appointments_map = { r.user_id: r.count for r in appointment_rows}
+            team_overview = [] 
 
-        appoinments_map = { r.user_id: r.count for r in appointment_rows}
+            team_overview = [ AgentTable(
+                agent_id= m.user_id,
+                agent_name= f'{m.first_name} {m.last_name}',
+                total_leads= leads_map.get(m.user_id, 0),
+                # dict.get(key, default) returns the value if key exists, or default if it doesn't — exactly what you want here, since not every agent will have rows in every map 
+                # (e.g. an agent with zero calls today won't appear in calls_today_map at all).
+                total_calls= calls_today_map.get(m.user_id, 0),
+                follow_ups= follow_up_map.get(m.user_id, 0),
+                appointments= appointments_map.get(m.user_id, 0),
+            
+            )  for m in team_members ]
 
-        team_overview = [ AgentTable(
-            agent_id= m.user_id,
-            agent_name= f'{m.first_name} {m.last_name}',
-            total_leads= leads_map(m.user_id, 0),
-            total_calls= calls_today_map(m.user_id, 0),
-            follow_ups= follow_up_map(m.user_id, 0),
-            appointments= appoinments_map(m.user_id, 0),
-        
-        )  for m in team_agent_ids ]
-
-        # What the API returns to frontend
-        return LeaderDashboardResponse(
-            # total_agents=total_agents,
-            team_stats= team_kpis,
-            team_overview=team_overview,
-            total_agents = len(team_agent_ids)
-        )
+    # What the API returns to frontend
+    return LeaderDashboardResponse(
+        # total_agents=total_agents,
+        team_stats= team_stats,
+        team_overview=team_overview,
+        total_agents = len(team_agent_ids)
+    )
     
 
 # ---------------------------------------------------------------------
 # DAILY CALLS CHART — month-aware, for the prev/next arrow UI.
 # ---------------------------------------------------------------------
 
-@router.get("/agent/daily-calls", response_model=List[DailyCallCount])
+@router.get("/agent/daily-calls/{user_id}", response_model=List[DailyCallCount])
 # get the year and month requested
 async def get_agent_daily_calls(db: db_dependency, user_id: uuid.UUID, year: Optional[int] = None, month: Optional[int] =  None):
     
@@ -396,160 +428,6 @@ async def get_agent_daily_calls(db: db_dependency, user_id: uuid.UUID, year: Opt
 
 
 
-
-
-    
-
-
-
-
-        
-            
-            
-
-
-
-
-
-
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# @router.get("/kpi/agent", response_model= AgentStats) # response_model tells FastAPI what the returned data should look like.
-# async def agent_kpis(db: db_dependency, user_id: uuid.UUID):
-    
-#     # own_id = [user_id.user_id]
-
-#     # query the database
-#     total_calls = ( db.query(func.count(SpeechAnalysis.id))
-#                    .filter(SpeechAnalysis.user_id == Users.user_id, func.date(SpeechAnalysis.created_at) == func.current_date())
-#                    .scalar() or 0
-#                    )
-    
-#     total_leads = ( db.query(func.count(Customers.cust_id)) 
-#                    .filter(Customers.user_id == Users.user_id)
-#                    .scalar() or 0
-#                    )
-    
-
-#     # follow ups and appointment need changes
-#     # check balik how to join airesponse-customer-user tables
-#     follow_ups = ( db.query(func.count(Customers.cust_id))
-#                   .filter(Customers.user_id == Users.user_id)
-#                   .scalar() or 0
-#                   )
-    
-#     appointments = ( db.query(func.count(Customers.cust_id))
-#                     .filter(Customers.cust_id == Users.user_id)
-#                     .scalar() or 0
-#                     )
-    
-#     return AgentStats(
-#         total_calls=total_calls,
-#         total_leads=total_leads,
-#         follow_ups=follow_ups,
-#         appointments=appointments
-#     )
-
-# @router.get("/kpi/team", response_model= TeamOverviewResponse)
-# async def team_kpis(db: db_dependency, user_id: uuid.UUID):
-
-#     team_rows = ( db.query(Users.user_id)
-#                  .filter(Users.manager_id == Users.user_id)
-#                   .all()
-#                   )
-    
-
-
-
-# # Agent Dashboard
-# @router.get("/", response_model=AgentDashboardStats,  status_code=status.HTTP_200_OK)
-# async def agent_dashboard(user_id: int, db: db_dependency):
-#     get_user(db, user_id) # checking if the user exists
-
-#     # why need to put .scalar() or 0 is because
-#     # when query from SQL, it didn't return integer value.
-#     # it returns rows. so scalar will return the total rows in integer value
-
-#     total_calls = (db.query(func.count(CallLog.call_id))
-#                    .filter(CallLog.user_id == user_id,
-#                     func.date(CallLog.call_timestamp) == datetime.now(timezone.utc)
-#                     .date()).scalar() or 0 )
-    
-#     total_leads = (db.query(func.count(Customers.cust_id))
-#                    .filter(Customers.user_id == user_id)
-#                    .scalar() or 0 )
-    
-#     ## needs checking
-#     follow_ups = ( db.query(func.count(Customers.cust_id))
-#                        .filter(Customers.user_id == user_id, 
-#                                Customers.status == "follow-up")
-#                         .scalar() or 0)
-    
-#     appoinment_sets = ( db.query(func.count(Customers.cust_id))
-#                        .filter(Customers.user_id == user_id, 
-#                                Customers.status == "appoinment")
-#                         .scalar() or 0)
-    
-#     return AgentDashboardStats(
-#         total_calls=total_calls,
-#         total_leads=total_leads,
-#         follow_ups=follow_ups,
-#         appoinment_sets=appoinment_sets
-#     )
-
-
-
-# # Team Leader Dashboard
-
-# @router.get("/leader", status_code=status.HTTP_200_OK)
-# async def agent_table(db: db_dependency, user_id: uuid.UUID,) -> list[AgentTable]:
-    
-#     agents = db.query()
-
-
-   
-
- 
 
 
 
