@@ -23,17 +23,31 @@ export function useAuth() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
+        setLoading(true);
 
         if (sessionStorage.getItem('callio_pending_registration')) {
           setProfile(null);
-          setLoading(false);
+          setLoading(true);
           return;
         }
+
+        // Use cached profile from registration as instant fallback
+        const cached = localStorage.getItem('userProfile');
+        if (cached) {
+          try { setProfile(JSON.parse(cached)); } catch { /* ignore */ }
+        }
+
+        // Small cooldown so token timestamps settle post-authentication
+        await new Promise((r) => setTimeout(r, 2000));
 
         let lastError = null;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
             const idToken = await firebaseUser.getIdToken(attempt > 0);
+            // On retry, let the freshly-refreshed token age before sending
+            if (attempt > 0) {
+              await new Promise((r) => setTimeout(r, 2000));
+            }
             const response = await axios.post(`${API_URL}/auth/session`, null, {
               headers: { Authorization: `Bearer ${idToken}` },
               signal: controller.signal,
@@ -58,7 +72,9 @@ export function useAuth() {
         if (lastError) {
           console.error('Failed to fetch user profile:', lastError);
           if (mountedRef.current) {
-            setProfile(null);
+            if (!localStorage.getItem('userProfile')) {
+              setProfile(null);
+            }
             setAuthError('Session verification failed. Please try signing in again.');
           }
         }

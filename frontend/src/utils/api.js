@@ -19,14 +19,14 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    if (error.response?.status === 401 && (originalRequest._retry || 0) < 2) {
+      originalRequest._retry = (originalRequest._retry || 0) + 1;
 
       try {
         const authInstance = getAuth();
         if (authInstance.currentUser) {
           await authInstance.currentUser.getIdToken(true);
-          await new Promise((r) => setTimeout(r, 1500));
+          await new Promise((r) => setTimeout(r, 3000));
           return api(originalRequest);
         }
       } catch {

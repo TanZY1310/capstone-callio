@@ -1,12 +1,11 @@
 import { useState, useReducer } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../firebase';
 
 import { KeyRound, Mail, Eye, EyeOff } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'sonner';
-import api from '../../utils/api';
 
 const initialState = {
   email: '',
@@ -83,7 +82,6 @@ function parseFirebaseError(code) {
 
 function LoginForm() {
   const [state, dispatch] = useReducer(loginReducer, initialState);
-  const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -94,11 +92,8 @@ function LoginForm() {
     try {
       await signInWithEmailAndPassword(auth, state.email, state.password);
 
-      await api.post('/auth/session', null);
-
       dispatch({ type: ACTIONS.LOGIN_SUCCESS });
       toast.success('Login successful!');
-      setTimeout(() => navigate('/'), 3000);
     } catch (err) {
       const message = parseFirebaseError(err.code);
       dispatch({ type: ACTIONS.LOGIN_ERROR, payload: message });
