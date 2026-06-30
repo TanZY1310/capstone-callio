@@ -169,8 +169,13 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     if current_user.role !=  UserRole.TEAM_LEAD:
         raise HTTPException(status_code= 403, detail= "Leader access only")
     
+    
+    
+
+    
     team_members = db.query(Users).filter(Users.team_lead_id == user_id).all()
     team_agent_ids = [m.user_id for m in team_members]
+
 
     today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time())
     today_end  = today_start + timedelta(days=1)
@@ -182,7 +187,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     # checking if the leader has any agents under him
     if not team_agent_ids:
         team_kpis = AgentStats(calls = 0, leads=0, followUps=0, appointments=0, bookings=0)
-        team_overview = 0,
+        team_overview = []
         team_regions, team_objections = [], []
         team_stats = TeamStats(
             team_kpis=team_kpis,

@@ -49,8 +49,6 @@ class TeamStats(BaseModel):
     team_regions: list[RegionCount]
     team_objections: list[ObjectionCount]
     
-
-
 class LeaderDashboardResponse(BaseModel):
     # total_agents: int
     # team_calls: int
