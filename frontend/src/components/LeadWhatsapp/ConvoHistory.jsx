@@ -37,7 +37,7 @@ function ConvoHistory({ messages, inputRef, onSend, onEnter }) {
             </div>
           </div>
         ) : (
-          <p className="py-4 text-base-content/50">No chat history for this lead yet.</p>
+          <p className="text-center py-4 text-base-content/67 text-xl justify-center">No chat history for this lead yet.</p>
         )}
     </div>
   );
