@@ -1,5 +1,5 @@
 import { useState, useReducer, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../../../firebase';
 
@@ -114,7 +114,6 @@ function RegisterForm() {
   const [state, dispatch] = useReducer(registerReducer, initialState);
   const [showPassword, setShowPassword] = useState(false);
   const [teamLead, setTeamLead] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (state.role === 'agent') {
@@ -190,7 +189,7 @@ function RegisterForm() {
         return await api.post('/auth/register', payload);
       } catch (err) {
         if (err.response?.status === 401 && i < 2) {
-          await new Promise((r) => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 3000));
           continue;
         }
         throw err;
@@ -220,6 +219,9 @@ function RegisterForm() {
         displayName: `${state.first_name} ${state.last_name}`,
       });
 
+      // Let Firebase session timestamps settle before first API call
+      await new Promise((r) => setTimeout(r, 3000));
+
       // Create DB profile backend (with retry on 401)
       const registerResponse = await registerUserProfile({
         first_name: state.first_name,
@@ -244,7 +246,7 @@ function RegisterForm() {
       sessionStorage.removeItem('callio_pending_registration');
       dispatch({ type: ACTIONS.REGISTER_SUCCESS });
       toast.success('Account created! Welcome to Callio.');
-      navigate('/');
+      window.location.href = '/';
     } catch (err) {
       sessionStorage.removeItem('callio_pending_registration');
       // Firebase errors use err.code , Axios uses err.response
@@ -318,22 +320,26 @@ function RegisterForm() {
                 {/* Role */}
                 <div className="w-full">
                   <legend className="fieldset-legend mt-2">Role</legend>
-                  <label className="input input-bordered w-full">
-                    <UserKey size={15} className="text-base-content/40" />
-                    <select
-                      name="role"
-                      className="bg-transparent grow h-full focus:outline-none"
-                      value={state.role}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="" disabled={true}>
-                        Pick a role
-                      </option>
-                      <option value="team_lead">Team Lead</option>
-                      <option value="agent">Agent</option>
-                    </select>
-                  </label>
+                  <div className="dropdown w-full">
+                    <div tabIndex={0} role="button" className="select select-bordered w-full flex items-center gap-2">
+                      <UserKey size={15} className="text-base-content/40 shrink-0" />
+                      <span className="grow text-left">
+                        {state.role === 'team_lead' ? 'Team Lead' : state.role === 'agent' ? 'Agent' : 'Pick a role'}
+                      </span>
+                    </div>
+                    <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-30 w-full shadow-sm mt-2 p-2">
+                      <li>
+                        <button type="button" onClick={() => { dispatch({ type: ACTIONS.SET_FIELD, field: 'role', value: 'team_lead' }); document.activeElement?.blur(); }}>
+                          Team Lead
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" onClick={() => { dispatch({ type: ACTIONS.SET_FIELD, field: 'role', value: 'agent' }); document.activeElement?.blur(); }}>
+                          Agent
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                   {state.errors.role && (
                     <p className="text-error-msg">{state.errors.role}</p>
                   )}
@@ -343,25 +349,25 @@ function RegisterForm() {
                 {state.role === 'agent' && (
                   <div className="w-full">
                     <legend className="fieldset-legend mt-2">Team Lead</legend>
-                    <label className="input input-bordered w-full">
-                      <Users size={15} className="text-base-content/40" />
-                      <select
-                        name="team_lead_id"
-                        className="bg-transparent grow h-full focus:outline-none"
-                        value={state.team_lead_id}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="" disabled={true}>
-                          Select your team lead
-                        </option>
+                    <div className="dropdown w-full">
+                      <div tabIndex={0} role="button" className="select select-bordered w-full flex items-center gap-2">
+                        <Users size={15} className="text-base-content/40 shrink-0" />
+                        <span className="grow text-left">
+                          {state.team_lead_id
+                            ? teamLead.find(l => l.user_id === state.team_lead_id)?.first_name + ' ' + teamLead.find(l => l.user_id === state.team_lead_id)?.last_name
+                            : 'Select your team lead'}
+                        </span>
+                      </div>
+                      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-30 w-full shadow-sm mt-2 p-2">
                         {teamLead.map((lead) => (
-                          <option key={lead.user_id} value={lead.user_id}>
-                            {lead.first_name} {lead.last_name}
-                          </option>
+                          <li key={lead.user_id}>
+                            <button type="button" onClick={() => { dispatch({ type: ACTIONS.SET_FIELD, field: 'team_lead_id', value: lead.user_id }); document.activeElement?.blur(); }}>
+                              {lead.first_name} {lead.last_name}
+                            </button>
+                          </li>
                         ))}
-                      </select>
-                    </label>
+                      </ul>
+                    </div>
                     {state.errors.team_lead_id && (
                       <p className="text-error-msg">
                         {state.errors.team_lead_id}

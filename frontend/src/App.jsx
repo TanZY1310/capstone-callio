@@ -48,17 +48,13 @@ function App() {
             <Route
               path="/register"
               element={
-                loading ? null : user ? (
-                  <Navigate to="/" replace />
-                ) : (
-                  <Register />
-                ) //loading helps prevent from rendering before Firebase resolves, redirect issue caused if user is logged in
+                loading && !user ? null : profile ? <Navigate to="/" replace /> : <Register />
               }
             />
             <Route
               path="/login"
               element={
-                loading ? null : user ? <Navigate to="/" replace /> : <Login />
+                loading && !user ? null : profile ? <Navigate to="/" replace /> : <Login />
               }
             />
             <Route
