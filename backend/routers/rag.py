@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from typing import List
-from services.rag import process_and_store_pdf
+from services.rag import process_and_store_pdf, delete_pdf_from_store
 import logging
 
 router = APIRouter(
@@ -37,3 +37,12 @@ async def upload_files(files: List[UploadFile] = File(...)):
             })
             
     return {"message": "Files processed", "results": results}
+
+@router.delete("/delete/{filename}")
+async def delete_file(filename: str):
+    try:
+        deleted_count = delete_pdf_from_store(filename)
+        return {"message": f"Successfully deleted {deleted_count} chunks for {filename}", "deleted_count": deleted_count}
+    except Exception as e:
+        logging.error(f"Error deleting {filename}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

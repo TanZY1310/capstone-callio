@@ -64,3 +64,8 @@ def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
     vector_store.add_documents(split_docs)
     
     return len(split_docs)
+
+def delete_pdf_from_store(file_name: str) -> int:
+    """Deletes all chunks associated with a specific PDF file from the vector store."""
+    result = MONGODB_COLLECTION.delete_many({"source": file_name})
+    return result.deleted_count

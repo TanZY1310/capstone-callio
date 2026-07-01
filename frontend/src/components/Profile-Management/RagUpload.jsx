@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UploadCloud, File, X } from 'lucide-react';
+import { UploadCloud, File, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../../utils/api';
 
@@ -59,6 +59,17 @@ function RagUpload() {
     }
   };
 
+  const handleDeleteUploaded = async (fileName) => {
+    try {
+      await api.delete(`/rag/delete/${encodeURIComponent(fileName)}`);
+      setUploadedFiles(prev => prev.filter(f => f.name !== fileName));
+      toast.success('Document deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      toast.error('Failed to delete document. Please try again.');
+    }
+  };
+
   const openModal = () => {
     document.getElementById('rag-upload-modal').showModal();
   };
@@ -101,7 +112,16 @@ function RagUpload() {
                         </div>
                       </td>
                       <td>
-                        <span className="badge badge-success badge-sm text-white border-none">Active</span>
+                        <div className="flex items-center gap-3">
+                          <span className="badge badge-success badge-sm text-white border-none">Active</span>
+                          <button 
+                            className="btn btn-ghost btn-xs btn-circle text-error/70 hover:text-error hover:bg-error/10"
+                            onClick={() => handleDeleteUploaded(file.name)}
+                            title="Delete Document"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
