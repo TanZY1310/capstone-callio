@@ -40,3 +40,5 @@ class Users(Base):
     sheets_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     bio: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+
+    tokens_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

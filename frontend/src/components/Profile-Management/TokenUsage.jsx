@@ -1,8 +1,11 @@
 import { Zap, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 function TokenUsage() {
-  // Mock data for token usage
-  const tokensUsed = 125000;
+  const { profile } = useAuth();
+  
+  // Real data for token usage
+  const tokensUsed = profile?.tokens_used || 0;
   const tokenLimit = 500000;
   const percentage = Math.round((tokensUsed / tokenLimit) * 100);
 
