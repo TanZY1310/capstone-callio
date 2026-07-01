@@ -47,6 +47,11 @@ function SheetsCard() {
   }, [user]);
 
   const handleSync = async () => {
+    if (!sheetsId || !sheetsId.trim()) {
+      toast.error('You must key in the Spreadsheet ID');
+      return;
+    }
+
     setIsSyncing(true);
 
     try {
