@@ -42,23 +42,25 @@ vector_store = MongoDBAtlasVectorSearch(
     relevance_score_fn="cosine"
 )
 
-#Clear all exisiting documents from the collections
-MONGODB_COLLECTION.delete_many({})
-print("Previous documents cleared")
+import io
 
-#Custome native PDF loader Function
-def load_pdf_document(file_path: str) -> list[Document]:
-    reader = PdfReader(file_path)
+def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
+    """Processes a PDF file from bytes, splits it, and adds it to the vector store."""
+    reader = PdfReader(io.BytesIO(file_bytes))
     docs = []
     for i, page in enumerate(reader.pages):
         text = page.extract_text()
         if text:
             #Add page numbers to the metadata so the llm knows exactly where the info came from!
-            docs.append(Document(page_content=text, metadata={"source":file_path, "page": i +1}))
-        return docs
-    
-print("Loading PDF...")
-pdf_docs = load_pdf_document('diabetes.pdf')
+            docs.append(Document(page_content=text, metadata={"source": file_name, "page": i + 1}))
+            
+    if not docs:
+        return 0
 
-#Setup the text splitter
-text_splitter = RecursiveCharacterTextSplitter()
+    #Setup the text splitter
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
+    split_docs = text_splitter.split_documents(docs)
+    
+    vector_store.add_documents(split_docs)
+    
+    return len(split_docs)
