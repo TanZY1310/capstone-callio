@@ -95,19 +95,19 @@ function LeaderDashboard() {
                     label: 'Total Leads',
                     count: teamData.team_stats.team_kpis.leads,
                   },
-                  {
-                    label: 'Follow Ups',
-                    count: teamData.team_stats.team_kpis.followUps,
-                  },
+                  // {
+                  //   label: 'Follow Ups',
+                  //   count: teamData.team_stats.team_kpis.followUps,
+                  // },
 
                   {
                     label: 'Appointments Set',
                     count: teamData.team_stats.team_kpis.appointments,
                   },
-                  // {
-                  //   label: 'Bookings',
-                  //   count: teamData.team_stats.team_kpis.bookings,
-                  // },
+                  {
+                    label: 'Bookings',
+                    count: teamData.team_stats.team_kpis.bookings,
+                  },
                 ]}
               />
             </div>

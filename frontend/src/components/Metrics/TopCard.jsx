@@ -18,25 +18,25 @@ function TopCard({ calls, leads, followUps, appointments }) {
   return (
     <>
       <div className="card bg-base-100 border border-base-200 shadow-sm">
-        {/* 1. Total Leads */}
+        {/* 1. Total Calls */}
 
         <div className="stats shadow">
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <IoPersonSharp size={32} />
-            </div>
-            <div className="stat-title">Total Leads</div>
-            <div className="stat-value">{leads}</div>
-          </div>
-
-          {/* 2. Total Calls */}
-
           <div className="stat">
             <div className="stat-figure text-secondary">
               <MdCall size={32} />
             </div>
             <div className="stat-title">Total Calls Today</div>
             <div className="stat-value">{calls}</div>
+          </div>
+
+          {/* 2. Total Leads */}
+
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <IoPersonSharp size={32} />
+            </div>
+            <div className="stat-title">Total Leads</div>
+            <div className="stat-value">{leads}</div>
           </div>
 
           {/* 3. Pending Follow-ups */}
