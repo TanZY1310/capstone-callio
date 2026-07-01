@@ -52,7 +52,7 @@ class TeamStats(BaseModel):
 class LeaderDashboardResponse(BaseModel):
     # total_agents: int
     # team_calls: int
-    # team_appointments: int
+    team_bookings: int
     total_agents: int
     team_stats: TeamStats
     team_overview: list[AgentTable]
