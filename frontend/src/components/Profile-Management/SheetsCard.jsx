@@ -18,35 +18,41 @@ function SheetsCard() {
 
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        try {
-          const response = await api.get('/user_profile/');
-          if (response.data.sheets_id) {
-            setSheetsId(response.data.sheets_id);
-          }
-
-          try {
-            const statusRes = await api.get('/sheets/status');
-            if (statusRes.data && statusRes.data.connected) {
-              setIsLinked(true);
-            } else {
-              setIsLinked(false);
-            }
-          } catch (statusErr) {
-            setIsLinked(false);
-            console.error('Failed to fetch Sheets status:', statusErr);
-          }
-        } catch (err) {
-          console.error('Failed to fetch profile data:', err);
+  const fetchProfile = async () => {
+    if (user) {
+      try {
+        const response = await api.get('/user_profile/');
+        if (response.data.sheets_id) {
+          setSheetsId(response.data.sheets_id);
         }
+
+        try {
+          const statusRes = await api.get('/sheets/status');
+          if (statusRes.data && statusRes.data.connected) {
+            setIsLinked(true);
+          } else {
+            setIsLinked(false);
+          }
+        } catch (statusErr) {
+          setIsLinked(false);
+          console.error('Failed to fetch Sheets status:', statusErr);
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile data:', err);
       }
-    };
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, [user]);
 
   const handleSync = async () => {
+    if (!sheetsId || !sheetsId.trim()) {
+      toast.error('You must key in the Spreadsheet ID');
+      return;
+    }
+
     setIsSyncing(true);
 
     try {
@@ -72,6 +78,9 @@ function SheetsCard() {
         String(now.getSeconds()).padStart(2, '0');
 
       setLastSyncTime(formattedTime);
+
+      // Fetch the updated profile and status after sync
+      await fetchProfile();
     } catch (err) {
       console.error(err);
       toast.error('Failed to sync Sheets ID.');
