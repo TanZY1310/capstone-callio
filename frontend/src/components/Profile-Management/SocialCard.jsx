@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import axios from 'axios';
 import wsLogo from '../../assets/Whatsapp.png';
+import QRModal from '../LeadWhatsapp/QRModal';
 // import loadimg from "../../assets/loading.lottie";
 
 function SocialCard() {
@@ -9,6 +10,8 @@ function SocialCard() {
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrCode, setQrCode] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -33,6 +36,7 @@ function SocialCard() {
   const link = async () => {
     setIsLoading(true);
     setError(null);
+    setQrCode(null);
 
     try {
       const res = await axios.post(`${API_URL}/whatsapp/connect`);
@@ -42,13 +46,15 @@ function SocialCard() {
         throw new Error(res.data.message || 'Account failed to link, Please try again');
       }
 
-      // Add a 2-second delay to keep the loading animation visible
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Set the QR Code from the response
+      const code = res.data.qrCode || res.data.qr_code || res.data.qr || res.data;
+      if (typeof code === 'string') {
+        setQrCode(code);
+      }
 
-      console.log('Linked Succesfully');
-      setIsLinked(true);
-      setNotification(true);
     } catch (err) {
+      setShowQRModal(false);
+      document.getElementById('ws-acc').showModal();
       setError(err.response?.data?.detail || err.message || 'Account failed to link, Please try again');
     } finally {
       setIsLoading(false);
@@ -56,7 +62,7 @@ function SocialCard() {
   };
 
   const handleLinkAccount = async () => {
-    document.getElementById('ws-acc').showModal();
+    setShowQRModal(true);
     await link();
   };
 
@@ -135,6 +141,12 @@ function SocialCard() {
           </div>
         </div>
       </div>
+
+      <QRModal 
+        showQRModal={showQRModal} 
+        qrCode={qrCode} 
+        onClose={() => setShowQRModal(false)} 
+      />
 
       {/* DaisyUI Responsive Modal Component */}
       <dialog id="ws-acc" className="modal modal-bottom sm:modal-middle">
