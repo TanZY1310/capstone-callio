@@ -49,6 +49,13 @@ vector_store = MongoDBAtlasVectorSearch(
     relevance_score_fn="cosine"
 )
 
+# create the vector search index
+try:
+    vector_store.create_vector_search_index(dimensions=768)
+    print(f"Ensured vector search index '{ATLAS_VECTOR_SEARCH_INDEX_NAME}' is created.")
+except Exception as e:
+    print(f"Could not create vector search index programmatically (it might already exist): {e}")
+
 import io
 
 def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
@@ -62,21 +69,15 @@ def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
             docs.append(Document(page_content=text, metadata={"source": file_name, "page": i + 1}))
             
     if not docs:
-        print(f"❌ No text extracted from {file_name}. It might be a scanned image.")
+        print(f"No text extracted from {file_name}. It might be a scanned image.")
         return 0
 
-    print(f"✅ Extracted text from {len(docs)} pages.")
+    print(f"Extracted text from {len(docs)} pages.")
 
     #Setup the text splitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
     split_docs = text_splitter.split_documents(docs)
-    
-    print(f"✅ Generated {len(split_docs)} chunks. Sending to MongoDB...")
-    
     vector_store.add_documents(split_docs)
-    
-    print("✅ Successfully added chunks to MongoDB!")
-    
     return len(split_docs)
 
 def delete_pdf_from_store(file_name: str) -> int:
