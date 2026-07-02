@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import sheetsimg from '../../assets/sheets_icon.png';
 import { Info } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,9 +7,6 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 
 function SheetsCard() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [notification, setNotification] = useState(false);
   const [sheetsId, setSheetsId] = useState('');
   const [isLinked, setIsLinked] = useState(false);
 
@@ -58,6 +55,7 @@ function SheetsCard() {
     try {
       if (user) {
         await api.put('/user_profile/', { sheets_id: sheetsId });
+        await api.post('/sync');
         setIsLinked(true);
         toast.success(`Sync successful`);
       }
@@ -87,35 +85,6 @@ function SheetsCard() {
     } finally {
       setIsSyncing(false);
     }
-  };
-
-  const insert_api = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      //simulate API calling
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      if (Math.random() > 0.3) {
-        console.log('Linked Succesfully');
-        setNotification(true);
-      } else {
-        throw new Error('Account failed to linked, Please try again');
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleClick = () => {
-    document.getElementById('setting_modal').showModal();
-  };
-
-  const handleSave = () => {
-    insert_api();
   };
 
   return (
