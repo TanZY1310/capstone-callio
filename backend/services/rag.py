@@ -36,8 +36,8 @@ except Exception as e:
     print(f"❌ Failed to connect to MongoDB: {e}")
 
 #Define database and collection names
-DB_NAME= "test_db"
-COLLECTION_NAME = "test_collection"
+DB_NAME= "rag_db"
+COLLECTION_NAME = "rag_collection"
 ATLAS_VECTOR_SEARCH_INDEX_NAME = "test-index-1"
 MONGODB_COLLECTION = client[DB_NAME][COLLECTION_NAME]
 
@@ -62,13 +62,20 @@ def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
             docs.append(Document(page_content=text, metadata={"source": file_name, "page": i + 1}))
             
     if not docs:
+        print(f"❌ No text extracted from {file_name}. It might be a scanned image.")
         return 0
+
+    print(f"✅ Extracted text from {len(docs)} pages.")
 
     #Setup the text splitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
     split_docs = text_splitter.split_documents(docs)
     
+    print(f"✅ Generated {len(split_docs)} chunks. Sending to MongoDB...")
+    
     vector_store.add_documents(split_docs)
+    
+    print("✅ Successfully added chunks to MongoDB!")
     
     return len(split_docs)
 
