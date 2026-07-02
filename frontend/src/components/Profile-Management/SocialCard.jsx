@@ -9,6 +9,8 @@ function SocialCard() {
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
+  const [qrCode, setQrCode] = useState(null);
+  const [pollInterval, setPollInterval] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -33,36 +35,59 @@ function SocialCard() {
   const link = async () => {
     setIsLoading(true);
     setError(null);
+    setQrCode(null);
+    setNotification(false);
 
     try {
       const res = await axios.post(`${API_URL}/whatsapp/connect`);
       
-      // The backend returns a JSON with an explicit error status if Node.js fails 
       if (res.data && res.data.status === 'error') {
         throw new Error(res.data.message || 'Account failed to link, Please try again');
       }
 
-      // Add a 2-second delay to keep the loading animation visible
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setIsLoading(false); // Stop loader, start polling for QR
 
-      console.log('Linked Succesfully');
-      setIsLinked(true);
-      setNotification(true);
+      const poll = setInterval(async () => {
+        try {
+          const statusRes = await axios.get(`${API_URL}/whatsapp/status`);
+          const data = statusRes.data;
+
+          if (data.status === 'connected') {
+            clearInterval(poll);
+            setPollInterval(null);
+            setQrCode(null);
+            setIsLinked(true);
+            setNotification(true);
+          } else if (data.qr) {
+            setQrCode(data.qr);
+          }
+        } catch (pollErr) {
+          clearInterval(poll);
+          setPollInterval(null);
+          setError('Failed to fetch WhatsApp status');
+        }
+      }, 3000);
+      
+      setPollInterval(poll);
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Account failed to link, Please try again');
-    } finally {
       setIsLoading(false);
     }
   };
 
   const handleLinkAccount = async () => {
     document.getElementById('ws-acc').showModal();
-    await link();
+    await link(); 
   };
 
   const handleClose = () => {
     setError(null);
     setNotification(false);
+    setQrCode(null);
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      setPollInterval(null);
+    }
   };
 
   return (
@@ -139,8 +164,24 @@ function SocialCard() {
       {/* DaisyUI Responsive Modal Component */}
       <dialog id="ws-acc" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box text-center p-8 max-w-sm">
-          {/* Loading View State */}
-          {isLoading && (
+      
+          {/* QR Code View State */}
+          {qrCode && !notification && !error && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <h3 className="font-bold text-lg text-base-content">
+                Scan QR Code to Connect
+              </h3>
+              <div className="bg-white p-4 rounded-xl shadow-sm inline-block">
+                <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64 object-contain" />
+              </div>
+              <p className="text-sm text-base-content/70 animate-pulse">
+                Waiting for scan...
+              </p>
+            </div> 
+          )}
+
+          {/* Waiting for QR Code (Generating / Loading) */}
+          {!qrCode && !notification && !error && (
             <div className="flex flex-col items-center gap-4 py-4">
               <div className="w-32 h-32">
                 <DotLottieReact
@@ -150,7 +191,7 @@ function SocialCard() {
                 />
               </div>
               <p className="text-sm font-medium text-base-content/70 animate-pulse">
-                Linking Account...
+                Generating QR Code...
               </p>
             </div>
           )}
