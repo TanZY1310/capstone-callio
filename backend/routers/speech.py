@@ -45,6 +45,7 @@ async def transcribe(
         "filename": file.filename,
         "customer_id": customer_id,
         "data": None,
+        "progress_message": "Uploading audio...",
     }
 
     asyncio.create_task(_process(task_id, contents, mime_type))
@@ -124,11 +125,17 @@ async def add_to_pipeline(db: db_dependency, task_id: str, body: PipelineRequest
 async def _process(task_id: str, audio_bytes: bytes, mime_type: str):
     try:
         tasks[task_id]["step"] = 1
+        tasks[task_id]["progress_message"] = "Starting transcription..."
+
+        def update(msg):
+            tasks[task_id]["progress_message"] = msg
+
         await asyncio.sleep(0.1)
-        transcript = await asyncio.to_thread(transcribe_audio, audio_bytes, mime_type)
+        transcript = await asyncio.to_thread(transcribe_audio, audio_bytes, mime_type, progress_callback=update)
 
         tasks[task_id]["step"] = 2
         tasks[task_id]["status"] = "awaiting_approval"
+        tasks[task_id]["progress_message"] = "Transcription complete — review and approve"
         tasks[task_id]["data"] = {
             "transcription": transcript,
         }
@@ -171,9 +178,14 @@ async def _analyze_phase(db:db_dependency, task_id: str):
         transcript = tasks[task_id]["data"]["transcription"]
 
         tasks[task_id]["step"] = 3
+        tasks[task_id]["progress_message"] = "Starting AI analysis..."
+
+        def update(msg):
+            tasks[task_id]["progress_message"] = msg
+
         await asyncio.sleep(0.1)
 
-        analysis = await asyncio.to_thread(analyze_transcript, transcript)
+        analysis = await asyncio.to_thread(analyze_transcript, transcript, progress_callback=update)
 
         transcript_text = "\n".join(
             f"{s['speaker']}: {s['text']}" for s in transcript

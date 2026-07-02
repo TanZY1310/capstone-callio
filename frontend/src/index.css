@@ -127,3 +127,12 @@ body {
     @apply text-xs font-medium;
   }
 }
+
+@keyframes wave-bounce {
+  0% {
+    transform: scaleY(0.4);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}

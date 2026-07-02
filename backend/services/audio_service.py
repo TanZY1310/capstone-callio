@@ -24,18 +24,25 @@ def _create_llm(model: str):
     return ChatGoogleGenerativeAI(model=model, google_api_key=key)
 
 
-def _invoke_with_fallback(messages, models=None):
+def _invoke_with_fallback(messages, models=None, progress_callback=None):
     if models is None:
         models = FALLBACK_MODELS
     last_exception = None
     for model in models:
         try:
+            if progress_callback:
+                progress_callback(f"Using {model}...")
             llm = _create_llm(model)
             response = llm.invoke(messages)
             logger.info("LLM call succeeded with model: %s", model)
+            if progress_callback:
+                progress_callback(f"Completed with {model}")
             return response
         except Exception as e:
+            exc_name = type(e).__name__
             logger.warning("Model %s failed: %s", model, e)
+            if progress_callback:
+                progress_callback(f"{model} failed ({exc_name}). Trying next model...")
             last_exception = e
     raise RuntimeError(
         f"All fallback models failed. Last error: {last_exception}"
@@ -51,7 +58,7 @@ def _parse_json(text: str) -> dict:
     return json.loads(text)
 
 
-def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
+def transcribe_audio(audio_bytes: bytes, mime_type: str, progress_callback=None) -> list:
     audio_b64 = base64.b64encode(audio_bytes).decode()
 
     prompt = (
@@ -65,7 +72,7 @@ def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
         {"type": "text", "text": prompt},
         {"type": "media", "data": audio_b64, "mime_type": mime_type},
     ])
-    response = _invoke_with_fallback([msg])
+    response = _invoke_with_fallback([msg], progress_callback=progress_callback)
 
     raw = response.content
     if isinstance(raw, list):
@@ -76,7 +83,7 @@ def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
     return _parse_json(text)
 
 
-def analyze_transcript(transcript: list) -> dict:
+def analyze_transcript(transcript: list, progress_callback=None) -> dict:
     transcript_text = "\n".join(
         f"{s['speaker']}: {s['text']}" for s in transcript
     )
@@ -118,7 +125,7 @@ def analyze_transcript(transcript: list) -> dict:
     )
 
     msg = HumanMessage(content=prompt)
-    response = _invoke_with_fallback([msg])
+    response = _invoke_with_fallback([msg], progress_callback=progress_callback)
 
     raw = response.content
     if isinstance(raw, list):
