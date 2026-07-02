@@ -28,6 +28,13 @@ embeddings = GoogleGenerativeAIEmbeddings(
 # Connect to MongoDB
 client = MongoClient(MONGODB_URI)
 
+# Verify the connection
+try:
+    client.admin.command('ping')
+    print("✅ Successfully connected to MongoDB!")
+except Exception as e:
+    print(f"❌ Failed to connect to MongoDB: {e}")
+
 #Define database and collection names
 DB_NAME= "test_db"
 COLLECTION_NAME = "test_collection"
