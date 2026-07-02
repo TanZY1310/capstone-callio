@@ -28,9 +28,16 @@ embeddings = GoogleGenerativeAIEmbeddings(
 # Connect to MongoDB
 client = MongoClient(MONGODB_URI)
 
+# Verify the connection
+try:
+    client.admin.command('ping')
+    print("Successfully connected to MongoDB!")
+except Exception as e:
+    print(f"Failed to connect to MongoDB: {e}")
+
 #Define database and collection names
-DB_NAME= "test_db"
-COLLECTION_NAME = "test_collection"
+DB_NAME= "rag_db"
+COLLECTION_NAME = "rag_collection"
 ATLAS_VECTOR_SEARCH_INDEX_NAME = "test-index-1"
 MONGODB_COLLECTION = client[DB_NAME][COLLECTION_NAME]
 
@@ -42,10 +49,17 @@ vector_store = MongoDBAtlasVectorSearch(
     relevance_score_fn="cosine"
 )
 
+# create the vector search index
+try:
+    vector_store.create_vector_search_index(dimensions=768)
+    print(f"Ensured vector search index '{ATLAS_VECTOR_SEARCH_INDEX_NAME}' is created.")
+except Exception as e:
+    print(f"Could not create vector search index programmatically (it might already exist): {e}")
+
 import io
 
+#process PDF file and store embeddings in vector store
 def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
-    """Processes a PDF file from bytes, splits it, and adds it to the vector store."""
     reader = PdfReader(io.BytesIO(file_bytes))
     docs = []
     for i, page in enumerate(reader.pages):
@@ -55,17 +69,23 @@ def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
             docs.append(Document(page_content=text, metadata={"source": file_name, "page": i + 1}))
             
     if not docs:
+        print(f"No text extracted from {file_name}. It might be a scanned image.")
         return 0
+
+    print(f"Extracted text from {len(docs)} pages.")
 
     #Setup the text splitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
     split_docs = text_splitter.split_documents(docs)
-    
     vector_store.add_documents(split_docs)
-    
     return len(split_docs)
 
+#delete PDF file from vector store
 def delete_pdf_from_store(file_name: str) -> int:
-    """Deletes all chunks associated with a specific PDF file from the vector store."""
     result = MONGODB_COLLECTION.delete_many({"source": file_name})
     return result.deleted_count
+
+#get all PDF files from vector store
+def get_all_pdfs_from_store() -> list[str]:
+    unique_sources = MONGODB_COLLECTION.distinct("source")
+    return [source for source in unique_sources if source]
