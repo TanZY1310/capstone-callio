@@ -1,18 +1,45 @@
 import os
 import json
 import base64
+import logging
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
 
-def _get_llm():
+FALLBACK_MODELS = [
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash",
+]
+
+
+def _create_llm(model: str):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
         raise ValueError("GEMINI_API_KEY not set in .env file")
-    return ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=key)
+    return ChatGoogleGenerativeAI(model=model, google_api_key=key)
+
+
+def _invoke_with_fallback(messages, models=None):
+    if models is None:
+        models = FALLBACK_MODELS
+    last_exception = None
+    for model in models:
+        try:
+            llm = _create_llm(model)
+            response = llm.invoke(messages)
+            logger.info("LLM call succeeded with model: %s", model)
+            return response
+        except Exception as e:
+            logger.warning("Model %s failed: %s", model, e)
+            last_exception = e
+    raise RuntimeError(
+        f"All fallback models failed. Last error: {last_exception}"
+    ) from last_exception
 
 
 def _parse_json(text: str) -> dict:
@@ -25,8 +52,6 @@ def _parse_json(text: str) -> dict:
 
 
 def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
-    llm = _get_llm()
-
     audio_b64 = base64.b64encode(audio_bytes).decode()
 
     prompt = (
@@ -40,7 +65,7 @@ def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
         {"type": "text", "text": prompt},
         {"type": "media", "data": audio_b64, "mime_type": mime_type},
     ])
-    response = llm.invoke([msg])
+    response = _invoke_with_fallback([msg])
 
     raw = response.content
     if isinstance(raw, list):
@@ -52,8 +77,6 @@ def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
 
 
 def analyze_transcript(transcript: list) -> dict:
-    llm = _get_llm()
-
     transcript_text = "\n".join(
         f"{s['speaker']}: {s['text']}" for s in transcript
     )
@@ -95,7 +118,7 @@ def analyze_transcript(transcript: list) -> dict:
     )
 
     msg = HumanMessage(content=prompt)
-    response = llm.invoke([msg])
+    response = _invoke_with_fallback([msg])
 
     raw = response.content
     if isinstance(raw, list):
