@@ -31,9 +31,9 @@ client = MongoClient(MONGODB_URI)
 # Verify the connection
 try:
     client.admin.command('ping')
-    print("✅ Successfully connected to MongoDB!")
+    print("Successfully connected to MongoDB!")
 except Exception as e:
-    print(f"❌ Failed to connect to MongoDB: {e}")
+    print(f"Failed to connect to MongoDB: {e}")
 
 #Define database and collection names
 DB_NAME= "rag_db"
@@ -58,8 +58,8 @@ except Exception as e:
 
 import io
 
+#process PDF file and store embeddings in vector store
 def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
-    """Processes a PDF file from bytes, splits it, and adds it to the vector store."""
     reader = PdfReader(io.BytesIO(file_bytes))
     docs = []
     for i, page in enumerate(reader.pages):
@@ -80,12 +80,12 @@ def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
     vector_store.add_documents(split_docs)
     return len(split_docs)
 
+#delete PDF file from vector store
 def delete_pdf_from_store(file_name: str) -> int:
-    """Deletes all chunks associated with a specific PDF file from the vector store."""
     result = MONGODB_COLLECTION.delete_many({"source": file_name})
     return result.deleted_count
 
+#get all PDF files from vector store
 def get_all_pdfs_from_store() -> list[str]:
-    """Retrieves a list of all unique PDF filenames currently stored in the vector store."""
     unique_sources = MONGODB_COLLECTION.distinct("source")
     return [source for source in unique_sources if source]
