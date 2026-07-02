@@ -83,3 +83,8 @@ def delete_pdf_from_store(file_name: str) -> int:
     """Deletes all chunks associated with a specific PDF file from the vector store."""
     result = MONGODB_COLLECTION.delete_many({"source": file_name})
     return result.deleted_count
+
+def get_all_pdfs_from_store() -> list[str]:
+    """Retrieves a list of all unique PDF filenames currently stored in the vector store."""
+    unique_sources = MONGODB_COLLECTION.distinct("source")
+    return [source for source in unique_sources if source]
