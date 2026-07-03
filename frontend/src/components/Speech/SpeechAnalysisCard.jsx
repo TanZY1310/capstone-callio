@@ -15,6 +15,7 @@ function SpeechAnalysisCard({
   sentiment,
   nextActions,
   progressStep,
+  progressMessage,
   onAddToPipeline,
   audioFile,
   awaitingApproval,
@@ -73,7 +74,11 @@ function SpeechAnalysisCard({
             {/* Tab content */}
             <div className="w-full">
               {activeTab === 'transcription' && (
-                <TranscriptionTab data={transcriptionData} />
+                <TranscriptionTab
+                  data={transcriptionData}
+                  loading={progressStep === 0 || progressStep === 1}
+                  progressMessage={progressMessage}
+                />
               )}
               {activeTab === 'sentiment' && (
                 <SentimentTab data={sentimentData} />
