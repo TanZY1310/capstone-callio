@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -11,7 +11,23 @@ import { FaPeopleGroup } from 'react-icons/fa6';
 import { toast } from 'sonner';
 import { statusList } from '../../data/statusList';
 import { tableHeader } from '../../data/tableHeader';
-import { motion } from 'motion/react';
+
+const PAGE_SIZE = 10;
+
+const BADGE_COLORS = {
+  Completed: 'badge-success',
+  Booking: 'badge-success',
+  Appointment: 'badge-info',
+  'Pending Appointment': 'badge-warning',
+  WhatsApp: 'badge-primary',
+  'Might Keep In Touch': 'badge-accent',
+  'Not Yet Call': 'badge-neutral',
+  'No Pickup': 'badge-ghost',
+  'Not Interested': 'badge-error',
+  'Stop Following Up': 'badge-error',
+};
+
+const getBadgeClass = (status) => BADGE_COLORS[status] || 'badge-ghost';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '-';
@@ -22,72 +38,60 @@ const formatDate = (dateStr) => {
   });
 };
 
-function CustomerListings({ customerData, onDataChange, commitVersion }) {
-  const [customers, setCustomers] = useState([]);
-  const [originalStatus, setOriginalStatus] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  //Status value map with customer.status
-  //Object.fromEntries transforms a list of key-value pairs into an object
-  const [status, setStatus] = useState({});
+function CustomerListings({ customerData, onStatusChange }) {
   const [filters, setFilters] = useState({
     status: 'all',
     searchTerm: '',
   });
+  const [page, setPage] = useState(1);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [modalCustomer, setModalCustomer] = useState(null);
+  const [modalRemark, setModalRemark] = useState(null);
+  const remarksDialogRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleStatusChange = (cust_id, value) => {
-    // setStatus((prev) => ({ ...prev, [id]: value }));
-    const updatedStatus = { ...status, [cust_id]: value };
-    setStatus(updatedStatus);
-
-    const changed = customers
-      .filter((c) => updatedStatus[c.cust_id] !== originalStatus[c.cust_id])
-      .map((c) => ({
-        ...c,
-        originalStatus: originalStatus[c.cust_id],
-        newStatus: updatedStatus[c.cust_id],
-      }));
-
-    console.log('Changed Value', changed);
-
-    onDataChange?.(changed);
-  };
-
-  // Whenever there are changes in customerData, assuming from button sync data, the use effect below will run
   useEffect(() => {
-    const syncData = async () => {
-      //Prevent first time loading no customer data
-      if (!customerData) return;
-      setLoading(true);
-      try {
-        console.log('CustomerData in syncData: ' + customerData);
-        // setCustomers(customerData);
-        setCustomers(Array.isArray(customerData) ? customerData : []);
-        const statusMap = Object.fromEntries(
-          customerData.map((customer) => [customer.cust_id, customer.status]),
-        );
-        setStatus(statusMap);
-        setOriginalStatus(statusMap);
-      } catch (err) {
-        setError('Failed to fetch data');
-        console.log(err.message);
-      } finally {
-        setLoading(false);
+    if (activeDropdown === null) return;
+    const handler = (e) => {
+      if (!e.target.closest('[data-dropdown-container]')) {
+        setActiveDropdown(null);
       }
     };
-
-    syncData();
-  }, [customerData]);
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handler);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handler);
+    };
+  }, [activeDropdown]);
 
   useEffect(() => {
-    if (commitVersion > 0) {
-      setOriginalStatus({ ...status });
-    }
-  }, [commitVersion]);
+    if (!filterDropdownOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest('[data-filter-dropdown]')) {
+        setFilterDropdownOpen(false);
+      }
+    };
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handler);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handler);
+    };
+  }, [filterDropdownOpen]);
 
-  const filteredAndSortedCustomers = useMemo(() => {
-    let filtered = customers.filter((customer) => {
+  const { rows, total, totalPages, currentPage } = useMemo(() => {
+    if (!customerData)
+      return { rows: [], total: 0, totalPages: 0, currentPage: 1 };
+    const sorted = [...customerData].sort((a, b) => {
+      const aDate = a.last_contact ? new Date(a.last_contact).getTime() : 0;
+      const bDate = b.last_contact ? new Date(b.last_contact).getTime() : 0;
+      return bDate - aDate;
+    });
+    const filtered = sorted.filter((customer) => {
       const matchesStatus =
         filters.status === 'all' || customer.status === filters.status;
       const matchesSearch =
@@ -95,17 +99,22 @@ function CustomerListings({ customerData, onDataChange, commitVersion }) {
           .toLowerCase()
           .includes(filters.searchTerm.toLowerCase()) ||
         String(customer.phone).includes(filters.searchTerm.toLowerCase());
-
       return matchesStatus && matchesSearch;
     });
-
-    // TODO: Sort filtered results by date (later)
-
-    return filtered;
-  }, [filters, customers]);
+    const filteredPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const safePage = Math.min(page, filteredPages);
+    const start = (safePage - 1) * PAGE_SIZE;
+    return {
+      rows: filtered.slice(start, start + PAGE_SIZE),
+      total: filtered.length,
+      totalPages: filteredPages,
+      currentPage: safePage,
+    };
+  }, [filters, customerData, page]);
 
   const updateFilter = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
   };
 
   const clearFilters = () => {
@@ -113,23 +122,39 @@ function CustomerListings({ customerData, onDataChange, commitVersion }) {
       status: 'all',
       searchTerm: '',
     });
+    setPage(1);
   };
 
-  const statusFilter = ['all', ...new Set(customers.map((p) => p.status))];
+  const statusFilter = [
+    'all',
+    ...new Set((customerData || []).map((p) => p.status)),
+  ];
 
   const sendCustomerDetails = (destination, customer) => {
     try {
       navigate(destination, { state: { customer } });
     } catch (err) {
-      //Display a toast message to display navigation error
       toast.error(err.message);
     }
   };
 
+  const handleDropdownClick = (cust_id) => {
+    setActiveDropdown((prev) => (prev === cust_id ? null : cust_id));
+  };
+
+  const handleStatusSelect = (cust_id, newStatus) => {
+    setActiveDropdown(null);
+    onStatusChange(cust_id, newStatus);
+  };
+
+  const handleFilterSelect = (value) => {
+    setFilterDropdownOpen(false);
+    updateFilter('status', value);
+  };
+
   return (
-    <div className="dashboard-card overflow-hidden">
+    <div className="dashboard-card overflow-visible">
       <div className="flex items-center justify-between px-6 py-4 border-b border-base-200">
-        {/* Left - Title */}
         <div className="shrink-0">
           <p className="font-semibold text-sm text-base-content">
             Customer Directory
@@ -138,7 +163,6 @@ function CustomerListings({ customerData, onDataChange, commitVersion }) {
             Manage and track all your potential customers
           </p>
         </div>
-        {/* Right - Filters */}
         <div className="flex items-center gap-2 ml-auto">
           <label className="input input-bordered input-sm flex items-center gap-2 w-70">
             <Search size={15} className="text-base-content/40 shrink-0" />
@@ -150,88 +174,69 @@ function CustomerListings({ customerData, onDataChange, commitVersion }) {
               className="grow"
             />
           </label>
-          <select
-            className="select select-bordered select-sm"
-            value={filters.status}
-            onChange={(e) => updateFilter('status', e.target.value)}
+          <div
+            className={`dropdown dropdown-end ${filterDropdownOpen ? 'dropdown-open' : ''}`}
+            data-filter-dropdown
           >
-            {statusFilter.map((status) => (
-              <option key={status} value={status}>
-                {status === 'all' ? 'All Status' : status}
-              </option>
-            ))}
-          </select>
+            <div
+              tabIndex={0}
+              role="button"
+              className="cursor-pointer"
+              onClick={() => setFilterDropdownOpen((prev) => !prev)}
+            >
+              <span
+                className={`badge ${filters.status === 'all' ? 'badge-ghost' : getBadgeClass(filters.status)}`}
+              >
+                {filters.status === 'all' ? 'All Status' : filters.status}
+              </span>
+            </div>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
+            >
+              <li>
+                <button
+                  className={
+                    filters.status === 'all'
+                      ? 'text-base-content font-semibold'
+                      : ''
+                  }
+                  onClick={() => handleFilterSelect('all')}
+                >
+                  <span className="badge badge-ghost w-full justify-start">
+                    All Status
+                  </span>
+                </button>
+              </li>
+              {statusFilter
+                .filter((s) => s !== 'all')
+                .map((status) => (
+                  <li key={status}>
+                    <button
+                      className={
+                        filters.status === status
+                          ? 'text-base-content font-semibold'
+                          : ''
+                      }
+                      onClick={() => handleFilterSelect(status)}
+                    >
+                      <span
+                        className={`badge ${getBadgeClass(status)} w-full justify-start`}
+                      >
+                        {status}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </div>
           <button className="btn btn-sm btn-ghost" onClick={clearFilters}>
             Clear Filters
           </button>
         </div>
       </div>
 
-      {loading && (
-        <table className="table w-full text-sm">
-          <thead>
-            <tr className="text-xs text-base-content/40 border-b border-base-200">
-              {tableHeader.map((eachHeader) => (
-                <th
-                  key={eachHeader.id}
-                  className="px-6 py-3 text-left font-medium"
-                >
-                  {eachHeader.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[...Array(5)].map((_, index) => (
-              <tr key={index} className="border-b border-base-200">
-                {/* Name */}
-                <td className="px-6 py-4">
-                  <div className="skeleton h-4 w-28"></div>
-                </td>
-                {/* Contact (Email & Phone) */}
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-2">
-                    <div className="skeleton h-4 w-40"></div>
-                    <div className="skeleton h-3 w-24"></div>
-                  </div>
-                </td>
-                {/* Budget */}
-                <td className="px-6 py-4">
-                  <div className="skeleton h-4 w-20"></div>
-                </td>
-                {/* Location */}
-                <td className="px-6 py-4">
-                  <div className="skeleton h-4 w-24"></div>
-                </td>
-                {/* Status Dropdown */}
-                <td className="px-6 py-4">
-                  <div className="skeleton h-8 w-28 rounded-lg"></div>
-                </td>
-                {/* Last Contact */}
-                <td className="px-6 py-4">
-                  <div className="skeleton h-4 w-24"></div>
-                </td>
-                {/* Actions (Buttons) */}
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="skeleton h-8 w-8 rounded-md"></div>
-                    <div className="skeleton h-8 w-8 rounded-md"></div>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {error && (
-        <div className="alert alert-error mx-6 my-4">
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Styled High-Fidelity Empty State Box to occupy screen real estate elegantly */}
-      {!loading && !error && filteredAndSortedCustomers.length === 0 && (
+      {!customerData || customerData.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-24 bg-base-100">
           <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-4 text-base-content/30">
             <FaPeopleGroup size={28} />
@@ -240,13 +245,24 @@ function CustomerListings({ customerData, onDataChange, commitVersion }) {
             No active customer records
           </h3>
           <p className="text-xs text-base-content/40 mt-1 max-w-sm">
-            Your customer directory is empty. Get started by clicking on the
-            Import From Google Sheets above.
+            Your customer directory is empty. Go to Profile to import data from
+            Google Sheets.
           </p>
         </div>
-      )}
-
-      {!loading && !error && filteredAndSortedCustomers.length > 0 && (
+      ) : total === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-24 bg-base-100">
+          <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-4 text-base-content/30">
+            <FaPeopleGroup size={28} />
+          </div>
+          <h3 className="text-base font-semibold text-base-content">
+            No matching customers
+          </h3>
+          <p className="text-xs text-base-content/40 mt-1 max-w-sm">
+            No customers match your current filters. Try adjusting your search
+            or clearing the filters.
+          </p>
+        </div>
+      ) : (
         <table className="table w-full table-sm">
           <thead>
             <tr className="text-xs text-base-content/40 border-b border-base-200">
@@ -261,62 +277,85 @@ function CustomerListings({ customerData, onDataChange, commitVersion }) {
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedCustomers.map((customer) => (
-              <motion.tr
+            {rows.map((customer) => (
+              <tr
                 key={customer.cust_id}
                 className="border-b border-base-200 hover:bg-base-200 transition-colors"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: customer.cust_id * 0.05, duration: 0.2 }}
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="font-medium text-base-content">
+                    <span className="text-sm text-base-content">
                       {customer.cust_name}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-base-content/60">
-                  <div>{customer.phone}</div>
+                <td className="px-6 py-4">
+                  <button
+                    className="btn btn-link btn-sm text-success normal-case no-underline"
+                    onClick={() => sendCustomerDetails('/whatsapp', customer)}
+                  >
+                    <MessageSquare size={14} />
+                    <div className="text-sm">{customer.phone}</div>
+                  </button>
                 </td>
-                <td className="px-6 py-4 text-base-content/70">
-                  {customer.budget ?? '-'}
-                </td>
-                <td className="px-6 py-4 text-base-content/60">
-                  {customer.location ?? '-'}
+                <td className="px-6 py-4">
+                  <div className="text-sm text-base-content/70">
+                    {customer.location ?? '-'}
+                  </div>
+                  <div className="text-xs text-base-content/40">
+                    {customer.budget ?? '-'}
+                  </div>
                 </td>
                 <td>
-                  <select
-                    name="status"
-                    className={`select select-bordered select-sm w-full ${
-                      status[customer.cust_id] !== originalStatus[customer.cust_id]
-                        ? 'border-warning text-warning'
-                        : ''
-                    }`}
-                    value={status[customer.cust_id] ?? customer.status}
-                    onChange={(e) =>
-                      handleStatusChange(customer.cust_id, e.target.value)
-                    }
+                  <div
+                    className={`dropdown dropdown-end ${activeDropdown === customer.cust_id ? 'dropdown-open' : ''}`}
+                    data-dropdown-container
                   >
-                    {statusList.map((eachStatus) => (
-                      <option key={eachStatus.id} value={eachStatus.name}>
-                        {eachStatus.name}
-                      </option>
-                    ))}
-                  </select>
+                    <div
+                      tabIndex={0}
+                      role="button"
+                      className="cursor-pointer"
+                      onClick={() => handleDropdownClick(customer.cust_id)}
+                    >
+                      <span
+                        className={`badge ${getBadgeClass(customer.status)}`}
+                      >
+                        {customer.status}
+                      </span>
+                    </div>
+                    <ul
+                      tabIndex={0}
+                      className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
+                    >
+                      {statusList.map((s) => (
+                        <li key={s.id}>
+                          <button
+                            className={
+                              s.name === customer.status
+                                ? 'text-base-content font-semibold'
+                                : ''
+                            }
+                            onClick={() =>
+                              handleStatusSelect(customer.cust_id, s.name)
+                            }
+                            text-sm
+                          >
+                            <span
+                              className={`badge ${getBadgeClass(s.name)} w-full justify-start`}
+                            >
+                              {s.name}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </td>
-                <td className="px-6 py-4 text-base-content/60">
+                <td className="text-sm px-6 py-4 text-base-content/60">
                   {formatDate(customer.last_contact)}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button
-                      name="messageButton"
-                      className="btn btn-sm btn-ghost text-success border border-success/30 hover:bg-success/10"
-                      onClick={() => sendCustomerDetails('/whatsapp', customer)}
-                    >
-                      <MessageSquare size={15} />
-                    </button>
                     <button
                       name="micButton"
                       className="btn btn-sm btn-ghost border border-success/30 hover:bg-success/10"
@@ -326,40 +365,136 @@ function CustomerListings({ customerData, onDataChange, commitVersion }) {
                     </button>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-xs text-base-content/60 leading-relaxed min-w-[220px]">
+                <td className="px-6 py-4 text-base-content/60 max-w-xs">
                   {customer.remarks?.speechAnalysis ? (
                     <>
-                      <div><span className="font-semibold text-base-content/80">Call Datetime:</span> {customer.remarks.speechAnalysis.callDatetime ? new Date(customer.remarks.speechAnalysis.callDatetime).toLocaleString() : '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Buyer Stage:</span> {customer.remarks.speechAnalysis.buyerStage || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Purpose:</span> {customer.remarks.speechAnalysis.purpose || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Sentiment:</span> {customer.remarks.speechAnalysis.sentiment || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Next Action:</span> {customer.remarks.speechAnalysis.nextActions?.[0] || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Preferrance:</span> {customer.remarks.speechAnalysis.preferences || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Next Follow Up:</span> {customer.remarks.speechAnalysis.nextActions?.[1] || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Summary:</span> {customer.remarks.speechAnalysis.summary || '-'}</div>
+                      <p className="line-clamp-2 mb-1 text-sm">
+                        {customer.remarks.speechAnalysis.summary ||
+                          'No summary'}
+                      </p>
+                      <button
+                        className="btn btn-link btn-xs text-info normal-case no-underline"
+                        onClick={() => {
+                          setModalCustomer(customer.cust_name);
+                          setModalRemark(customer.remarks.speechAnalysis);
+                          remarksDialogRef.current?.showModal();
+                        }}
+                      >
+                        Details
+                      </button>
                     </>
-                  ) : '-'}
+                  ) : (
+                    '-'
+                  )}
                 </td>
-              </motion.tr>
+              </tr>
             ))}
           </tbody>
         </table>
       )}
 
-      <div className="flex items-center justify-between px-6 py-3 text-xs text-base-content/40">
-        <span>
-          Showing {filteredAndSortedCustomers.length} of {customers.length}{' '}
-          customers
-        </span>
-        <div className="flex items-center gap-1">
-          <button className="p-1 rounded hover:bg-base-200">
-            <ChevronLeft size={15} />
-          </button>
-          <button className="p-1 rounded hover:bg-base-200">
-            <ChevronRight size={15} />
-          </button>
+      {customerData && customerData.length > 0 && (
+        <div className="flex items-center justify-between px-6 py-3 text-xs text-base-content/40">
+          <span>
+            Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, total)}-
+            {Math.min(currentPage * PAGE_SIZE, total)} of {total} customers
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              className="p-1 rounded hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span className="font-medium text-base-content/70">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              className="p-1 rounded hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      <dialog
+        ref={remarksDialogRef}
+        className="modal"
+        onClose={() => {
+          setModalCustomer(null);
+          setModalRemark(null);
+        }}
+      >
+        <div className="modal-box max-w-2xl">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <h3 className="font-bold text-lg mb-4">Remarks — {modalCustomer}</h3>
+          {modalRemark && (
+            <div className="space-y-3 text-sm">
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Call Datetime:
+                </span>{' '}
+                {modalRemark.callDatetime
+                  ? new Date(modalRemark.callDatetime).toLocaleString()
+                  : '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Buyer Stage:
+                </span>{' '}
+                {modalRemark.buyerStage || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Purpose:
+                </span>{' '}
+                {modalRemark.purpose || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Sentiment:
+                </span>{' '}
+                {modalRemark.sentiment || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Next Action:
+                </span>{' '}
+                {modalRemark.nextActions?.[0] || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Preferences:
+                </span>{' '}
+                {modalRemark.preferences || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Next Follow Up:
+                </span>{' '}
+                {modalRemark.nextActions?.[1] || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Summary:
+                </span>{' '}
+                {modalRemark.summary || '-'}
+              </div>
+            </div>
+          )}
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }

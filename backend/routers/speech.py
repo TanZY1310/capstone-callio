@@ -81,7 +81,7 @@ async def add_to_pipeline(db: db_dependency, task_id: str, body: PipelineRequest
             analysis_record = db.query(SpeechAnalysis).filter(SpeechAnalysis.id == analysis_id).first()
 
         summary = analysis_record.summary if analysis_record else task["data"].get("summary", "")
-        buyer_stage = analysis_record.buyer_stage if analysis_record else task["data"].get("buyerStage")
+        buyer_stage = analysis_record.buyer_stage if analysis_record else task["data"].get("customerStatus")
         preferences = analysis_record.preferences if analysis_record else task["data"].get("preferences", {})
         next_actions = analysis_record.next_actions if analysis_record else task["data"].get("nextActions", [])
         sentiment = analysis_record.sentiment if analysis_record else task["data"].get("sentiment", {})
@@ -191,7 +191,7 @@ async def _analyze_phase(db:db_dependency, task_id: str):
             f"{s['speaker']}: {s['text']}" for s in transcript
         )
 
-        buyer_stage = analysis.get("buyerStage")
+        buyer_stage = analysis.get("customerStatus")
         summary_text = analysis.get("summary", "")
         if isinstance(summary_text, dict):
             summary_text = str(summary_text)
@@ -240,7 +240,7 @@ async def _analyze_phase(db:db_dependency, task_id: str):
             "nextActions": analysis.get("nextActions", []),
             "preferences": analysis.get("preferences", {}),
             "summary": summary_text,
-            "buyerStage": buyer_stage,
+            "customerStatus": buyer_stage,
             "objections": objections,
             "analysisId": analysis_id,
             "budget": budget,
