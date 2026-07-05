@@ -55,7 +55,7 @@ function SheetsCard() {
     try {
       if (user) {
         await api.put('/user_profile/', { sheets_id: sheetsId });
-        await api.post('/sync');
+        await api.post('/sheets/sync');
         setIsLinked(true);
         toast.success(`Sync successful`);
       }

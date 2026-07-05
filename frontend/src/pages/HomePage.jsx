@@ -1,57 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import CustomerListings from '../components/Home/CustomerListings';
-import SheetsDataIntegration from '../components/Home/SheetsDataIntegration';
 import StatusCards from '../components/Home/StatusCards';
 import Header from '../components/Layout/Header';
 import { STATUS_NAME } from '../data/constants';
 import { motion } from 'motion/react';
-import { Users, AlertCircle } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../utils/api';
 
 function HomePage() {
   const [customerData, setCustomerData] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
-  //Status Card
-  const [platformStatus, setPlatformStatus] = useState({
-    sheets: {
-      connectionStatus: STATUS_NAME.NOT_CONNECTED,
-      lastSync: null,
-    },
-  });
-  //Summary Changed Records
-  const [changedRecords, setChangedRecords] = useState([]);
-  const [commitVersion, setCommitVersion] = useState(0);
-  const [isConnected, setIsConnected] = useState(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState(null);
-  const [remoteChanges, setRemoteChanges] = useState([]);
+  const [sheetsConnected, setSheetsConnected] = useState(false);
+  const exportTimer = useRef(null);
 
-  const pendingCount = changedRecords.length + remoteChanges.length;
-
-  const fetchRemoteChanges = async () => {
-    if (!lastSyncedAt) return;
-    try {
-      const res = await api.get('/customers/changes', {
-        params: { since: lastSyncedAt },
-      });
-      setRemoteChanges(res.data.updated_ids || []);
-    } catch {
-      // silent — non-critical background poll
-    }
-  };
-
-  const handleUpdateStatus = () => {
-    setPlatformStatus((prev) => ({
-      ...prev,
-      sheets: {
-        connectionStatus: STATUS_NAME.CONNECTED,
-        lastSync: Date.now(),
-      },
-    }));
-    setIsConnected(true);
-  };
-
- 
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -60,15 +22,12 @@ function HomePage() {
           api.get('/sheets/status'),
         ]);
 
-        // Set status based on connection
         if (sheetsStatusResponse.data.connected) {
-          console.log('Google Sheets Connected!');
-          handleUpdateStatus();
+          setSheetsConnected(true);
         }
 
         if (customerResponse.data.length > 0) {
           setCustomerData(customerResponse.data);
-          setLastSyncedAt(new Date().toISOString());
         }
       } catch (err) {
         toast.error(err.message);
@@ -79,50 +38,43 @@ function HomePage() {
     initialize();
   }, []);
 
+  const triggerSheetExport = useCallback(() => {
+    if (exportTimer.current) clearTimeout(exportTimer.current);
+    exportTimer.current = setTimeout(async () => {
+      try {
+        await api.post('/sheets/export');
+      } catch {
+        toast.error('Sheet sync failed. Retry from Profile.');
+      }
+    }, 1500);
+  }, []);
+
   useEffect(() => {
-    fetchRemoteChanges();
-    const interval = setInterval(fetchRemoteChanges, 15_000);
-    return () => clearInterval(interval);
-  }, [lastSyncedAt]);
+    return () => {
+      if (exportTimer.current) clearTimeout(exportTimer.current);
+    };
+  }, []);
 
-  const handleImport = async () => {
-    await api.post('/sheets/sync', {});
-
-    const customerResponse = await api.get('/customers');
-    setCustomerData(customerResponse.data);
-
-    setChangedRecords([]);
-    setRemoteChanges([]);
-    setLastSyncedAt(new Date().toISOString());
-    handleUpdateStatus();
-  };
-
-  const handleDataChange = (changed) => {
-    setChangedRecords(changed);
-  };
-
-  const handleExport = async () => {
+  const handleStatusChange = async (cust_id, newStatus) => {
+    setCustomerData((prev) =>
+      (prev || []).map((c) =>
+        c.cust_id === cust_id ? { ...c, status: newStatus } : c,
+      ),
+    );
     try {
-      await api.patch('/customers/batch-status', {
-        updates: changedRecords.map((r) => ({
-          cust_id: r.cust_id,
-          status: r.newStatus,
-        })),
-      });
-
-      await api.post('/sheets/export', {});
-
-      setChangedRecords([]);
-      setRemoteChanges([]);
-      setCommitVersion((v) => v + 1);
-      setLastSyncedAt(new Date().toISOString());
-      setPlatformStatus((prev) => ({
-        ...prev,
-        sheets: { ...prev.sheets, lastSync: Date.now() },
-      }));
-    } catch (err) {
-      toast.error('Failed to export customers.', err.message);
+      await api.patch(`/customers/${cust_id}`, { status: newStatus });
+      triggerSheetExport();
+    } catch {
+      toast.error('Failed to save status change');
     }
+  };
+
+  const platformStatus = {
+    sheets: {
+      connectionStatus: sheetsConnected
+        ? STATUS_NAME.CONNECTED
+        : STATUS_NAME.NOT_CONNECTED,
+    },
   };
 
   if (initialLoading)
@@ -134,9 +86,7 @@ function HomePage() {
 
   return (
     <>
-      {/* Change background to darker colour */}
       <div className="flex min-h-screen bg-base-200/50">
-        {/* Add spacing in header - move to the right slightly */}
         <motion.div
           className="flex-1 overflow-y-auto px-8 py-6 space-y-6"
           initial={{ y: -20, opacity: 0 }}
@@ -146,12 +96,11 @@ function HomePage() {
           <div>
             <Header
               h1="Customer Listings"
-              p="Import customer details, manage customers and update status"
+              p="Manage customers and update status"
             />
           </div>
 
-          {/* Dynamic KPI Analytics Row to capture whitespace */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="dashboard-card p-5 flex items-center gap-4">
               <div className="p-3 bg-primary/10 text-primary rounded-xl">
                 <Users size={20} />
@@ -168,47 +117,15 @@ function HomePage() {
                 </h3>
               </div>
             </div>
-            <div className="dashboard-card p-5 flex items-center gap-4">
-              <div className="p-3 bg-warning/10 text-warning rounded-xl">
-                <AlertCircle size={20} />
-              </div>
-              <div>
-                <p className="text-xs text-base-content font-medium">
-                  Pending Sync Changes
-                </p>
-                <h3 className="text-2xl font-bold text-warning">
-                  {pendingCount}{' '}
-                  <span className="text-xs font-normal text-base-content/40">
-                    Records
-                  </span>
-                </h3>
-              </div>
-            </div>
             <StatusCards
               platformName="sheets"
               status={platformStatus.sheets}
-              onUpdate={handleUpdateStatus}
             />
           </div>
 
-          {/* Pass handler function as prop to button */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
-            <div className="lg:col-span-2">
-              <SheetsDataIntegration
-                onImport={handleImport}
-                changedRecords={changedRecords}
-                onExport={handleExport}
-                isConnected={isConnected}
-                hasExistingData={customerData?.length > 0}
-                pendingCount={pendingCount}
-              />
-            </div>
-          </div>
-          {/* Pass actual state value as prop to table */}
           <CustomerListings
             customerData={customerData}
-            onDataChange={handleDataChange}
-            commitVersion={commitVersion}
+            onStatusChange={handleStatusChange}
           />
         </motion.div>
       </div>
