@@ -4,7 +4,6 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../firebase';
 
 import { KeyRound, Mail, Eye, EyeOff } from 'lucide-react';
-import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'sonner';
 
 const initialState = {
@@ -214,13 +213,7 @@ function LoginForm() {
                     Login
                   </button>
                 )}
-                <div className="divider text-xs text-base-content/40">
-                  OR CONTINUE WITH
-                </div>
-                <button className="btn btn-outline w-full gap-2" disabled>
-                  <FcGoogle />
-                  Login with Google
-                </button>
+
               </fieldset>
             </form>
           </div>
