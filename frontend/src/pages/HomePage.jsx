@@ -56,9 +56,12 @@ function HomePage() {
   }, []);
 
   const handleStatusChange = async (cust_id, newStatus) => {
+    const now = new Date().toISOString();
     setCustomerData((prev) =>
       (prev || []).map((c) =>
-        c.cust_id === cust_id ? { ...c, status: newStatus } : c,
+        c.cust_id === cust_id
+          ? { ...c, status: newStatus, last_contact: now }
+          : c,
       ),
     );
     try {

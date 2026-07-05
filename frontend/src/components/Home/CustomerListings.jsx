@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -13,6 +13,21 @@ import { statusList } from '../../data/statusList';
 import { tableHeader } from '../../data/tableHeader';
 
 const PAGE_SIZE = 10;
+
+const BADGE_COLORS = {
+  Completed: 'badge-success',
+  Booking: 'badge-success',
+  Appointment: 'badge-info',
+  'Pending Appointment': 'badge-warning',
+  WhatsApp: 'badge-primary',
+  'Might Keep In Touch': 'badge-accent',
+  'Not Yet Call': 'badge-neutral',
+  'No Pickup': 'badge-ghost',
+  'Not Interested': 'badge-error',
+  'Stop Following Up': 'badge-error',
+};
+
+const getBadgeClass = (status) => BADGE_COLORS[status] || 'badge-ghost';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '-';
@@ -29,11 +44,54 @@ function CustomerListings({ customerData, onStatusChange }) {
     searchTerm: '',
   });
   const [page, setPage] = useState(1);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [modalCustomer, setModalCustomer] = useState(null);
+  const [modalRemark, setModalRemark] = useState(null);
+  const remarksDialogRef = useRef(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (activeDropdown === null) return;
+    const handler = (e) => {
+      if (!e.target.closest('[data-dropdown-container]')) {
+        setActiveDropdown(null);
+      }
+    };
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handler);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handler);
+    };
+  }, [activeDropdown]);
+
+  useEffect(() => {
+    if (!filterDropdownOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest('[data-filter-dropdown]')) {
+        setFilterDropdownOpen(false);
+      }
+    };
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handler);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handler);
+    };
+  }, [filterDropdownOpen]);
+
   const { rows, total, totalPages, currentPage } = useMemo(() => {
-    if (!customerData) return { rows: [], total: 0, totalPages: 0, currentPage: 1 };
-    const filtered = customerData.filter((customer) => {
+    if (!customerData)
+      return { rows: [], total: 0, totalPages: 0, currentPage: 1 };
+    const sorted = [...customerData].sort((a, b) => {
+      const aDate = a.last_contact ? new Date(a.last_contact).getTime() : 0;
+      const bDate = b.last_contact ? new Date(b.last_contact).getTime() : 0;
+      return bDate - aDate;
+    });
+    const filtered = sorted.filter((customer) => {
       const matchesStatus =
         filters.status === 'all' || customer.status === filters.status;
       const matchesSearch =
@@ -67,7 +125,10 @@ function CustomerListings({ customerData, onStatusChange }) {
     setPage(1);
   };
 
-  const statusFilter = ['all', ...new Set((customerData || []).map((p) => p.status))];
+  const statusFilter = [
+    'all',
+    ...new Set((customerData || []).map((p) => p.status)),
+  ];
 
   const sendCustomerDetails = (destination, customer) => {
     try {
@@ -77,8 +138,22 @@ function CustomerListings({ customerData, onStatusChange }) {
     }
   };
 
+  const handleDropdownClick = (cust_id) => {
+    setActiveDropdown((prev) => (prev === cust_id ? null : cust_id));
+  };
+
+  const handleStatusSelect = (cust_id, newStatus) => {
+    setActiveDropdown(null);
+    onStatusChange(cust_id, newStatus);
+  };
+
+  const handleFilterSelect = (value) => {
+    setFilterDropdownOpen(false);
+    updateFilter('status', value);
+  };
+
   return (
-    <div className="dashboard-card overflow-hidden">
+    <div className="dashboard-card overflow-visible">
       <div className="flex items-center justify-between px-6 py-4 border-b border-base-200">
         <div className="shrink-0">
           <p className="font-semibold text-sm text-base-content">
@@ -99,17 +174,62 @@ function CustomerListings({ customerData, onStatusChange }) {
               className="grow"
             />
           </label>
-          <select
-            className="select select-bordered select-sm"
-            value={filters.status}
-            onChange={(e) => updateFilter('status', e.target.value)}
+          <div
+            className={`dropdown dropdown-end ${filterDropdownOpen ? 'dropdown-open' : ''}`}
+            data-filter-dropdown
           >
-            {statusFilter.map((status) => (
-              <option key={status} value={status}>
-                {status === 'all' ? 'All Status' : status}
-              </option>
-            ))}
-          </select>
+            <div
+              tabIndex={0}
+              role="button"
+              className="cursor-pointer"
+              onClick={() => setFilterDropdownOpen((prev) => !prev)}
+            >
+              <span
+                className={`badge ${filters.status === 'all' ? 'badge-ghost' : getBadgeClass(filters.status)}`}
+              >
+                {filters.status === 'all' ? 'All Status' : filters.status}
+              </span>
+            </div>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
+            >
+              <li>
+                <button
+                  className={
+                    filters.status === 'all'
+                      ? 'text-base-content font-semibold'
+                      : ''
+                  }
+                  onClick={() => handleFilterSelect('all')}
+                >
+                  <span className="badge badge-ghost w-full justify-start">
+                    All Status
+                  </span>
+                </button>
+              </li>
+              {statusFilter
+                .filter((s) => s !== 'all')
+                .map((status) => (
+                  <li key={status}>
+                    <button
+                      className={
+                        filters.status === status
+                          ? 'text-base-content font-semibold'
+                          : ''
+                      }
+                      onClick={() => handleFilterSelect(status)}
+                    >
+                      <span
+                        className={`badge ${getBadgeClass(status)} w-full justify-start`}
+                      >
+                        {status}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </div>
           <button className="btn btn-sm btn-ghost" onClick={clearFilters}>
             Clear Filters
           </button>
@@ -125,8 +245,8 @@ function CustomerListings({ customerData, onStatusChange }) {
             No active customer records
           </h3>
           <p className="text-xs text-base-content/40 mt-1 max-w-sm">
-            Your customer directory is empty. Go to Profile to import data from Google
-            Sheets.
+            Your customer directory is empty. Go to Profile to import data from
+            Google Sheets.
           </p>
         </div>
       ) : total === 0 ? (
@@ -138,8 +258,8 @@ function CustomerListings({ customerData, onStatusChange }) {
             No matching customers
           </h3>
           <p className="text-xs text-base-content/40 mt-1 max-w-sm">
-            No customers match your current filters. Try adjusting your search or
-            clearing the filters.
+            No customers match your current filters. Try adjusting your search
+            or clearing the filters.
           </p>
         </div>
       ) : (
@@ -164,48 +284,78 @@ function CustomerListings({ customerData, onStatusChange }) {
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="font-medium text-base-content">
+                    <span className="text-sm text-base-content">
                       {customer.cust_name}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-base-content/60">
-                  <div>{customer.phone}</div>
+                <td className="px-6 py-4">
+                  <button
+                    className="btn btn-link btn-sm text-success normal-case no-underline"
+                    onClick={() => sendCustomerDetails('/whatsapp', customer)}
+                  >
+                    <MessageSquare size={14} />
+                    <div className="text-sm">{customer.phone}</div>
+                  </button>
                 </td>
-                <td className="px-6 py-4 text-base-content/70">
-                  {customer.budget ?? '-'}
-                </td>
-                <td className="px-6 py-4 text-base-content/60">
-                  {customer.location ?? '-'}
+                <td className="px-6 py-4">
+                  <div className="text-sm text-base-content/70">
+                    {customer.location ?? '-'}
+                  </div>
+                  <div className="text-xs text-base-content/40">
+                    {customer.budget ?? '-'}
+                  </div>
                 </td>
                 <td>
-                  <select
-                    name="status"
-                    className="select select-bordered select-sm w-full"
-                    value={customer.status}
-                    onChange={(e) =>
-                      onStatusChange?.(customer.cust_id, e.target.value)
-                    }
+                  <div
+                    className={`dropdown dropdown-end ${activeDropdown === customer.cust_id ? 'dropdown-open' : ''}`}
+                    data-dropdown-container
                   >
-                    {statusList.map((eachStatus) => (
-                      <option key={eachStatus.id} value={eachStatus.name}>
-                        {eachStatus.name}
-                      </option>
-                    ))}
-                  </select>
+                    <div
+                      tabIndex={0}
+                      role="button"
+                      className="cursor-pointer"
+                      onClick={() => handleDropdownClick(customer.cust_id)}
+                    >
+                      <span
+                        className={`badge ${getBadgeClass(customer.status)}`}
+                      >
+                        {customer.status}
+                      </span>
+                    </div>
+                    <ul
+                      tabIndex={0}
+                      className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
+                    >
+                      {statusList.map((s) => (
+                        <li key={s.id}>
+                          <button
+                            className={
+                              s.name === customer.status
+                                ? 'text-base-content font-semibold'
+                                : ''
+                            }
+                            onClick={() =>
+                              handleStatusSelect(customer.cust_id, s.name)
+                            }
+                            text-sm
+                          >
+                            <span
+                              className={`badge ${getBadgeClass(s.name)} w-full justify-start`}
+                            >
+                              {s.name}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </td>
-                <td className="px-6 py-4 text-base-content/60">
+                <td className="text-sm px-6 py-4 text-base-content/60">
                   {formatDate(customer.last_contact)}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button
-                      name="messageButton"
-                      className="btn btn-sm btn-ghost text-success border border-success/30 hover:bg-success/10"
-                      onClick={() => sendCustomerDetails('/whatsapp', customer)}
-                    >
-                      <MessageSquare size={15} />
-                    </button>
                     <button
                       name="micButton"
                       className="btn btn-sm btn-ghost border border-success/30 hover:bg-success/10"
@@ -215,19 +365,27 @@ function CustomerListings({ customerData, onStatusChange }) {
                     </button>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-xs text-base-content/60 leading-relaxed min-w-[220px]">
+                <td className="px-6 py-4 text-base-content/60 max-w-xs">
                   {customer.remarks?.speechAnalysis ? (
                     <>
-                      <div><span className="font-semibold text-base-content/80">Call Datetime:</span> {customer.remarks.speechAnalysis.callDatetime ? new Date(customer.remarks.speechAnalysis.callDatetime).toLocaleString() : '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Buyer Stage:</span> {customer.remarks.speechAnalysis.buyerStage || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Purpose:</span> {customer.remarks.speechAnalysis.purpose || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Sentiment:</span> {customer.remarks.speechAnalysis.sentiment || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Next Action:</span> {customer.remarks.speechAnalysis.nextActions?.[0] || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Preferrance:</span> {customer.remarks.speechAnalysis.preferences || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Next Follow Up:</span> {customer.remarks.speechAnalysis.nextActions?.[1] || '-'}</div>
-                      <div><span className="font-semibold text-base-content/80">Summary:</span> {customer.remarks.speechAnalysis.summary || '-'}</div>
+                      <p className="line-clamp-2 mb-1 text-sm">
+                        {customer.remarks.speechAnalysis.summary ||
+                          'No summary'}
+                      </p>
+                      <button
+                        className="btn btn-link btn-xs text-info normal-case no-underline"
+                        onClick={() => {
+                          setModalCustomer(customer.cust_name);
+                          setModalRemark(customer.remarks.speechAnalysis);
+                          remarksDialogRef.current?.showModal();
+                        }}
+                      >
+                        Details
+                      </button>
                     </>
-                  ) : '-'}
+                  ) : (
+                    '-'
+                  )}
                 </td>
               </tr>
             ))}
@@ -262,6 +420,81 @@ function CustomerListings({ customerData, onStatusChange }) {
           </div>
         </div>
       )}
+
+      <dialog
+        ref={remarksDialogRef}
+        className="modal"
+        onClose={() => {
+          setModalCustomer(null);
+          setModalRemark(null);
+        }}
+      >
+        <div className="modal-box max-w-2xl">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <h3 className="font-bold text-lg mb-4">Remarks — {modalCustomer}</h3>
+          {modalRemark && (
+            <div className="space-y-3 text-sm">
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Call Datetime:
+                </span>{' '}
+                {modalRemark.callDatetime
+                  ? new Date(modalRemark.callDatetime).toLocaleString()
+                  : '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Buyer Stage:
+                </span>{' '}
+                {modalRemark.buyerStage || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Purpose:
+                </span>{' '}
+                {modalRemark.purpose || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Sentiment:
+                </span>{' '}
+                {modalRemark.sentiment || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Next Action:
+                </span>{' '}
+                {modalRemark.nextActions?.[0] || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Preferences:
+                </span>{' '}
+                {modalRemark.preferences || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Next Follow Up:
+                </span>{' '}
+                {modalRemark.nextActions?.[1] || '-'}
+              </div>
+              <div>
+                <span className="font-semibold text-base-content/80">
+                  Summary:
+                </span>{' '}
+                {modalRemark.summary || '-'}
+              </div>
+            </div>
+          )}
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }
