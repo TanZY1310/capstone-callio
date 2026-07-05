@@ -9,6 +9,7 @@ import { Toaster, toast } from 'sonner';
 import { useAuth } from './hooks/useAuth';
 
 // Include page or component imports here
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const Register = lazy(() => import('./components/Authentication/RegisterForm'));
 const Login = lazy(() => import('./components/Authentication/LoginForm'));
 const ProtectedRoute = lazy(
@@ -45,6 +46,7 @@ function App() {
           }
         >
           <Routes>
+            <Route path="/landing" element={<LandingPage />} />
             <Route
               path="/register"
               element={
@@ -55,6 +57,12 @@ function App() {
               path="/login"
               element={
                 loading && !user ? null : profile ? <Navigate to="/" replace /> : <Login />
+              }
+            />
+            <Route
+              path="/"
+              element={
+                !loading && !profile ? <Navigate to="/landing" replace /> : null
               }
             />
             <Route

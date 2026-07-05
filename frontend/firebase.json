@@ -15,11 +15,7 @@
   },
   "auth": {
     "providers": {
-      "emailPassword": true,
-      "googleSignIn": {
-        "oAuthBrandDisplayName": "Callio",
-        "supportEmail": ""
-      }
+      "emailPassword": true
     }
   }
 }
