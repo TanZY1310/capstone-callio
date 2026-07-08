@@ -93,10 +93,12 @@ async def generate_ai_draft(cust_id: uuid.UUID, db: db_dependency):
     chat_history = await fetch_chat_messages(customer.phone)
 
     customer_info = {
+        "id": customer.cust_id,
         "name": customer.cust_name,
         "phone": customer.phone,
     }
 
+    print(f"Customer ID is {customer_info['id']}")
     content = await generate_reply_draft(
         chat_history=chat_history,
         customer_info=customer_info,
@@ -126,7 +128,7 @@ async def regenerate_ai_draft(cust_id: uuid.UUID, response_id: int, db: db_depen
         raise HTTPException(status_code=404, detail="Customer not found")
 
     chat_history = await fetch_chat_messages(customer.phone)
-    customer_info = {"name": customer.cust_name, "phone": customer.phone}
+    customer_info = {"id": customer.cust_id, "name": customer.cust_name, "phone": customer.phone}
 
     content = await generate_reply_draft(
         chat_history=chat_history,

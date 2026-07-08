@@ -107,25 +107,25 @@ def _split_documents(documents: list[Document]):
     )
     return text_splitter.split_documents(documents)
 
-# function: pass in file, open file and pulls raw text for chunking
-def chunk_file(file: str | Path):
-    """Extract and chunk a PDF or plain-text file."""
-    if Path(file).suffix == ".pdf":
-        reader = PdfReader(file)
-        result = []
-        for i in range(len(reader.pages)):
-            page = reader.pages[i]
-            text = page.extract_text()
-            if text:
-                result.append(Document(page_content = text, metadata={"source": file, "page": i+1}))
-        print(f"Result of using PDFReader is {result}")
-    else:
-        with open(file, "r") as f:
-            text = f.read()
-        result = [Document(page_content=text, metadata={"source": file})]
-        print(f"Result of using standard open is {result}")
+# # function: pass in file, open file and pulls raw text for chunking
+# def chunk_file(file: str | Path):
+#     """Extract and chunk a PDF or plain-text file."""
+#     if Path(file).suffix == ".pdf":
+#         reader = PdfReader(file)
+#         result = []
+#         for i in range(len(reader.pages)):
+#             page = reader.pages[i]
+#             text = page.extract_text()
+#             if text:
+#                 result.append(Document(page_content = text, metadata={"source": file, "page": i+1}))
+#         print(f"Result of using PDFReader is {result}")
+#     else:
+#         with open(file, "r") as f:
+#             text = f.read()
+#         result = [Document(page_content=text, metadata={"source": file})]
+#         print(f"Result of using standard open is {result}")
 
-    return _split_documents(result)
+#     return _split_documents(result)
 
 def chunk_text(text: str, metadata: dict):
     """Chunk a raw string (e.g. a call transcript) tagged with the given metadata."""
@@ -156,6 +156,15 @@ def embed_call_transcript(cust_id: str, transcription_text: str):
     chunks = chunk_text(transcription_text, metadata={"cust_id": cust_id, "source": "call_transcript"})
     embed_and_index(_transcript_vector_store, chunks)
 
+def delete_documents(collection, source: str) -> int:
+    """Delete all chunks tagged with the given source from the collection."""
+    result = collection.delete_many({"source": source})
+    return result.deleted_count
+
+def get_all_sources(collection) -> list[str]:
+    """Return the distinct sources currently stored in the collection."""
+    return [source for source in collection.distinct("source") if source]
+
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
@@ -174,6 +183,7 @@ def format_chat_history(chat_history) -> str:
 
 # function: retrieval and generation, takes in the query
 async def retrieval_and_generation(cust_id: str, phone: str, query: str):
+    _, _property_vector_store, _transcript_vector_store, _llm = get_or_create_client(MONGODB_URI)
     property_retriever = _property_vector_store.as_retriever(search_kwargs={"k": 10})
     transcript_retriever = _transcript_vector_store.as_retriever(
         search_kwargs={"k": 10, "pre_filter": {"cust_id": cust_id}}
@@ -219,14 +229,14 @@ async def retrieval_and_generation(cust_id: str, phone: str, query: str):
 
     return response
 
-if __name__ == "__main__":
-    get_or_create_client(MONGODB_URI)
-    chunks = chunk_file("C:/Users/User/Desktop/workspace/property/propertymaxxing/the shang/The_Shang_Residence_Project_Summary.pdf")
-    embed_and_index(_property_vector_store, chunks)
-    response = asyncio.run(
-        retrieval_and_generation(
-            cust_id = "test-customer",
-            phone = "0000000000",
-            query = "If someone wants to buy a The Shang unit, what should they know?",
-        )
-    )
+# if __name__ == "__main__":
+#     get_or_create_client(MONGODB_URI)
+#     chunks = chunk_file("C:/Users/User/Desktop/workspace/property/propertymaxxing/the shang/The_Shang_Residence_Project_Summary.pdf")
+#     embed_and_index(_property_vector_store, chunks)
+#     response = asyncio.run(
+#         retrieval_and_generation(
+#             cust_id = "test-customer",
+#             phone = "0000000000",
+#             query = "If someone wants to buy a The Shang unit, what should they know?",
+#         )
+#     )

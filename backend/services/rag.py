@@ -1,62 +1,24 @@
 #Save pdf document embeddings in vector store
 
-import os 
-import time 
-from pypdf import PdfReader
-from pymongo import MongoClient
-from langchain_core.documents import Document
-from langchain_mongodb import MongoDBAtlasVectorSearch
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-#Access environment variables
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MONGODB_URI = os.getenv("MONGODB_ATLAS_CLUSTER_URI")
-
-#Initialize the embedding model and llm for QUERYING
-embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/gemini-embedding-2",
-    google_api_key = GEMINI_API_KEY,
-    output_dimensionality=768,
-    task_type="RETRIEVAL_DOCUMENT"
-)
-
-# Connect to MongoDB
-client = MongoClient(MONGODB_URI)
-
-# Verify the connection
-try:
-    client.admin.command('ping')
-    print("Successfully connected to MongoDB!")
-except Exception as e:
-    print(f"Failed to connect to MongoDB: {e}")
-
-#Define database and collection names
-DB_NAME= "rag_db"
-COLLECTION_NAME = "rag_collection"
-ATLAS_VECTOR_SEARCH_INDEX_NAME = "test-index-1"
-MONGODB_COLLECTION = client[DB_NAME][COLLECTION_NAME]
-
-#Instantiate the vector store
-vector_store = MongoDBAtlasVectorSearch(
-    collection=MONGODB_COLLECTION,
-    embedding=embeddings,
-    index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME,
-    relevance_score_fn="cosine"
-)
-
-# create the vector search index
-try:
-    vector_store.create_vector_search_index(dimensions=768)
-    print(f"Ensured vector search index '{ATLAS_VECTOR_SEARCH_INDEX_NAME}' is created.")
-except Exception as e:
-    print(f"Could not create vector search index programmatically (it might already exist): {e}")
-
 import io
+from pypdf import PdfReader
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from services.embeddings import (
+    get_or_create_client,
+    embed_and_index,
+    delete_documents,
+    get_all_sources,
+    MONGODB_URI,
+    DB_NAME,
+    PROPERTY_COLLECTION_NAME,
+)
+
+def _get_property_store_and_collection():
+    mongo_client, property_vector_store, _, _ = get_or_create_client(MONGODB_URI)
+    property_collection = mongo_client[DB_NAME][PROPERTY_COLLECTION_NAME]
+    return property_vector_store, property_collection
 
 #process PDF file and store embeddings in vector store
 def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
@@ -67,7 +29,7 @@ def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
         if text:
             #Add page numbers to the metadata so the llm knows exactly where the info came from!
             docs.append(Document(page_content=text, metadata={"source": file_name, "page": i + 1}))
-            
+
     if not docs:
         print(f"No text extracted from {file_name}. It might be a scanned image.")
         return 0
@@ -77,15 +39,17 @@ def process_and_store_pdf(file_bytes: bytes, file_name: str) -> int:
     #Setup the text splitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
     split_docs = text_splitter.split_documents(docs)
-    vector_store.add_documents(split_docs)
+
+    property_vector_store, _ = _get_property_store_and_collection()
+    embed_and_index(property_vector_store, split_docs)
     return len(split_docs)
 
 #delete PDF file from vector store
 def delete_pdf_from_store(file_name: str) -> int:
-    result = MONGODB_COLLECTION.delete_many({"source": file_name})
-    return result.deleted_count
+    _, property_collection = _get_property_store_and_collection()
+    return delete_documents(property_collection, file_name)
 
 #get all PDF files from vector store
 def get_all_pdfs_from_store() -> list[str]:
-    unique_sources = MONGODB_COLLECTION.distinct("source")
-    return [source for source in unique_sources if source]
+    _, property_collection = _get_property_store_and_collection()
+    return get_all_sources(property_collection)
