@@ -31,17 +31,7 @@ function LeaderCard({ agents, calls, leads, appointments }) {
             <div className="stat-value">{agents}</div>
           </div>
 
-          {/* 2. Total Leads */}
-
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <IoPersonSharp size={32} />
-            </div>
-            <div className="stat-title">Total Leads</div>
-            <div className="stat-value">{leads}</div>
-          </div>
-
-          {/* 3. Total Calls */}
+          {/* 2. Total Calls */}
 
           <div className="stat">
             <div className="stat-figure text-secondary">
@@ -49,6 +39,16 @@ function LeaderCard({ agents, calls, leads, appointments }) {
             </div>
             <div className="stat-title">Total Calls Today</div>
             <div className="stat-value">{calls}</div>
+          </div>
+
+          {/* 3. Total Leads */}
+
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <IoPersonSharp size={32} />
+            </div>
+            <div className="stat-title">Total Leads</div>
+            <div className="stat-value">{leads}</div>
           </div>
 
           {/* 4. Booking confirmed */}

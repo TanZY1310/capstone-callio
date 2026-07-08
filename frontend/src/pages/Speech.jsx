@@ -27,6 +27,7 @@ function Speech() {
 
   const [awaitingApproval, setAwaitingApproval] = useState(false);
   const [rawAudioUrl, setRawAudioUrl] = useState(null);
+  const [progressMessage, setProgressMessage] = useState('');
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -47,6 +48,7 @@ function Speech() {
           const task = res.data;
 
           setProgressStep(task.step);
+          setProgressMessage(task.progress_message || '');
 
           if (task.status === 'awaiting_approval') {
             stopPolling();
@@ -86,6 +88,7 @@ function Speech() {
     setNextActions(null);
     setPreferences(null);
     setAudioUrl(null);
+    setProgressMessage('');
     startPolling(data.task_id, data.audio_url);
   };
 
@@ -152,6 +155,7 @@ function Speech() {
             sentiment={sentiment}
             nextActions={nextActions}
             progressStep={progressStep}
+            progressMessage={progressMessage}
             onAddToPipeline={handleAddToPipeline}
             audioFile={audioFile}
             awaitingApproval={awaitingApproval}

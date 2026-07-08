@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends, Query
 from database import db_dependency
 from models.customer import Customers
-from schemas.customer import CustomerResponse, BatchStatusUpdate, ChangesResponse
+from schemas.customer import CustomerResponse, BatchStatusUpdate, ChangesResponse, StatusUpdateRequest
 import uuid
 from typing import Annotated, Optional
 from datetime import datetime
@@ -74,3 +74,23 @@ async def batch_update_status(
             updated += 1
     db.commit()
     return {"updated": updated}
+
+# For updating status in Customer Listing page - now trigger based on each status changed
+@router.patch("/{cust_id}", status_code=status.HTTP_200_OK)
+async def update_customer_status(
+    cust_id: uuid.UUID,
+    payload: StatusUpdateRequest,
+    db: db_dependency,
+    current_user: Annotated[dict, Depends(verify_firebase_token)],
+) -> dict:
+    user_id = await resolve_user_id(db, current_user["uid"])
+    customer = db.query(Customers).filter(
+        Customers.cust_id == cust_id,
+        Customers.user_id == user_id,
+    ).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    customer.status = payload.status
+    customer.last_contact = func.now()
+    db.commit()
+    return {"status": "updated"}

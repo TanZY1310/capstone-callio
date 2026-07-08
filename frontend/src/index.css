@@ -2,8 +2,8 @@
 @import 'tailwindcss';
 @plugin "daisyui" {
   themes:
-    corporate --default,
-    business --prefersdark;
+    lemonade --default,
+    forest --prefersdark;
 }
 
 body {
@@ -126,4 +126,26 @@ body {
   .text-badge {
     @apply text-xs font-medium;
   }
+}
+
+@keyframes wave-bounce {
+  0% {
+    transform: scaleY(0.4);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+.reveal-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
+}
+
+.reveal-section.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
 }

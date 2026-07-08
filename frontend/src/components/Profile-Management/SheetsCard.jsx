@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import sheetsimg from '../../assets/sheets_icon.png';
 import { Info } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,9 +7,6 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 
 function SheetsCard() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [notification, setNotification] = useState(false);
   const [sheetsId, setSheetsId] = useState('');
   const [isLinked, setIsLinked] = useState(false);
 
@@ -18,45 +15,49 @@ function SheetsCard() {
 
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        try {
-          const response = await api.get('/user_profile/');
-          if (response.data.sheets_id) {
-            setSheetsId(response.data.sheets_id);
-          }
-
-          try {
-            const statusRes = await api.get('/sheets/status');
-            if (statusRes.data && statusRes.data.connected) {
-              setIsLinked(true);
-            } else {
-              setIsLinked(false);
-            }
-          } catch (statusErr) {
-            setIsLinked(false);
-            console.error('Failed to fetch Sheets status:', statusErr);
-          }
-        } catch (err) {
-          console.error('Failed to fetch profile data:', err);
+  const fetchProfile = async () => {
+    if (user) {
+      try {
+        const response = await api.get('/user_profile/');
+        if (response.data.sheets_id) {
+          setSheetsId(response.data.sheets_id);
         }
+
+        try {
+          const statusRes = await api.get('/sheets/status');
+          if (statusRes.data && statusRes.data.connected) {
+            setIsLinked(true);
+          } else {
+            setIsLinked(false);
+          }
+        } catch (statusErr) {
+          setIsLinked(false);
+          console.error('Failed to fetch Sheets status:', statusErr);
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile data:', err);
       }
-    };
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, [user]);
 
   const handleSync = async () => {
+    if (!sheetsId || !sheetsId.trim()) {
+      toast.error('You must key in the Spreadsheet ID');
+      return;
+    }
+
     setIsSyncing(true);
 
     try {
       if (user) {
         await api.put('/user_profile/', { sheets_id: sheetsId });
-
-        const syncResponse = await api.post('/sheets/sync', {});
-        
+        await api.post('/sheets/sync');
         setIsLinked(true);
-        toast.success(`Sync successful: ${syncResponse.data.synced} synced, ${syncResponse.data.skipped} skipped`);
+        toast.success(`Sync successful`);
       }
 
       // Format current time: YYYY-MM-DD HH:mm:ss
@@ -75,41 +76,15 @@ function SheetsCard() {
         String(now.getSeconds()).padStart(2, '0');
 
       setLastSyncTime(formattedTime);
+
+      // Fetch the updated profile and status after sync
+      await fetchProfile();
     } catch (err) {
       console.error(err);
       toast.error('Failed to sync Sheets ID.');
     } finally {
       setIsSyncing(false);
     }
-  };
-
-  const insert_api = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      //simulate API calling
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      if (Math.random() > 0.3) {
-        console.log('Linked Succesfully');
-        setNotification(true);
-      } else {
-        throw new Error('Account failed to linked, Please try again');
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleClick = () => {
-    document.getElementById('setting_modal').showModal();
-  };
-
-  const handleSave = () => {
-    insert_api();
   };
 
   return (

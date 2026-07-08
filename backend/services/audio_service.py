@@ -1,18 +1,52 @@
 import os
 import json
 import base64
+import logging
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
 
-def _get_llm():
+FALLBACK_MODELS = [
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash",
+]
+
+
+def _create_llm(model: str):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
         raise ValueError("GEMINI_API_KEY not set in .env file")
-    return ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=key)
+    return ChatGoogleGenerativeAI(model=model, google_api_key=key)
+
+
+def _invoke_with_fallback(messages, models=None, progress_callback=None):
+    if models is None:
+        models = FALLBACK_MODELS
+    last_exception = None
+    for model in models:
+        try:
+            if progress_callback:
+                progress_callback(f"Using {model}...")
+            llm = _create_llm(model)
+            response = llm.invoke(messages)
+            logger.info("LLM call succeeded with model: %s", model)
+            if progress_callback:
+                progress_callback(f"Completed with {model}")
+            return response
+        except Exception as e:
+            exc_name = type(e).__name__
+            logger.warning("Model %s failed: %s", model, e)
+            if progress_callback:
+                progress_callback(f"{model} failed ({exc_name}). Trying next model...")
+            last_exception = e
+    raise RuntimeError(
+        f"All fallback models failed. Last error: {last_exception}"
+    ) from last_exception
 
 
 def _parse_json(text: str) -> dict:
@@ -24,9 +58,7 @@ def _parse_json(text: str) -> dict:
     return json.loads(text)
 
 
-def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
-    llm = _get_llm()
-
+def transcribe_audio(audio_bytes: bytes, mime_type: str, progress_callback=None) -> list:
     audio_b64 = base64.b64encode(audio_bytes).decode()
 
     prompt = (
@@ -40,7 +72,7 @@ def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
         {"type": "text", "text": prompt},
         {"type": "media", "data": audio_b64, "mime_type": mime_type},
     ])
-    response = llm.invoke([msg])
+    response = _invoke_with_fallback([msg], progress_callback=progress_callback)
 
     raw = response.content
     if isinstance(raw, list):
@@ -51,16 +83,15 @@ def transcribe_audio(audio_bytes: bytes, mime_type: str) -> list:
     return _parse_json(text)
 
 
-def analyze_transcript(transcript: list) -> dict:
-    llm = _get_llm()
-
+def analyze_transcript(transcript: list, progress_callback=None) -> dict:
     transcript_text = "\n".join(
         f"{s['speaker']}: {s['text']}" for s in transcript
     )
 
-    buyer_stages = [
-        "Awareness", "Interested", "Considering",
-        "Negotiation", "Ready to close", "Cold lead",
+    customer_statuses = [
+        "No Pickup", "Might Keep In Touch", "Not Interested",
+        "WhatsApp", "Stop Following Up", "Pending Appointment",
+        "Appointment", "Booking", "Completed", "Not Yet Call",
     ]
 
     prompt = (
@@ -88,14 +119,14 @@ def analyze_transcript(transcript: list) -> dict:
         '    "purpose": "Brief description of the main purpose of this call"\n'
         "  },\n"
         '  "objections": ["duplicate of sentiment.objections for easy storage"],\n'
-        f'  "buyerStage": "one of {buyer_stages}",\n'
+        f'  "customerStatus": "pick the single most suitable status from {customer_statuses}",\n'
         '  "summary": "A short 2-3 sentence plain-text summary of the conversation covering preferences, next actions, and sentiment."\n'
         "}\n"
         "Do not include any markdown formatting or code blocks."
     )
 
     msg = HumanMessage(content=prompt)
-    response = llm.invoke([msg])
+    response = _invoke_with_fallback([msg], progress_callback=progress_callback)
 
     raw = response.content
     if isinstance(raw, list):

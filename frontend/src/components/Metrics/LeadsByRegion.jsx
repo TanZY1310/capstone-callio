@@ -27,17 +27,17 @@ function LeadsByRegion({ regions }) {
     return (
       <div className="card bg-base-100  p-6">
         <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
-          Team Regions Breakdown
+          Regions Breakdown
         </h2>
 
         <p className="text-base-content/60 text-sm " style={{ padding: '5px' }}>
-          No region data yet.
+          No regions logged yet.
         </p>
       </div>
     );
   }
 
-  console.log(regions);
+  // console.log(regions);
 
   // define your data into chart
   const chartBarAgent = {
@@ -56,7 +56,13 @@ function LeadsByRegion({ regions }) {
     maintainAspectRatio: false,
     indexAxis: 'y', // this is the part that makes the chart horizontal
     scales: {
-      x: { grid: { display: true } },
+      x: {
+        grid: { display: false },
+        ticks: {
+          stepSize: 1,
+          precision: 0,
+        },
+      },
 
       y: { grid: { display: false } },
     },
@@ -82,7 +88,7 @@ function LeadsByRegion({ regions }) {
     // <div className="card bg-base-100 border border-base-200 shadow-sm p-6">
     <div className="card bg-base-100  p-6">
       <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
-        Team Regions Breakdown
+        Regions Breakdown
       </h2>
 
       <div style={{ height: '200px' }}>

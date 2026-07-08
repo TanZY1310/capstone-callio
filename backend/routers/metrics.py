@@ -31,6 +31,7 @@ router = APIRouter(
 )
 
 PENDING_STATUSES = ["draft", "edited"]
+PENDING_FOLLOWUPS = ["Pending Appointment", "Bonding/Might Keep In Touch", "WhatsApp"]
 
 
 # -----------------------#
@@ -62,24 +63,31 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID):
     # --- KPI: pending follow-ups (AIResponse, latest-contact(row)-per-customer) ---
     # Step 1: find the latest created_at PER CUSTOMER, across ALL their
     # AIResponse rows (not filtered by agent yet — we filter after the join).
-    latest_per_customer = ( db.query(AIResponse.cust_id, func.max(AIResponse.created_at).label("latest_contact"),)
-                           .group_by(AIResponse.cust_id)
-                           .subquery()
-                           ) # the output is gonna be 2 columns: cust_id and the date of the latest date
+    # latest_per_customer = ( db.query(AIResponse.cust_id, func.max(AIResponse.created_at).label("latest_contact"),)
+    #                        .group_by(AIResponse.cust_id)
+    #                        .subquery()
+    #                        ) # the output is gonna be 2 columns: cust_id and the date of the latest date
     
-    # Step 2: walk back to AIResponse to recover the STATUS of that
-    # specific latest row (cust_id + created_at must both match —
-    # that's what pins down the exact row, not just the timestamp).
-    # Step 3: join to Customer to scope by agent, then filter status.
-    pending_follow_ups = ( db.query(func.count(AIResponse.response_id))
-                          .join(latest_per_customer, and_(AIResponse.cust_id == latest_per_customer.c.cust_id,
-                                                          AIResponse.created_at == latest_per_customer.c.latest_contact),
-                                                          )
-                            .join(Customers, AIResponse.cust_id == Customers.cust_id)
-                            .filter(Customers.user_id == user_id)
-                            .filter(AIResponse.status.in_(PENDING_STATUSES))
-                            .scalar() or 0
-                            )
+    # # Step 2: walk back to AIResponse to recover the STATUS of that
+    # # specific latest row (cust_id + created_at must both match —
+    # # that's what pins down the exact row, not just the timestamp).
+    # # Step 3: join to Customer to scope by agent, then filter status.
+    # pending_follow_ups = ( db.query(func.count(AIResponse.response_id))
+    #                       .join(latest_per_customer, and_(AIResponse.cust_id == latest_per_customer.c.cust_id,
+    #                                                       AIResponse.created_at == latest_per_customer.c.latest_contact),
+    #                                                       )
+    #                         .join(Customers, AIResponse.cust_id == Customers.cust_id)
+    #                         .filter(Customers.user_id == user_id)
+    #                         .filter(AIResponse.status.in_(PENDING_STATUSES))
+    #                         .scalar() or 0
+    #                         )
+    
+
+    pending_follow_ups = ( db.query(func.count(Customers.cust_id))
+                  .filter(Customers.user_id == user_id)
+                  .filter(Customers.status.in_(PENDING_FOLLOWUPS))
+                  .scalar() or 0
+                  )
     
     total_appointments = ( db.query(func.count(Customers.cust_id))
                           .filter(Customers.user_id == user_id)
@@ -166,11 +174,16 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     if current_user is None:
         raise(HTTPException(status_code=404, detail= "User not found"))
     
-    if current_user.role !=  UserRole.TEAM_LEAD:
-        raise HTTPException(status_code= 403, detail= "Leader access only")
+    # if current_user.role is not 'team_lead':
+    #     raise HTTPException(status_code= 403, detail= "Leader access only")
+    
+    
+    
+
     
     team_members = db.query(Users).filter(Users.team_lead_id == user_id).all()
     team_agent_ids = [m.user_id for m in team_members]
+
 
     today_start = datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time())
     today_end  = today_start + timedelta(days=1)
@@ -182,7 +195,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     # checking if the leader has any agents under him
     if not team_agent_ids:
         team_kpis = AgentStats(calls = 0, leads=0, followUps=0, appointments=0, bookings=0)
-        team_overview = 0,
+        team_overview = []
+        team_bookings = 0
         team_regions, team_objections = [], []
         team_stats = TeamStats(
             team_kpis=team_kpis,
@@ -207,22 +221,37 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
 
         ## modify it later if in case the status customer is using manual method
 
-        team_latest_per_customer = (
-            db.query(AIResponse.cust_id, func.max(AIResponse.created_at).label("latest_time"))
-            .group_by(AIResponse.cust_id)
-            .subquery()
-        )
-        # .subquery() says the opposite: "don't finish yet — 
-        # package this up as a temporary, nameless table that another query can use as one of its ingredients.
+        # team_latest_per_customer = (
+        #     db.query(AIResponse.cust_id, func.max(AIResponse.created_at).label("latest_time"))
+        #     .group_by(AIResponse.cust_id)
+        #     .subquery()
+        # )
+        # # .subquery() says the opposite: "don't finish yet — 
+        # # package this up as a temporary, nameless table that another query can use as one of its ingredients.
 
-        team_followUps = (
-            db.query(func.count(AIResponse.response_id))
-            .join(team_latest_per_customer, and_ (AIResponse.cust_id == team_latest_per_customer.c.cust_id, AIResponse.created_at == team_latest_per_customer.c.latest_time))
-            .join(Customers, AIResponse.cust_id == Customers.cust_id)
-            .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
-            .filter(AIResponse.status.in_(PENDING_STATUSES))
+        # team_followUps = (
+        #     db.query(func.count(AIResponse.response_id))
+        #     .join(team_latest_per_customer, and_ (AIResponse.cust_id == team_latest_per_customer.c.cust_id, AIResponse.created_at == team_latest_per_customer.c.latest_time))
+        #     .join(Customers, AIResponse.cust_id == Customers.cust_id)
+        #     .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
+        #     .filter(AIResponse.status.in_(PENDING_STATUSES))
+        #     .scalar() or 0
+        # )
+
+
+        team_followUps = ( 
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(Customers.status.in_(PENDING_FOLLOWUPS))
             .scalar() or 0
         )
+
+        team_bookings = (
+                    db.query(func.count(Customers.cust_id))
+                    .filter(Customers.user_id.in_(team_agent_ids), Customers.status == "Booking")
+                    .scalar() or 0
+                )
+
 
         team_appointments = (
             db.query(func.count(Customers.cust_id))
@@ -231,22 +260,14 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             .scalar() or 0
         )
 
-        team_bookings = (
-            db.query(func.count(Customers.cust_id))
-            .filter(Customers.user_id.in_(team_agent_ids))
-            .filter(func.lower(Customers.status) == "booking")
-            .scalar() or 0
-        )
-
-        # Total agents under the leader
-        # option 2- look at the return LeaderDashbpoardResponse
-
-        # total_agents = (
-        #     db.query(func.count(Users.user_id))
-        #     .filter(Users.team_lead_id == user_id)
+        # team_bookings = (
+        #     db.query(func.count(Customers.cust_id))
+        #     .filter(Customers.user_id.in_(team_agent_ids))
+        #     .filter(func.lower(Customers.status) == "booking")
         #     .scalar() or 0
         # )
 
+    
         # Overall total kpis (call today, leads, followUps, appointments)
 
         team_kpis = AgentStats(
@@ -265,6 +286,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             .filter(Customers.location.isnot(None)) # filter out rows with empty location
             .group_by(Customers.location)
             .order_by(func.count(Customers.cust_id).desc())
+            .limit(5)
             .all()
         )
 
@@ -318,32 +340,45 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
 
             calls_today_map = { r.user_id: r.count for r in call_today_rows}
 
-            overview_latest_per_customer = (
-            db.query(
-                AIResponse.cust_id,
-                func.max(AIResponse.created_at).label("latest_time"),
-            )
-            .group_by(AIResponse.cust_id)
-            .subquery()
-        )
+        #     overview_latest_per_customer = (
+        #     db.query(
+        #         AIResponse.cust_id,
+        #         func.max(AIResponse.created_at).label("latest_time"),
+        #     )
+        #     .group_by(AIResponse.cust_id)
+        #     .subquery()
+        # )
+        #     follow_up_rows = (
+        #         db.query(
+        #             Customers.user_id,
+        #             func.count(AIResponse.response_id).label("count"),
+        #         )
+        #         .join(
+        #             overview_latest_per_customer,
+        #             and_(
+        #                 AIResponse.cust_id == overview_latest_per_customer.c.cust_id,
+        #                 AIResponse.created_at == overview_latest_per_customer.c.latest_time,
+        #             ),
+        #         )
+        #         .join(Customers, AIResponse.cust_id == Customers.cust_id)
+        #         .filter(Customers.user_id.in_(team_agent_ids))
+        #         .filter(AIResponse.status.in_(PENDING_STATUSES)) # (func.lower(Customers.status) == "appointment")
+        #         .group_by(Customers.user_id)
+        #         .all()
+        #     )
+        #     follow_up_map = {r.user_id: r.count for r in follow_up_rows}
+
             follow_up_rows = (
-                db.query(
-                    Customers.user_id,
-                    func.count(AIResponse.response_id).label("count"),
-                )
-                .join(
-                    overview_latest_per_customer,
-                    and_(
-                        AIResponse.cust_id == overview_latest_per_customer.c.cust_id,
-                        AIResponse.created_at == overview_latest_per_customer.c.latest_time,
-                    ),
-                )
-                .join(Customers, AIResponse.cust_id == Customers.cust_id)
-                .filter(Customers.user_id.in_(team_agent_ids))
-                .filter(AIResponse.status.in_(PENDING_STATUSES)) # (func.lower(Customers.status) == "appointment")
-                .group_by(Customers.user_id)
-                .all()
-            )
+                        db.query(
+                            Customers.user_id,
+                            func.count(Customers.cust_id).label("count"),
+                        )
+                        .filter(Customers.user_id.in_(team_agent_ids))
+                        .filter(Customers.status.in_(PENDING_FOLLOWUPS))
+                        .group_by(Customers.user_id)
+                        .all()
+                        )
+                
             follow_up_map = {r.user_id: r.count for r in follow_up_rows}
 
             appointment_rows = (
@@ -372,6 +407,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     # What the API returns to frontend
     return LeaderDashboardResponse(
         # total_agents=total_agents,
+        team_bookings=team_bookings,
         team_stats= team_stats,
         team_overview=team_overview,
         total_agents = len(team_agent_ids)

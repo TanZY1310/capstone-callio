@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import TopCard from '../components/Metrics/TopCard';
 import PerformanceCard from '../components/Metrics/PerformanceCard';
 import ConversionFunnel from '../components/Metrics/ConversionFunnel';
-import TeamFunnelCard from '../components/Metrics/TeamFunnelCard';
+// import TeamFunnelCard from '../components/Metrics/TeamFunnelCard';
 import Objections from '../components/Metrics/Objections';
 import LeadsByRegion from '../components/Metrics/LeadsByRegion';
 import Header from '../components/Layout/Header';
@@ -95,19 +95,19 @@ function LeaderDashboard() {
                     label: 'Total Leads',
                     count: teamData.team_stats.team_kpis.leads,
                   },
-                  {
-                    label: 'Follow Ups',
-                    count: teamData.team_stats.team_kpis.followUps,
-                  },
+                  // {
+                  //   label: 'Follow Ups',
+                  //   count: teamData.team_stats.team_kpis.followUps,
+                  // },
 
                   {
                     label: 'Appointments Set',
                     count: teamData.team_stats.team_kpis.appointments,
                   },
-                  // {
-                  //   label: 'Bookings',
-                  //   count: teamData.team_stats.team_kpis.bookings,
-                  // },
+                  {
+                    label: 'Bookings',
+                    count: teamData.team_stats.team_kpis.bookings,
+                  },
                 ]}
               />
             </div>

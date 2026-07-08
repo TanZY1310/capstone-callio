@@ -26,6 +26,7 @@ class UserResponse(BaseModel):
     team_lead_id: uuid.UUID | None = None
     sheets_id: str | None = None
     bio: str | None = None
+    tokens_used: int = 0
 
 class UserVerification(BaseModel):
     password: str = Field(..., description="Current password")

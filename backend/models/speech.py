@@ -28,10 +28,9 @@ class SpeechAnalysis(Base):
 class Objection(Base):
     __tablename__ = "objections"
 
-    objection_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    objection_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     call_id: Mapped[uuid.UUID] =  mapped_column(ForeignKey("speech_analysis.id"), nullable=False)
     objection_type: Mapped[str | None] = mapped_column(String(255), nullable=False)
-    detected_text: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     
 

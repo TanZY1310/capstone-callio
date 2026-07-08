@@ -70,17 +70,21 @@ function PerformanceCard({ teamTable }) {
   return (
     <div className="card bg-base-100 border border-base-200 shadow-sm">
       <div className="card-body gap-4">
-        <h2 className="card-title text-base-content">Agent Activity Summary</h2>
-        <label className="input input-sm">
-          <CiSearch />
-          <input
-            type="search"
-            className="grow"
-            placeholder="Search here"
-            value={filters.searchTerm}
-            onChange={(e) => updateFilter('searchTerm', e.target.value)}
-          />
-        </label>
+        <div className="flex items-center justify-between">
+          <h2 className="card-title text-base-content">
+            Agent Activity Summary
+          </h2>
+          <label className="input input-sm">
+            <CiSearch />
+            <input
+              type="search"
+              className="grow"
+              placeholder="Search here"
+              value={filters.searchTerm}
+              onChange={(e) => updateFilter('searchTerm', e.target.value)}
+            />
+          </label>
+        </div>
 
         <table className="table w-full">
           <thead>

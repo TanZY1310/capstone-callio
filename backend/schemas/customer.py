@@ -40,6 +40,9 @@ class StatusUpdateItem(BaseModel):
 class BatchStatusUpdate(BaseModel):
     updates: List[StatusUpdateItem]
 
+class StatusUpdateRequest(BaseModel):
+    status: str
+
 class SyncResult(BaseModel):
     synced: int
     skipped: int
