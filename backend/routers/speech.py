@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 
 from database import db_dependency
 from models.customer import Customers
-from models.speech import SpeechAnalysis
+from models.speech import SpeechAnalysis, Objection
 from services.audio_service import transcribe_audio, analyze_transcript
+from services.sheets import export_customers_to_sheets
 
 
 class PipelineRequest(BaseModel):
@@ -81,7 +82,7 @@ async def add_to_pipeline(db: db_dependency, task_id: str, body: PipelineRequest
             analysis_record = db.query(SpeechAnalysis).filter(SpeechAnalysis.id == analysis_id).first()
 
         summary = analysis_record.summary if analysis_record else task["data"].get("summary", "")
-        buyer_stage = analysis_record.buyer_stage if analysis_record else task["data"].get("buyerStage")
+        buyer_stage = analysis_record.buyer_stage if analysis_record else task["data"].get("customerStatus")
         preferences = analysis_record.preferences if analysis_record else task["data"].get("preferences", {})
         next_actions = analysis_record.next_actions if analysis_record else task["data"].get("nextActions", [])
         sentiment = analysis_record.sentiment if analysis_record else task["data"].get("sentiment", {})
@@ -117,6 +118,12 @@ async def add_to_pipeline(db: db_dependency, task_id: str, body: PipelineRequest
             customer.location = task_location
 
         db.commit()
+
+        try:
+            await export_customers_to_sheets(db, customer.user_id)
+        except Exception:
+            pass
+
         return {"success": True}
     finally:
         db.close()
@@ -191,7 +198,7 @@ async def _analyze_phase(db:db_dependency, task_id: str):
             f"{s['speaker']}: {s['text']}" for s in transcript
         )
 
-        buyer_stage = analysis.get("buyerStage")
+        buyer_stage = analysis.get("customerStatus")
         summary_text = analysis.get("summary", "")
         if isinstance(summary_text, dict):
             summary_text = str(summary_text)
@@ -223,6 +230,15 @@ async def _analyze_phase(db:db_dependency, task_id: str):
             db.commit()
             db.refresh(record)
             analysis_id = str(record.id)
+
+            if objections:
+                for obj_text in objections:
+                    if isinstance(obj_text, str) and obj_text.strip():
+                        db.add(Objection(
+                            call_id=record.id,
+                            objection_type=obj_text.strip(),
+                        ))
+                db.commit()
         except Exception:
             db.rollback()
             analysis_id = None
@@ -240,7 +256,7 @@ async def _analyze_phase(db:db_dependency, task_id: str):
             "nextActions": analysis.get("nextActions", []),
             "preferences": analysis.get("preferences", {}),
             "summary": summary_text,
-            "buyerStage": buyer_stage,
+            "customerStatus": buyer_stage,
             "objections": objections,
             "analysisId": analysis_id,
             "budget": budget,

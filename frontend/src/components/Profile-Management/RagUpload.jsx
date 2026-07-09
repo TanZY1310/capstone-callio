@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UploadCloud, File, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../../utils/api';
@@ -7,6 +7,20 @@ function RagUpload() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await api.get('/rag/files');
+        if (response.data && response.data.files) {
+          setUploadedFiles(response.data.files);
+        }
+      } catch (error) {
+        console.error('Failed to fetch uploaded files:', error);
+      }
+    };
+    fetchFiles();
+  }, []);
 
   const handleFileChange = (e) => {
     if (e.target.files) {
@@ -47,7 +61,7 @@ function RagUpload() {
         },
       });
 
-      setUploadedFiles(prev => [...prev, ...selectedFiles]);
+      setUploadedFiles(prev => [...prev, ...selectedFiles.map(f => ({ name: f.name }))]);
       setSelectedFiles([]);
       document.getElementById('rag-upload-modal').close();
       toast.success(`${selectedFiles.length} document(s) uploaded successfully!`);

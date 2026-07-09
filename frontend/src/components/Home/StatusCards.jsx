@@ -57,7 +57,7 @@ function StatusCards({ platformName, status, onUpdate }) {
       )}
 
       {platformName === 'sheets' && (
-        <div className="dashboard-card p-5 flex items-center gap-4 justify-between">
+        <div className="dashboard-card p-5 flex items-center gap-4">
           <div className="flex items-center gap-3">
             <div
               className={`w-9 h-9 ${c.bg} rounded-xl flex items-center justify-center`}
@@ -80,13 +80,6 @@ function StatusCards({ platformName, status, onUpdate }) {
               </p>
             </div>
           </div>
-          {status.connectionStatus === STATUS_NAME.NOT_CONNECTED ? (
-            <span className="text-xs text-base-content/40">Last Sync: -</span>
-          ) : (
-            <span className="text-xs text-base-content/40">
-              Last Sync: {new Date(status.lastSync).toLocaleTimeString()}
-            </span>
-          )}
         </div>
       )}
     </>

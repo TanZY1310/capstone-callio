@@ -88,9 +88,10 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         f"{s['speaker']}: {s['text']}" for s in transcript
     )
 
-    buyer_stages = [
-        "Awareness", "Interested", "Considering",
-        "Negotiation", "Ready to close", "Cold lead",
+    customer_statuses = [
+        "No Pickup", "Might Keep In Touch", "Not Interested",
+        "WhatsApp", "Stop Following Up", "Pending Appointment",
+        "Appointment", "Booking", "Completed", "Not Yet Call",
     ]
 
     prompt = (
@@ -118,7 +119,7 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         '    "purpose": "Brief description of the main purpose of this call"\n'
         "  },\n"
         '  "objections": ["duplicate of sentiment.objections for easy storage"],\n'
-        f'  "buyerStage": "one of {buyer_stages}",\n'
+        f'  "customerStatus": "pick the single most suitable status from {customer_statuses}",\n'
         '  "summary": "A short 2-3 sentence plain-text summary of the conversation covering preferences, next actions, and sentiment."\n'
         "}\n"
         "Do not include any markdown formatting or code blocks."

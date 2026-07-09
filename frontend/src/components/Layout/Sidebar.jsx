@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import {
   LogOut,
@@ -12,58 +12,31 @@ import {
 } from 'lucide-react';
 import Navigation from './Navigation';
 import { motion, AnimatePresence } from 'motion/react';
-
-const SIDEBAR_COLORS = {
-  corporate: {
-    bg: 'bg-slate-300',
-    border: 'border-slate-200',
-    header: 'bg-slate-300',
-    toggleBg: 'bg-slate-300 border-slate-200',
-  },
-  business: {
-    bg: 'bg-slate-900',
-    border: 'border-slate-700',
-    header: 'bg-slate-900',
-    toggleBg: 'bg-slate-900 border-slate-700',
-  },
-};
+import { useTheme } from '../../hooks/useTheme';
 
 function Sidebar({ logout, profile }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const navigate = useNavigate();
   const role = profile?.role || 'agent';
 
-  //For Theme Toggle
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem('theme') || 'corporate',
-  );
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () =>
-    setTheme((t) => (t === 'corporate' ? 'business' : 'corporate'));
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const c = SIDEBAR_COLORS[theme] ?? SIDEBAR_COLORS.corporate;
-
   return (
     <div className="flex h-screen overflow-hidden">
       {/* ===== SIDEBAR ===== */}
       <motion.aside
-        className={`relative flex flex-col h-full ${c.bg} border-r ${c.border} overflow-visible shrink-0 z-20`}
+        className={`relative flex flex-col h-full bg-base-100 border-r border-base-200 overflow-visible shrink-0 z-20`}
         animate={{ width: isDrawerOpen ? 256 : 64 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
       >
         {/* ── Toggle button sitting on the right border edge ── */}
         <motion.button
-          className={`absolute -right-3.5 top-6 z-30 w-7 h-7 rounded-full ${c.toggleBg} border shadow-sm flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors`}
+          className={`absolute -right-3.5 top-6 z-30 w-7 h-7 rounded-full bg-base-100 border border-base-200 shadow-sm flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors`}
           onClick={() => setIsDrawerOpen((o) => !o)}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -77,7 +50,7 @@ function Sidebar({ logout, profile }) {
 
         {/* ── Logo header ── */}
         <div
-          className={`flex items-center gap-2 px-4 py-4 border-b ${c.border} overflow-hidden`}
+          className={`flex items-center gap-2 px-4 py-4 border-b border-base-200 overflow-hidden`}
         >
           {/* Logo icon */}
           <div className="bg-blue-600 text-white rounded-lg w-8 h-8 flex items-center justify-center shrink-0">
@@ -106,7 +79,7 @@ function Sidebar({ logout, profile }) {
                   whileTap={{ scale: 0.9 }}
                   aria-label="Toggle theme"
                 >
-                  {theme === 'corporate' ? (
+                  {theme === 'lemonade' ? (
                     <Moon size={15} />
                   ) : (
                     <Sun size={15} />
@@ -119,7 +92,7 @@ function Sidebar({ logout, profile }) {
 
         {/* ── User profile block — matches reference image ── */}
         <div
-          className={`flex items-center gap-3 px-4 py-4 border-b ${c.border} overflow-hidden`}
+          className={`flex items-center gap-3 px-4 py-4 border-b border-base-200 overflow-hidden`}
         >
           <NavLink to="/profile" className="shrink-0">
             <motion.div
