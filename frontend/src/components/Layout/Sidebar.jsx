@@ -5,8 +5,6 @@ import {
   Building2,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings,
-  Bell,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -136,50 +134,6 @@ function Sidebar({ logout, profile }) {
         {/* ── Bottom actions ── */}
         <div className="border-t border-base-200">
           <ul className="menu w-full p-2 gap-0.5">
-            <li>
-              <motion.button
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 text-base-content/70 hover:text-base-content ${!isDrawerOpen ? 'justify-center' : ''}`}
-                data-tip="Notification"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Bell size={18} />
-                <AnimatePresence>
-                  {isDrawerOpen && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Notification
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </li>
-            <li>
-              <motion.button
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 text-base-content/70 hover:text-base-content ${!isDrawerOpen ? 'justify-center' : ''}`}
-                data-tip="Settings"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Settings size={18} />
-                <AnimatePresence>
-                  {isDrawerOpen && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Settings
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </li>
             <li>
               <motion.button
                 onClick={handleLogout}

@@ -8,6 +8,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { FaPeopleGroup } from 'react-icons/fa6';
+import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { statusList } from '../../data/statusList';
 import { tableHeader } from '../../data/tableHeader';
@@ -125,10 +126,7 @@ function CustomerListings({ customerData, onStatusChange }) {
     setPage(1);
   };
 
-  const statusFilter = [
-    'all',
-    ...statusList.map((s) => s.name),
-  ];
+  const statusFilter = ['all', ...statusList.map((s) => s.name)];
 
   const sendCustomerDetails = (destination, customer) => {
     try {
@@ -292,13 +290,15 @@ function CustomerListings({ customerData, onStatusChange }) {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <button
+                  <motion.button
                     className="btn btn-link btn-sm text-success-icon normal-case no-underline"
                     onClick={() => sendCustomerDetails('/whatsapp', customer)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     <MessageSquare size={14} className="text-primary" />
                     <div className="text-sm text-primary">{customer.phone}</div>
-                  </button>
+                  </motion.button>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-base-content/70">
@@ -358,13 +358,15 @@ function CustomerListings({ customerData, onStatusChange }) {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button
+                    <motion.button
                       name="micButton"
                       className="btn btn-sm btn-ghost border border-success-icon/30 hover:bg-success-icon/10"
                       onClick={() => sendCustomerDetails('/speech', customer)}
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Mic size={15} />
-                    </button>
+                    </motion.button>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-base-content/60 max-w-xs">
