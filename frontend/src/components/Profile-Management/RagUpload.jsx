@@ -127,9 +127,9 @@ function RagUpload() {
                       </td>
                       <td>
                         <div className="flex items-center gap-3">
-                          <span className="badge badge-success badge-sm text-white border-none">Active</span>
+                          <span className="badge bg-success-icon text-white badge-sm border-none">Active</span>
                           <button 
-                            className="btn btn-ghost btn-xs btn-circle text-error/70 hover:text-error hover:bg-error/10"
+                            className="btn btn-ghost btn-xs btn-circle text-error-icon/70 hover:text-error-icon hover:bg-error-icon/10"
                             onClick={() => handleDeleteUploaded(file.name)}
                             title="Delete Document"
                           >
@@ -202,7 +202,7 @@ function RagUpload() {
                       <span className="text-xs text-base-content truncate">{file.name}</span>
                     </div>
                     <button 
-                      className="btn btn-ghost btn-xs btn-circle text-base-content/50 hover:text-error shrink-0"
+                      className="btn btn-ghost btn-xs btn-circle text-base-content/50 hover:text-error-icon shrink-0"
                       onClick={() => removeFile(idx)}
                     >
                       <X className="h-3 w-3" />

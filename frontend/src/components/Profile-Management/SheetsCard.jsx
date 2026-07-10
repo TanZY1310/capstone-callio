@@ -96,7 +96,7 @@ function SheetsCard() {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
-                <div className="w-10 rounded-lg bg-success/10 p-1.5">
+                <div className="w-10 rounded-lg bg-success-icon/10 p-1.5">
                   <img src={sheetsimg} alt="Google Sheets" />
                 </div>
               </div>
@@ -123,7 +123,7 @@ function SheetsCard() {
 
             {/* Status Badge */}
             <span
-              className={`badge ${isLinked ? 'badge-success text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
+              className={`badge ${isLinked ? 'bg-success-icon text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
             >
               {isLinked ? 'Connected' : 'Disconnected'}
             </span>
@@ -152,7 +152,7 @@ function SheetsCard() {
                 Last Sync Status
               </span>
               <span
-                className={`text-base-content/60 font-mono transition-all duration-300 ${isSyncing ? 'animate-pulse text-success' : ''}`}
+                className={`text-base-content/60 font-mono transition-all duration-300 ${isSyncing ? 'animate-pulse text-success-icon' : ''}`}
               >
                 {isSyncing ? 'Syncing...' : lastSyncTime}
               </span>
@@ -190,7 +190,7 @@ function SheetsCard() {
           </form>
 
           <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <Info className="h-5 w-5 text-info" />
+            <Info className="h-5 w-5 text-info-icon" />
             How to find your Spreadsheet ID
           </h3>
 

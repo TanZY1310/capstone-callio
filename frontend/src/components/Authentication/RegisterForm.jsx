@@ -246,7 +246,7 @@ function RegisterForm() {
       sessionStorage.removeItem('callio_pending_registration');
       dispatch({ type: ACTIONS.REGISTER_SUCCESS });
       toast.success('Account created! Welcome to Callio.');
-      window.location.href = '/';
+      window.location.href = '/home';
     } catch (err) {
       sessionStorage.removeItem('callio_pending_registration');
       // Firebase errors use err.code , Axios uses err.response
