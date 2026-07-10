@@ -99,7 +99,7 @@ function SocialCard() {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
-                <div className="w-10 rounded-lg bg-success/10 p-1.5">
+                <div className="w-10 rounded-lg bg-success-icon/10 p-1.5">
                   <img src={wsLogo} alt="WhatsApp Business" />
                 </div>
               </div>
@@ -115,7 +115,7 @@ function SocialCard() {
 
             {/* Status Badge */}
             <span
-              className={`badge ${isLinked ? 'badge-success text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
+              className={`badge ${isLinked ? 'bg-success-icon text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
             >
               {isLinked ? 'Connected' : 'Disconnected'}
             </span>
@@ -149,7 +149,7 @@ function SocialCard() {
           {/* Primary CTA Action Button */}
           <div className="card-actions mt-auto">
             <button
-              className="btn btn-success text-white w-full normal-case font-medium gap-2 shadow-sm"
+              className="btn bg-success-icon text-white w-full normal-case font-medium gap-2 shadow-sm"
               onClick={handleLinkAccount}
             >
               <span className="material-symbols-outlined text-xl">
@@ -199,7 +199,7 @@ function SocialCard() {
           {/* Success View State */}
           {notification && !error && (
             <div className="space-y-3 py-2">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-success/10 text-success mb-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-success-icon/10 text-success-icon mb-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -228,7 +228,7 @@ function SocialCard() {
           {/* Error View State */}
           {error && (
             <div className="space-y-3 py-2">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-error/10 text-error mb-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-error-icon/10 text-error-icon mb-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -244,8 +244,8 @@ function SocialCard() {
                   />
                 </svg>
               </div>
-              <h3 className="font-bold text-xl text-error">Linking Failed!</h3>
-              <p className="text-sm font-medium text-error/80 bg-error/5 py-2 rounded-lg border border-error/10">
+              <h3 className="font-bold text-xl text-error-icon">Linking Failed!</h3>
+              <p className="text-sm font-medium text-error-icon/80 bg-error-icon/5 py-2 rounded-lg border border-error-icon/10">
                 {error}
               </p>
              
