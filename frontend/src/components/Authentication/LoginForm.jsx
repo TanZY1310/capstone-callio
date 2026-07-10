@@ -79,7 +79,7 @@ function parseFirebaseError(code) {
   }
 }
 
-function LoginForm() {
+function LoginForm({ onDemoLogin }) {
   const [state, dispatch] = useReducer(loginReducer, initialState);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -213,8 +213,27 @@ function LoginForm() {
                     Login
                   </button>
                 )}
-
               </fieldset>
+
+              <div className="divider text-xs text-base-content/40 mt-6">
+                DEMO
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline btn-accent flex-1"
+                  onClick={() => onDemoLogin?.('agent')}
+                >
+                  Demo as Agent
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-accent flex-1"
+                  onClick={() => onDemoLogin?.('team_lead')}
+                >
+                  Demo as Team Lead
+                </button>
+              </div>
             </form>
           </div>
         </div>

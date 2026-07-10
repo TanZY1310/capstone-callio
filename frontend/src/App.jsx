@@ -25,7 +25,7 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const ProfileSetting = lazy(() => import('./pages/ProfileSettings'));
 
 function App() {
-  const { user, profile, loading, logout, authError } = useAuth();
+  const { user, profile, loading, logout, authError, loginDemo } = useAuth();
   console.log('Profile Details in App.jsx', profile);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ function App() {
             <Route
               path="/login"
               element={
-                loading && !user ? null : profile ? <Navigate to="/home" replace /> : <Login />
+                loading && !user ? null : profile ? <Navigate to="/home" replace /> : <Login onDemoLogin={loginDemo} />
               }
             />
             <Route

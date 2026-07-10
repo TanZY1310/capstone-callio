@@ -3,6 +3,8 @@ import { LayoutDashboard, Mic, ChartArea, Users } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import { motion, AnimatePresence } from 'motion/react';
 
+const MotionNavLink = motion.create(NavLink);
+
 const NAV_ITEMS = [
   {
     id: 1,
@@ -63,13 +65,15 @@ function Navigation({ isDrawerOpen, role }) {
             visible: { opacity: 1, x: 0 },
           }}
         >
-          <NavLink
+          <MotionNavLink
             to={item.path}
             end={item.path === '/home'}
             className={({ isActive }) =>
               `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? `active ${item.activeColour} font-semibold` : 'text-base-content/60'}`
             }
             data-tip={item.label}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {item.icon}
             <AnimatePresence>
@@ -85,7 +89,7 @@ function Navigation({ isDrawerOpen, role }) {
                 </motion.div>
               )}
             </AnimatePresence>
-          </NavLink>
+          </MotionNavLink>
         </motion.li>
       ))}
     </motion.ul>

@@ -6,6 +6,12 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
+  const demoToken = localStorage.getItem('demo_token');
+  if (demoToken) {
+    config.headers.Authorization = `Bearer ${demoToken}`;
+    return config;
+  }
+
   const authInstance = getAuth();
   if (authInstance.currentUser) {
     const token = await authInstance.currentUser.getIdToken();
@@ -20,6 +26,10 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && (originalRequest._retry || 0) < 2) {
+      if (localStorage.getItem('demo_token')) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = (originalRequest._retry || 0) + 1;
 
       try {
