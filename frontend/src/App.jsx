@@ -25,7 +25,7 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const ProfileSetting = lazy(() => import('./pages/ProfileSettings'));
 
 function App() {
-  const { user, profile, loading, logout, authError } = useAuth();
+  const { user, profile, loading, logout, authError, loginDemo } = useAuth();
   console.log('Profile Details in App.jsx', profile);
 
   useEffect(() => {
@@ -46,23 +46,26 @@ function App() {
           }
         >
           <Routes>
-            <Route path="/landing" element={<LandingPage />} />
+            <Route
+              path="/landing"
+              element={<Navigate to="/" replace />}
+            />
             <Route
               path="/register"
               element={
-                loading && !user ? null : profile ? <Navigate to="/" replace /> : <Register />
+                loading && !user ? null : profile ? <Navigate to="/home" replace /> : <Register />
               }
             />
             <Route
               path="/login"
               element={
-                loading && !user ? null : profile ? <Navigate to="/" replace /> : <Login />
+                loading && !user ? null : profile ? <Navigate to="/home" replace /> : <Login onDemoLogin={loginDemo} />
               }
             />
             <Route
               path="/"
               element={
-                !loading && !profile ? <Navigate to="/landing" replace /> : null
+                loading ? null : !profile ? <LandingPage /> : <Navigate to="/home" replace />
               }
             />
             <Route
@@ -78,7 +81,7 @@ function App() {
               }
             >
               {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
-              <Route index element={<HomePage />} />
+              <Route path="home" element={<HomePage />} />
               <Route path="whatsapp" element={<LeadDetail />} />
               <Route path="agent-dashboard" element={<AgentDashboard />} />
               <Route path="team-dashboard" element={<LeaderDashboard />} />

@@ -7,7 +7,6 @@ import {
   BarChart3,
   Sheet,
   Languages,
-  ArrowRight,
   Check,
   Building2,
   Users,
@@ -67,7 +66,7 @@ function Navbar({ theme, toggleTheme }) {
   return (
     <nav className="sticky top-0 z-50 bg-base-100/80 backdrop-blur-md border-b border-base-200">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <a href="/landing" className="flex items-center gap-2.5">
+        <a href="/" className="flex items-center gap-2.5">
           <div className="bg-primary text-primary-content rounded-lg w-8 h-8 flex items-center justify-center">
             <Building2 size={16} />
           </div>
@@ -99,9 +98,7 @@ function Navbar({ theme, toggleTheme }) {
           <Link to="/login" className="btn btn-ghost btn-sm text-sm">
             Log in
           </Link>
-          <Link to="/register" className="btn btn-primary btn-sm text-sm">
-            Start free trial
-          </Link>
+
         </div>
       </div>
     </nav>
@@ -258,25 +255,16 @@ function Hero() {
             >
               Callio brings your WhatsApp chats, call recordings, and lead
               tracking into one workspace. AI-powered analysis that understands
-              BM, English, Mandarin, and Tamil — even in the same call.
+              BM, English, and Mandarin — even in the same call.
             </motion.p>
 
             <motion.div variants={fadeInUp} className="flex flex-wrap gap-3">
-              <Link to="/register" className="btn btn-primary gap-2">
-                Start free trial
-                <ArrowRight size={16} />
-              </Link>
               <a href="#features" className="btn btn-outline gap-2">
                 See how it works
               </a>
             </motion.div>
 
-            <motion.p
-              variants={fadeInUp}
-              className="text-xs text-base-content/40 mt-5"
-            >
-              14-day free trial &middot; No credit card required
-            </motion.p>
+
           </motion.div>
 
           <motion.div
@@ -297,7 +285,7 @@ function StatsBar() {
   const stats = [
     { value: '3x', label: 'Faster lead follow-up' },
     { value: '34%', label: 'Average conversion lift' },
-    { value: '4', label: 'Languages in one call' },
+    { value: '3', label: 'Languages in one call' },
     { value: '127+', label: 'Agents already onboard' },
   ];
 
@@ -334,7 +322,7 @@ const FEATURES = [
     icon: Mic,
     title: 'Call analysis that understands Malaysia',
     description:
-      'Record calls and get instant transcriptions, sentiment scores, and next-action suggestions. Works across BM, English, Mandarin, and Tamil — even when speakers switch mid-sentence.',
+      'Record calls and get instant transcriptions, sentiment scores, and next-action suggestions. Works across BM, English, and Mandarin — even when speakers switch mid-sentence.',
     accent: 'text-warning',
     bg: 'bg-warning/5',
   },
@@ -422,7 +410,7 @@ function Spotlight() {
               <ul className="space-y-3">
                 {[
                   'Auto-detect language switches within a single call',
-                  'Accurate transcription across BM, English, Mandarin, Tamil',
+                  'Accurate transcription across BM, English, Mandarin',
                   'Sentiment analysis that understands local expressions',
                   'Next-action suggestions based on conversation context',
                 ].map((item) => (
@@ -583,13 +571,6 @@ function Pricing() {
                   ))}
                 </ul>
 
-                <Link
-                  to="/register"
-                  className="btn btn-primary btn-block gap-2"
-                >
-                  Start free trial
-                  <ArrowRight size={16} />
-                </Link>
               </div>
             </div>
 
@@ -757,13 +738,6 @@ function BottomCTA() {
             analyse calls, and grow their pipeline — without the admin overhead.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link
-              to="/register"
-              className="btn btn-outline border-primary-content/30 text-primary-content hover:bg-primary-content hover:text-primary gap-2"
-            >
-              Start free trial
-              <ArrowRight size={16} />
-            </Link>
             <a
               href="#contact"
               className="btn btn-ghost text-primary-content hover:bg-primary-content/10 gap-2"
@@ -771,9 +745,7 @@ function BottomCTA() {
               Book a demo
             </a>
           </div>
-          <p className="text-xs text-primary-content/40 mt-5">
-            14-day free trial &middot; No credit card required
-          </p>
+
         </RevealSection>
       </div>
     </section>

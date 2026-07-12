@@ -5,8 +5,6 @@ import {
   Building2,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings,
-  Bell,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -53,7 +51,7 @@ function Sidebar({ logout, profile }) {
           className={`flex items-center gap-2 px-4 py-4 border-b border-base-200 overflow-hidden`}
         >
           {/* Logo icon */}
-          <div className="bg-blue-600 text-white rounded-lg w-8 h-8 flex items-center justify-center shrink-0">
+          <div className="bg-primary rounded-lg w-8 h-8 flex items-center justify-center shrink-0">
             <Building2 size={16} />
           </div>
 
@@ -100,7 +98,7 @@ function Sidebar({ logout, profile }) {
               whileTap={{ scale: 0.95 }}
               className="avatar"
             >
-              <div className="w-10 h-10 rounded-full ring-2 ring-base-300">
+              <div className="w-10 h-10 rounded-full ring-2 ring-primary/20">
                 <img
                   src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80"
                   alt="User avatar"
@@ -138,52 +136,8 @@ function Sidebar({ logout, profile }) {
           <ul className="menu w-full p-2 gap-0.5">
             <li>
               <motion.button
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 ${!isDrawerOpen ? 'justify-center' : ''}`}
-                data-tip="Notification"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Bell size={18} />
-                <AnimatePresence>
-                  {isDrawerOpen && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Notification
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </li>
-            <li>
-              <motion.button
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 ${!isDrawerOpen ? 'justify-center' : ''}`}
-                data-tip="Settings"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Settings size={18} />
-                <AnimatePresence>
-                  {isDrawerOpen && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Settings
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </li>
-            <li>
-              <motion.button
                 onClick={handleLogout}
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 text-error hover:bg-error/10 ${!isDrawerOpen ? 'justify-center' : ''}`}
+                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 text-logout-icon hover:bg-logout-icon/10 ${!isDrawerOpen ? 'justify-center' : ''}`}
                 data-tip="Logout"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

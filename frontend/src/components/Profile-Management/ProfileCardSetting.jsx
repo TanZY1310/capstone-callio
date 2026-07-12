@@ -14,7 +14,7 @@ function ProfileCardSetting() {
           Personal Information
         </h3>
 
-        <span className="badge badge-success badge-sm text-xs px-2.5 py-3 font-medium text-success-content bg-emerald-100 border-none">
+        <span className="badge bg-success-icon text-white badge-sm text-xs px-2.5 py-3 font-medium border-none">
           Active Profile
         </span>
       </div>

@@ -8,6 +8,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { FaPeopleGroup } from 'react-icons/fa6';
+import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { statusList } from '../../data/statusList';
 import { tableHeader } from '../../data/tableHeader';
@@ -15,16 +16,16 @@ import { tableHeader } from '../../data/tableHeader';
 const PAGE_SIZE = 10;
 
 const BADGE_COLORS = {
-  Completed: 'badge-success',
-  Booking: 'badge-success',
-  Appointment: 'badge-info',
-  'Pending Appointment': 'badge-warning',
+  Completed: 'bg-success-icon text-white',
+  Booking: 'bg-success-icon text-white',
+  Appointment: 'bg-info-icon text-white',
+  'Pending Appointment': 'bg-warning-icon text-white',
   WhatsApp: 'badge-primary',
-  'Might Keep In Touch': 'badge-accent',
+  'Might Keep In Touch': 'bg-secondary-icon text-white',
   'Not Yet Call': 'badge-neutral',
   'No Pickup': 'badge-ghost',
-  'Not Interested': 'badge-error',
-  'Stop Following Up': 'badge-error',
+  'Not Interested': 'bg-error-icon text-white',
+  'Stop Following Up': 'bg-error-icon text-white',
 };
 
 const getBadgeClass = (status) => BADGE_COLORS[status] || 'badge-ghost';
@@ -125,10 +126,7 @@ function CustomerListings({ customerData, onStatusChange }) {
     setPage(1);
   };
 
-  const statusFilter = [
-    'all',
-    ...new Set((customerData || []).map((p) => p.status)),
-  ];
+  const statusFilter = ['all', ...statusList.map((s) => s.name)];
 
   const sendCustomerDetails = (destination, customer) => {
     try {
@@ -145,11 +143,13 @@ function CustomerListings({ customerData, onStatusChange }) {
   const handleStatusSelect = (cust_id, newStatus) => {
     setActiveDropdown(null);
     onStatusChange(cust_id, newStatus);
+    document.activeElement?.blur();
   };
 
   const handleFilterSelect = (value) => {
     setFilterDropdownOpen(false);
     updateFilter('status', value);
+    document.activeElement?.blur();
   };
 
   return (
@@ -290,13 +290,15 @@ function CustomerListings({ customerData, onStatusChange }) {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <button
-                    className="btn btn-link btn-sm text-success normal-case no-underline"
+                  <motion.button
+                    className="btn btn-link btn-sm text-success-icon normal-case no-underline"
                     onClick={() => sendCustomerDetails('/whatsapp', customer)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <MessageSquare size={14} />
-                    <div className="text-sm">{customer.phone}</div>
-                  </button>
+                    <MessageSquare size={14} className="text-primary" />
+                    <div className="text-sm text-primary">{customer.phone}</div>
+                  </motion.button>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-base-content/70">
@@ -356,13 +358,15 @@ function CustomerListings({ customerData, onStatusChange }) {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button
+                    <motion.button
                       name="micButton"
-                      className="btn btn-sm btn-ghost border border-success/30 hover:bg-success/10"
+                      className="btn btn-sm btn-ghost border border-success-icon/30 hover:bg-success-icon/10"
                       onClick={() => sendCustomerDetails('/speech', customer)}
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Mic size={15} />
-                    </button>
+                    </motion.button>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-base-content/60 max-w-xs">
@@ -373,7 +377,7 @@ function CustomerListings({ customerData, onStatusChange }) {
                           'No summary'}
                       </p>
                       <button
-                        className="btn btn-link btn-xs text-info normal-case no-underline"
+                        className="btn btn-link btn-xs text-info-icon normal-case no-underline"
                         onClick={() => {
                           setModalCustomer(customer.cust_name);
                           setModalRemark(customer.remarks.speechAnalysis);
