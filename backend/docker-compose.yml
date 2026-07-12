@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: callio_db
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432" # exposes DB to host for tools like DBeaver / psql
+    volumes:
+      - callio_pgdata:/var/lib/postgresql/data
+    networks:
+      - callio_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+    container_name: callio_backend
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      DB_HOST: db # overrides whatever DB_HOST is in .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - callio_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: callio_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@callio.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - callio_network
+    depends_on:
+      - db
+
+volumes:
+  callio_pgdata:
+
+networks:
+  callio_network:
+    driver: bridge
