@@ -78,9 +78,22 @@ function initializeClient() {
     console.error("Auth failure:", msg);
   });
 
-  client.on("disconnected", (reason) => {
+  client.on("disconnected", async (reason) => {
     state.status = 'disconnected';
     console.log("Disconnected:", reason);
+
+    try {
+          // Destroy the old disconnected client properly
+          await client.destroy();
+        } catch (err) {
+            console.error('Error destroying client:', err);
+        }
+
+        // Wait a few seconds, then initialize a new instance
+        setTimeout(() => {
+            console.log('Re-initializing client...');
+            initializeClient();
+        }, 5000);
   });
 
   // Incoming message listener

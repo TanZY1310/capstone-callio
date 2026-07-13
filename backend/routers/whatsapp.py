@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from models.whatsapp import AIResponse
 from schemas.whatsapp import AIResponseSchema, AIResponseUpdate, SendMessage
 from models.customer import Customers
+from models.speech import SpeechAnalysis
 from database import get_db, db_dependency
 from services.ai_responder import generate_reply_draft
 from services.whatsapp_client import fetch_connection_status, fetch_chat_messages, send_whatsapp_message, connect_whatsapp
@@ -10,6 +11,19 @@ router = APIRouter(
     prefix = "/whatsapp",
     tags = ["whatsapp"]
 )
+
+TRANSCRIPT_HISTORY_LIMIT = 5
+
+def _get_transcript_history(db: db_dependency, cust_id: uuid.UUID) -> list[str]:
+    """Most recent call transcriptions for this customer, newest first."""
+    rows = (
+        db.query(SpeechAnalysis.transcription)
+        .filter(SpeechAnalysis.customer_id == cust_id)
+        .order_by(SpeechAnalysis.created_at.desc())
+        .limit(TRANSCRIPT_HISTORY_LIMIT)
+        .all()
+    )
+    return [row.transcription for row in rows]
 
 @router.get("/")
 async def test():
@@ -93,13 +107,16 @@ async def generate_ai_draft(cust_id: uuid.UUID, db: db_dependency):
     chat_history = await fetch_chat_messages(customer.phone)
 
     customer_info = {
+        "id": customer.cust_id,
         "name": customer.cust_name,
         "phone": customer.phone,
     }
 
+    print(f"Customer ID is {customer_info['id']}")
     content = await generate_reply_draft(
         chat_history=chat_history,
         customer_info=customer_info,
+        transcript_history=_get_transcript_history(db, cust_id),
     )
 
     new_response = AIResponse(content=content, cust_id=cust_id, status="draft")
@@ -126,11 +143,12 @@ async def regenerate_ai_draft(cust_id: uuid.UUID, response_id: int, db: db_depen
         raise HTTPException(status_code=404, detail="Customer not found")
 
     chat_history = await fetch_chat_messages(customer.phone)
-    customer_info = {"name": customer.cust_name, "phone": customer.phone}
+    customer_info = {"id": customer.cust_id, "name": customer.cust_name, "phone": customer.phone}
 
     content = await generate_reply_draft(
         chat_history=chat_history,
         customer_info=customer_info,
+        transcript_history=_get_transcript_history(db, cust_id),
     )
 
     existing.content = content
@@ -176,10 +194,10 @@ async def confirm_ai_draft(cust_id: uuid.UUID, response_id: int, db: db_dependen
     search = db.query(Customers).filter(Customers.cust_id == cust_id).first()
     if not search:
         raise HTTPException(status_code=404, detail="Customer not found")
-    result = await send_whatsapp_message(search.phone, content=current.content)
+    await send_whatsapp_message(search.phone, content=current.content)
 
     # only mark after confirming if send actually worked
     current.status = "confirmed"
     db.commit()
     db.refresh(current)
-    return result
+    return current

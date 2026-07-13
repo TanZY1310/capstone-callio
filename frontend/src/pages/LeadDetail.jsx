@@ -5,12 +5,11 @@ import LeadHeader from '../components/LeadWhatsapp/LeadHeader.jsx';
 import StatusCards from '../components/Home/StatusCards.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { statusList } from '../data/statusList.js';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../utils/api';
 import { SendHorizontal } from "lucide-react";
 //import users from '../data/dummyData.js';
 // import dummyWAHistory from '../data/dummyWAHistory.js';
-import dummyAIResponse from '../data/dummyAIResponse.js';
 import { useLocation } from 'react-router-dom';
 import { STATUS_NAME } from '../data/constants';
 import axios from 'axios';
@@ -91,47 +90,76 @@ function LeadDetail() {
     fetchChatHistory();
   }, [showUser, platformStatus]);
 
+  // Load AI response drafts when user changes
   useEffect(() => {
-    // assuming API fetching is done outside of this component for now
-    // due to the fact that we pass in dummy AI response
-    const updateResponse = async () => {
-      if (!dummyAIResponse || !showUser || showUser.id === 0) return; // guard clause
+    if (!showUser || showUser.id === 0) return;
 
-      console.log(`user id is ${showUser.user_id}`);
-      const properUser = dummyAIResponse.find(
-        (response) => response.userID === showUser.user_id,
-      );
-      const properResponse = properUser?.responses ?? [];
-      console.log(`properResponse looks like ${properResponse}`);
-      setResponses(properResponse);
+    const fetchDrafts = async () => {
+      try {
+        const res = await axios.get(
+          `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}`,
+        );
+        setResponses(Array.isArray(res.data) ? res.data : []);
+      } catch (error) {
+        console.error('Failed to fetch AI response drafts:', error);
+        setResponses([]);
+      }
     };
 
-    updateResponse();
+    fetchDrafts();
   }, [showUser]);
+
+  // Single source of truth for reading + applying WhatsApp connection status,
+  // shared by the initial mount check and the post-connect poll below so the
+  // "isConnected / platformStatus" update logic doesn't live in two places.
+  const checkConnectionStatus = useCallback(async () => {
+    try {
+      const res = await axios.get(`${FASTAPI_BASE_URL}/status`);
+      const data = res.data;
+      const connected = data?.status === 'connected';
+
+      setIsConnected(connected);
+      setPlatformStatus((prev) => ({
+        ...prev,
+        whatsapp: {
+          connectionStatus: connected
+            ? STATUS_NAME.CONNECTED
+            : STATUS_NAME.NOT_CONNECTED,
+          lastSync: connected ? Date.now() : prev.whatsapp.lastSync,
+        },
+      }));
+
+      return data;
+    } catch (err) {
+      console.error('Failed to fetch WhatsApp status:', err);
+      setIsConnected(false);
+      return null;
+    }
+  }, [FASTAPI_BASE_URL]);
+
+  // Check status once on mount so an already-connected backend doesn't
+  // require clicking "Connect" again just to sync frontend state.
+  useEffect(() => {
+    const check = async () => {
+      await checkConnectionStatus();
+    };
+    check();
+  }, [checkConnectionStatus]);
 
   const handleUpdateStatus = async () => {
     //start whatsapp client, change to axios method later
     await axios.post(`${FASTAPI_BASE_URL}/connect`);
     setShowQrModal(true);
 
-    // 2. Poll /status until connected
+    // Poll /status until connected, reusing the same status-check logic
     const poll = setInterval(async () => {
-      const res = await axios.get(`${FASTAPI_BASE_URL}/status`);
-      const data = await res.data;
+      const data = await checkConnectionStatus();
 
-      if (data.status === 'connected') {
+      if (data?.status === 'connected') {
         clearInterval(poll);
         setQrCode(null);
         setShowQrModal(false);
-        setIsConnected(true);
-        setPlatformStatus((prev) => ({
-          ...prev,
-          whatsapp: {
-            connectionStatus: STATUS_NAME.CONNECTED,
-            lastSync: Date.now(),
-          },
-        }));
-      } else if (data.qr) {
+      } else if (data?.qr) {
         setQrCode(data.qr); // ← this is the base64 data URL
       }
     }, 3000);
@@ -186,35 +214,71 @@ function LeadDetail() {
     inputRef.current.value = '';
   };
 
-  // Called by AIResponseReview Edit button, need to hit DB
-  const handleEditAIResponse = (id, newText) => {
-    setResponses((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, content: newText } : r)),
-    );
+  // Called by AIResponseReview Generate button
+  const handleGenerateAIResponse = async () => {
+    try {
+      const res = await axios.post(
+        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/generate`,
+      );
+      setResponses((prev) => [...prev, res.data]);
+    } catch (error) {
+      console.error('Failed to generate AI response:', error);
+    }
   };
-  // Called by AIResponseReview Confirm button
-  const handleConfirmAIResponse = async (content) => {
-    await axios.post(
-      `${FASTAPI_BASE_URL}/send/00000000-0000-0000-0000-000000000067`,
-      { message: content },
-    );
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `local_${Date.now()}`,
-        body: content, // matches API response shape
-        timestamp: Math.floor(Date.now() / 1000), // Unix epoch seconds
-        fromMe: true, // matches API response shape
-        type: 'chat',
-        hasMedia: false,
-      },
-    ]);
 
-    setResponses((prev) => [
-      ...prev.filter((response) => response.content !== content),
-    ]);
-    console.log(`${content} is removed from AI responses`);
-    console.log(responses);
+  // Called by AIResponseReview Regenerate button
+  const handleRegenerateAIResponse = async (responseId) => {
+    try {
+      const res = await axios.post(
+        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/${responseId}/regenerate`,
+      );
+      setResponses((prev) =>
+        prev.map((r) => (r.response_id === responseId ? res.data : r)),
+      );
+    } catch (error) {
+      console.error('Failed to regenerate AI response:', error);
+    }
+  };
+
+  // Called by AIResponseReview Edit button
+  const handleEditAIResponse = async (id, newText) => {
+    try {
+      const res = await axios.patch(
+        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/${id}`,
+        { content: newText },
+      );
+      setResponses((prev) =>
+        prev.map((r) => (r.response_id === id ? res.data : r)),
+      );
+    } catch (error) {
+      console.error('Failed to save AI response edit:', error);
+    }
+  };
+
+  // Called by AIResponseReview Confirm button
+  const handleConfirmAIResponse = async (id) => {
+    try {
+      const res = await axios.post(
+        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/${id}/confirm`,
+      );
+      const confirmed = res.data;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `local_${Date.now()}`,
+          body: confirmed.content, // matches API response shape
+          timestamp: Math.floor(Date.now() / 1000), // Unix epoch seconds
+          fromMe: true, // matches API response shape
+          type: 'chat',
+          hasMedia: false,
+        },
+      ]);
+
+      setResponses((prev) => prev.filter((r) => r.response_id !== id));
+    } catch (error) {
+      console.error('Failed to confirm AI response:', error);
+    }
   };
 
   const handleHeaderChange = (e) => {
@@ -319,7 +383,9 @@ function LeadDetail() {
         {isConnected && (
           <AIResponseReview
             aiResponses={responses}
+            onGenerate={handleGenerateAIResponse}
             onEdit={handleEditAIResponse}
+            onRegenerate={handleRegenerateAIResponse}
             onConfirm={handleConfirmAIResponse}
           />
         )}
