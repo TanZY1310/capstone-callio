@@ -33,8 +33,10 @@ EMBEDDING_DIMENSIONS = 768
 CHAT_HISTORY_LIMIT = 20
 
 _mongo_client = None
-_property_vector_store = None
-_transcript_vector_store = None
+_property_vector_store_doc = None
+_property_vector_store_query = None
+_transcript_vector_store_doc = None
+_transcript_vector_store_query = None
 _llm = None
 
 def _ensure_vector_search_index(collection, vector_store, index_name, filters=None):
@@ -44,21 +46,32 @@ def _ensure_vector_search_index(collection, vector_store, index_name, filters=No
         vector_store.create_vector_search_index(dimensions=EMBEDDING_DIMENSIONS, filters=filters)
 
 # function: check for existing mongodb cluster if not, create, if yes, open
-def get_or_create_client(uri: str) -> tuple[MongoClient, MongoDBAtlasVectorSearch, MongoDBAtlasVectorSearch, ChatGoogleGenerativeAI]:
-    """Returns existing MongoDB client/vector stores/llm, or creates them on first call."""
+def get_or_create_client(
+    uri: str, for_query: bool = False
+) -> tuple[MongoClient, MongoDBAtlasVectorSearch, MongoDBAtlasVectorSearch, ChatGoogleGenerativeAI]:
+    """Returns existing MongoDB client/vector stores/llm, or creates them on first call.
+
+    for_query=True returns the vector stores wired to a RETRIEVAL_QUERY embedding
+    (use this when embedding a search/RAG query). for_query=False (default) returns
+    the RETRIEVAL_DOCUMENT-wired stores (use this when embedding documents to index,
+    e.g. embed_and_index / embed_call_transcript). Both share the same underlying
+    Mongo collections — only the embedding task_type differs.
+    """
     global _mongo_client
-    global _property_vector_store
-    global _transcript_vector_store
+    global _property_vector_store_doc, _property_vector_store_query
+    global _transcript_vector_store_doc, _transcript_vector_store_query
     global _llm
 
     # If everything already exists, return it immediately without recreating
     if (
         _mongo_client is not None
-        and _property_vector_store is not None
-        and _transcript_vector_store is not None
+        and _property_vector_store_doc is not None
+        and _transcript_vector_store_doc is not None
         and _llm is not None
     ):
-        return _mongo_client, _property_vector_store, _transcript_vector_store, _llm
+        property_store = _property_vector_store_query if for_query else _property_vector_store_doc
+        transcript_store = _transcript_vector_store_query if for_query else _transcript_vector_store_doc
+        return _mongo_client, property_store, transcript_store, _llm
 
     # If it does not exist, instantiate it using the URI
     try:
@@ -74,28 +87,49 @@ def get_or_create_client(uri: str) -> tuple[MongoClient, MongoDBAtlasVectorSearc
             task_type = "RETRIEVAL_DOCUMENT"
         )
 
+        embeddingsSearch = GoogleGenerativeAIEmbeddings(
+            model = "models/gemini-embedding-2",
+            google_api_key = GEMINI_API_KEY,
+            output_dimensionality = EMBEDDING_DIMENSIONS,
+            task_type = "RETRIEVAL_QUERY"
+        )
+
         _llm = ChatGoogleGenerativeAI(model = "gemini-3.1-flash-lite", api_key= GEMINI_API_KEY)
 
-        _property_vector_store = MongoDBAtlasVectorSearch(
+        _property_vector_store_doc = MongoDBAtlasVectorSearch(
             collection = property_collection,
             embedding = embeddings,
             index_name = PROPERTY_INDEX_NAME,
             relevance_score_fn = "cosine",
         )
-        _ensure_vector_search_index(property_collection, _property_vector_store, PROPERTY_INDEX_NAME)
+        _property_vector_store_query = MongoDBAtlasVectorSearch(
+            collection = property_collection,
+            embedding = embeddingsSearch,
+            index_name = PROPERTY_INDEX_NAME,
+            relevance_score_fn = "cosine",
+        )
+        _ensure_vector_search_index(property_collection, _property_vector_store_doc, PROPERTY_INDEX_NAME)
 
-        _transcript_vector_store = MongoDBAtlasVectorSearch(
+        _transcript_vector_store_doc = MongoDBAtlasVectorSearch(
             collection = transcript_collection,
             embedding = embeddings,
             index_name = TRANSCRIPT_INDEX_NAME,
             relevance_score_fn = "cosine",
         )
+        _transcript_vector_store_query = MongoDBAtlasVectorSearch(
+            collection = transcript_collection,
+            embedding = embeddingsSearch,
+            index_name = TRANSCRIPT_INDEX_NAME,
+            relevance_score_fn = "cosine",
+        )
         # cust_id is declared as a filter field so retrieval can be scoped to one customer
         _ensure_vector_search_index(
-            transcript_collection, _transcript_vector_store, TRANSCRIPT_INDEX_NAME, filters=["cust_id"]
+            transcript_collection, _transcript_vector_store_doc, TRANSCRIPT_INDEX_NAME, filters=["cust_id"]
         )
 
-        return _mongo_client, _property_vector_store, _transcript_vector_store, _llm
+        property_store = _property_vector_store_query if for_query else _property_vector_store_doc
+        transcript_store = _transcript_vector_store_query if for_query else _transcript_vector_store_doc
+        return _mongo_client, property_store, transcript_store, _llm
     except Exception as e:
         _mongo_client = None  # Reset on failure
         raise ConnectionError(f"Failed to open MongoDB connection: {e}")
@@ -107,25 +141,25 @@ def _split_documents(documents: list[Document]):
     )
     return text_splitter.split_documents(documents)
 
-# function: pass in file, open file and pulls raw text for chunking
-def chunk_file(file: str | Path):
-    """Extract and chunk a PDF or plain-text file."""
-    if Path(file).suffix == ".pdf":
-        reader = PdfReader(file)
-        result = []
-        for i in range(len(reader.pages)):
-            page = reader.pages[i]
-            text = page.extract_text()
-            if text:
-                result.append(Document(page_content = text, metadata={"source": file, "page": i+1}))
-        print(f"Result of using PDFReader is {result}")
-    else:
-        with open(file, "r") as f:
-            text = f.read()
-        result = [Document(page_content=text, metadata={"source": file})]
-        print(f"Result of using standard open is {result}")
+# # function: pass in file, open file and pulls raw text for chunking
+# def chunk_file(file: str | Path):
+#     """Extract and chunk a PDF or plain-text file."""
+#     if Path(file).suffix == ".pdf":
+#         reader = PdfReader(file)
+#         result = []
+#         for i in range(len(reader.pages)):
+#             page = reader.pages[i]
+#             text = page.extract_text()
+#             if text:
+#                 result.append(Document(page_content = text, metadata={"source": file, "page": i+1}))
+#         print(f"Result of using PDFReader is {result}")
+#     else:
+#         with open(file, "r") as f:
+#             text = f.read()
+#         result = [Document(page_content=text, metadata={"source": file})]
+#         print(f"Result of using standard open is {result}")
 
-    return _split_documents(result)
+#     return _split_documents(result)
 
 def chunk_text(text: str, metadata: dict):
     """Chunk a raw string (e.g. a call transcript) tagged with the given metadata."""
@@ -154,7 +188,17 @@ def embed_call_transcript(cust_id: str, transcription_text: str):
     this into the speech analysis pipeline (backend/routers/speech.py).
     """
     chunks = chunk_text(transcription_text, metadata={"cust_id": cust_id, "source": "call_transcript"})
-    embed_and_index(_transcript_vector_store, chunks)
+    _, _, transcript_vector_store, _ = get_or_create_client(MONGODB_URI)
+    embed_and_index(transcript_vector_store, chunks)
+
+def delete_documents(collection, source: str) -> int:
+    """Delete all chunks tagged with the given source from the collection."""
+    result = collection.delete_many({"source": source})
+    return result.deleted_count
+
+def get_all_sources(collection) -> list[str]:
+    """Return the distinct sources currently stored in the collection."""
+    return [source for source in collection.distinct("source") if source]
 
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
@@ -172,28 +216,54 @@ def format_chat_history(chat_history) -> str:
         lines.append(f"{speaker}: {message.get('body', '')}")
     return "\n".join(lines)
 
-# function: retrieval and generation, takes in the query
-async def retrieval_and_generation(cust_id: str, phone: str, query: str):
+def latest_customer_message(chat_history) -> str:
+    """Last thing the customer (not the agent) said - used as the RAG query
+    when drafting a reply, since there's no explicit question to answer."""
+    if not isinstance(chat_history, list):
+        return ""
+    for message in reversed(chat_history):
+        if not message.get("fromMe"):
+            return message.get("body", "")
+    return ""
+
+def format_transcript_history(transcript_history) -> str:
+    """transcript_history is a list of raw SpeechAnalysis.transcription strings,
+    most recent first - distinct from transcript_context, which is the RAG-retrieved,
+    semantically-relevant chunks pulled from the transcript vector store."""
+    if not transcript_history:
+        return ""
+    return "\n\n".join(f"Call {i + 1}: {t}" for i, t in enumerate(transcript_history))
+
+# function: retrieval and generation - drafts a reply grounded in property info,
+# semantically-relevant past-call chunks, raw recent call transcripts, and chat history
+async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, transcript_history=None):
+    # for_query=True: querying at retrieval time needs the RETRIEVAL_QUERY-mode
+    # embedding, not the RETRIEVAL_DOCUMENT-mode embedding used to index the docs
+    _, _property_vector_store, _transcript_vector_store, _llm = get_or_create_client(MONGODB_URI, for_query=True)
     property_retriever = _property_vector_store.as_retriever(search_kwargs={"k": 10})
     transcript_retriever = _transcript_vector_store.as_retriever(
         search_kwargs={"k": 10, "pre_filter": {"cust_id": cust_id}}
     )
 
-    chat_history = await fetch_chat_messages(phone)
+    if chat_history is None:
+        chat_history = await fetch_chat_messages(phone)
 
     system_prompt = (
     """
-    You are a knowledgeable real-estate assistant that answers questions using ONLY the provided context.
-    If the context does not contain enough information to answer the question, say "I don't have enough information to answer that."
+    You are a knowledgeable real-estate assistant drafting a WhatsApp reply on behalf of an agent, using ONLY the provided context.
+    If the context does not contain enough information to answer, say "I don't have enough information to answer that."
     Do not make up facts or use knowledge outside of the provided context.
     Prefer the call transcript context for the customer's stated preferences, and the property context for factual details.
-    Keep your answers concise and directly relevant to the question.
+    Keep the reply concise and directly relevant to what the customer last said.
 
     PROPERTY CONTEXT:
     {property_context}
 
-    CALL TRANSCRIPT CONTEXT (this customer's past calls):
+    CALL TRANSCRIPT CONTEXT (semantically relevant excerpts from this customer's past calls):
     {transcript_context}
+
+    RECENT CALL TRANSCRIPTS (raw, most recent first):
+    {recent_transcripts}
 
     CHAT HISTORY (this conversation):
     {chat_history}
@@ -208,25 +278,31 @@ async def retrieval_and_generation(cust_id: str, phone: str, query: str):
     setup_and_retrieval = {
         "property_context": itemgetter("input") | property_retriever | format_docs,
         "transcript_context": itemgetter("input") | transcript_retriever | format_docs,
+        "recent_transcripts": itemgetter("recent_transcripts"),
         "chat_history": itemgetter("chat_history"),
         "input": itemgetter("input"),
     }
 
     rag_chain = setup_and_retrieval | prompt | _llm | StrOutputParser()
     print("Querying Vector DB...")
-    response = rag_chain.invoke({"input": query, "chat_history": format_chat_history(chat_history)})
+    query = latest_customer_message(chat_history) or "Draft a helpful follow-up reply to this customer."
+    response = rag_chain.invoke({
+        "input": query,
+        "chat_history": format_chat_history(chat_history),
+        "recent_transcripts": format_transcript_history(transcript_history),
+    })
     print(f"\nAI Response: {response}")
 
     return response
 
-if __name__ == "__main__":
-    get_or_create_client(MONGODB_URI)
-    chunks = chunk_file("C:/Users/User/Desktop/workspace/property/propertymaxxing/the shang/The_Shang_Residence_Project_Summary.pdf")
-    embed_and_index(_property_vector_store, chunks)
-    response = asyncio.run(
-        retrieval_and_generation(
-            cust_id = "test-customer",
-            phone = "0000000000",
-            query = "If someone wants to buy a The Shang unit, what should they know?",
-        )
-    )
+# if __name__ == "__main__":
+#     get_or_create_client(MONGODB_URI)
+#     chunks = chunk_file("C:/Users/User/Desktop/workspace/property/propertymaxxing/the shang/The_Shang_Residence_Project_Summary.pdf")
+#     embed_and_index(_property_vector_store, chunks)
+#     response = asyncio.run(
+#         retrieval_and_generation(
+#             cust_id = "test-customer",
+#             phone = "0000000000",
+#             query = "If someone wants to buy a The Shang unit, what should they know?",
+#         )
+#     )
