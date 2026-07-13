@@ -116,17 +116,11 @@ async def generate_ai_draft(cust_id: uuid.UUID, db: db_dependency):
     }
 
     print(f"Customer ID is {customer_info['id']}")
-    result = await generate_reply_draft(
+    content = await generate_reply_draft(
         chat_history=chat_history,
         customer_info=customer_info,
         transcript_history=_get_transcript_history(db, cust_id),
     )
-    
-    content = result["reply"]
-    tokens_used = result["tokens_used"]
-    
-    if tokens_used > 0:
-        update_user_token_usage(db, customer.user_id, tokens_used)
 
     new_response = AIResponse(content=content, cust_id=cust_id, status="draft")
     db.add(new_response)
@@ -154,18 +148,11 @@ async def regenerate_ai_draft(cust_id: uuid.UUID, response_id: int, db: db_depen
     chat_history = await fetch_chat_messages(customer.phone)
     customer_info = {"id": customer.cust_id, "name": customer.cust_name, "phone": customer.phone}
 
-    result = await generate_reply_draft(
-    chat_history=chat_history,
-    customer_info=customer_info,
-    transcript_history=_get_transcript_history(db, cust_id),
+    content = await generate_reply_draft(
+        chat_history=chat_history,
+        customer_info=customer_info,
+        transcript_history=_get_transcript_history(db, cust_id),
     )
-    
-    content = result["reply"]
-    tokens_used = result["tokens_used"]
-    
-    # Update token usage 
-    if tokens_used > 0: 
-        update_user_token_usage(db, customer.user_id, tokens_used)
 
     existing.content = content
     existing.status = "draft"  # reset in case it had been "edited"

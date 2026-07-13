@@ -5,11 +5,11 @@ async def generate_reply_draft(chat_history, customer_info, transcript_history=N
     print(f"""ChatGoogleGenerativeAI shenanigans go here
           \n Will use {customer_info}'s {chat_history}""")
 
-    result = await retrieval_and_generation(
-    customer_info["id"],
-    customer_info["phone"],
-    chat_history=chat_history,
-    transcript_history=transcript_history or [],
+    reply = await retrieval_and_generation(
+        customer_info["id"],
+        customer_info["phone"],
+        chat_history=chat_history,
+        transcript_history=transcript_history or [],
     )
 
-    return result  #  dictionary containing 'reply' and 'tokens_used' 
+    return reply

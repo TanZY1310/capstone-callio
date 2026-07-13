@@ -13,7 +13,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_mongodb import MongoDBAtlasVectorSearch
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from services.llm_tracker import extract_token_usage_from_langchain
+
 
 from services.whatsapp_client import fetch_chat_messages
 # this services layer needs to be imported into my langchain related router functions
@@ -284,25 +284,17 @@ async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, 
         "input": itemgetter("input"),
     }
 
-    rag_chain = setup_and_retrieval | prompt | _llm
+    rag_chain = setup_and_retrieval | prompt | _llm | StrOutputParser()
     print("Querying Vector DB...")
     query = latest_customer_message(chat_history) or "Draft a helpful follow-up reply to this customer."
-    
-    # Invoke without StrOutputParser to get the AIMessage containing metadata
-    response_message = rag_chain.invoke({
+    response = rag_chain.invoke({
         "input": query,
         "chat_history": format_chat_history(chat_history),
         "recent_transcripts": format_transcript_history(transcript_history),
-    }) 
-    
-    # Extract tokens and content
-    tokens_used = extract_token_usage_from_langchain(response_message)
-    reply_text = response_message.content
-    
-    print(f"\nAI Response: {reply_text}")
-    print(f"Tokens Used: {tokens_used}")
+    })
+    print(f"\nAI Response: {response}")
 
-    return {"reply": reply_text, "tokens_used": tokens_used}
+    return response
 
 
 # if __name__ == "__main__":
