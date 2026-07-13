@@ -1,8 +1,7 @@
-import Header from "../Layout/Header";
+import Header from '../Layout/Header';
+import { NavLink } from 'react-router-dom';
 
 function LeadHeader({ user, users, onHeaderChange }) {
- 
-
   return (
     <>
       <Header
@@ -16,16 +15,25 @@ function LeadHeader({ user, users, onHeaderChange }) {
             Lead Pipeline
           </p>
           <button className="btn btn-md">
-            <select value={user?.cust_id ?? ""} onChange = {onHeaderChange}>{/* optional chain: user may not have cust_id on first render */}
+            <select value={user?.cust_id ?? ''} onChange={onHeaderChange}>
+              {/* optional chain: user may not have cust_id on first render */}
               {users.map((u) => (
-                <option key={u.cust_id} value={u.cust_id}>{/* value changed from cust_name to cust_id so handleHeaderChange find() comparison matches */}
+                <option key={u.cust_id} value={u.cust_id}>
+                  {/* value changed from cust_name to cust_id so handleHeaderChange find() comparison matches */}
                   {u.cust_name}
                 </option>
               ))}
             </select>
           </button>
-        </div>
+
         
+        </div>
+
+        <NavLink to="/profile">
+            <button className="btn btn-neutral">
+              Upload PDF Files Here
+            </button>
+        </NavLink>
       </div>
     </>
   );

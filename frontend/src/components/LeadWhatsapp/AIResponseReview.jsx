@@ -1,9 +1,6 @@
 import { useState } from "react";
 
-function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
-  // ⦁	AI Powered Response -
-  // enable messages shown using dummyAIResponse.js as source,
-  // enable edit & confirm and for stuff to show in ConvoHistory.jsx upon confirming
+function AIResponseReview({ aiResponses, onGenerate, onEdit, onRegenerate, onConfirm }) {
   // track which response is being edited and its current text
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
@@ -22,26 +19,36 @@ function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
 
   return (
     <div className="rounded-2xl mt-2 p-4 card w-full bg-base-100 shadow-sm">
-        <p className="font-semibold text-sm text-base-content">
-          AI Powered Response
-        </p>
-        <p className="text-xs text-base-content/40 mt-0.5">
-          Suggested response flow based on information fed and the call
-          transcribed. Send upon confirmation.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-sm text-base-content">
+              AI Powered Response
+            </p>
+            <p className="text-xs text-base-content/40 mt-0.5">
+              Suggested response flow based on information fed and the call
+              transcribed. Send upon confirmation.
+            </p>
+          </div>
+          <button
+            className="btn btn-sm btn-primary transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+            onClick={() => onGenerate()}
+          >
+            Generate
+          </button>
+        </div>
 
         {aiResponses.length > 0 ? (
           <div>
             {aiResponses.map((response) => {
-              const isEditing = editingId === response.id;
+              const isEditing = editingId === response.response_id;
               return (
-                <div key={response.id} className="flex">
+                <div key={response.response_id} className="flex">
                   <div className="basis-8/9 flex justify-end">
                     {isEditing ? (
                       <input
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded" 
+                        className="w-full p-2 border border-gray-300 rounded"
 
                       />
                     ) : (
@@ -55,15 +62,21 @@ function AIResponseReview({ aiResponses, onEdit, onConfirm }) {
                       className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
                       onClick={() =>
                         isEditing
-                          ? handleSave(response.id)
-                          : handleEdit(response.id, response.content)
+                          ? handleSave(response.response_id)
+                          : handleEdit(response.response_id, response.content)
                       }
                     >
                       {isEditing ? "Save" : "Edit"}
                     </button>
                     <button
+                      className="btn btn-neutral transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
+                      onClick={() => onRegenerate(response.response_id)}
+                    >
+                      Regenerate
+                    </button>
+                    <button
                       className="btn btn-success transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
-                      onClick={() => onConfirm(response.content)}
+                      onClick={() => onConfirm(response.response_id)}
                     >
                       Confirm
                     </button>
