@@ -19,6 +19,7 @@ import {
   Sun,
   Moon,
   ChevronRight,
+  Mail,
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 
@@ -57,12 +58,13 @@ function RevealSection({ children, className = '' }) {
 }
 
 const NAV_LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'For Teams', href: '#teams' },
+  { label: 'Features', href: '/#features' },
+  { label: 'Integrations', href: '/#integrations' },
+  { label: 'Pricing', href: '/#pricing' },
+  { label: 'For Teams', href: '/#teams' },
 ];
 
-function Navbar({ theme, toggleTheme }) {
+export function Navbar({ theme, toggleTheme }) {
   return (
     <nav className="sticky top-0 z-50 bg-base-100/80 backdrop-blur-md border-b border-base-200">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -378,6 +380,64 @@ function Features() {
                   <p className="text-sm text-base-content/50 leading-relaxed">
                     {feature.description}
                   </p>
+                </div>
+              </div>
+            </RevealSection>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const INTEGRATIONS = [
+  {
+    icon: MessageSquare,
+    name: 'WhatsApp',
+    description:
+      'Connect your WhatsApp number and every conversation flows straight into Callio, attached to the right lead automatically.',
+  },
+  {
+    icon: Sheet,
+    name: 'Google Sheets',
+    description:
+      'Already tracking leads in a spreadsheet? Callio syncs both ways so nothing needs to be re-entered by hand.',
+  },
+];
+
+function Integrations() {
+  return (
+    <section id="integrations" className="py-20 bg-base-200/50 border-y border-base-200">
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection className="mb-14">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            Integrations
+          </p>
+          <h2 className="text-3xl font-bold text-base-content mb-3">
+            Works with the tools you already use
+          </h2>
+          <p className="text-base-content/50 max-w-xl">
+            No need to change how your team communicates or tracks leads
+            today — Callio plugs into it.
+          </p>
+        </RevealSection>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          {INTEGRATIONS.map((integration) => (
+            <RevealSection key={integration.name}>
+              <div className="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors">
+                <div className="card-body p-6 flex-row items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <integration.icon size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-base-content mb-2">
+                      {integration.name}
+                    </h3>
+                    <p className="text-sm text-base-content/50 leading-relaxed">
+                      {integration.description}
+                    </p>
+                  </div>
                 </div>
               </div>
             </RevealSection>
@@ -725,6 +785,130 @@ function TeamSection() {
   );
 }
 
+const TEAM_MEMBERS = [
+  { name: 'Ze Yan', role: 'Team Lead' },
+  { name: 'Izzat', role: 'Team Member' },
+  { name: 'Yong Hong', role: 'Team Member' },
+  { name: 'Dhanesh', role: 'Team Member' },
+  { name: 'Solehah', role: 'Team Member' },
+  { name: 'Yang', role: 'Team Member' },
+];
+
+function About() {
+  return (
+    <section id="about" className="py-20 bg-base-100">
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection className="mb-14">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            About
+          </p>
+          <h2 className="text-3xl font-bold text-base-content mb-3">
+            Why we built Callio
+          </h2>
+          <p className="text-base-content/50 max-w-2xl leading-relaxed">
+            Malaysian property agents juggle WhatsApp, spreadsheets, and
+            phone calls just to keep track of a single lead. Callio brings
+            all of that into one workspace — so agents spend less time on
+            admin and more time closing deals. This page exists to show you
+            what Callio does and how to get started with your own team.
+          </p>
+        </RevealSection>
+
+        <RevealSection>
+          <p className="text-sm font-medium text-base-content/60 mb-4">
+            The team
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {TEAM_MEMBERS.map((member) => (
+              <div
+                key={member.name}
+                className="card bg-base-100 border border-base-200"
+              >
+                <div className="card-body p-4 flex-row items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold shrink-0">
+                    {member.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content">
+                      {member.name}
+                    </p>
+                    <p className="text-xs text-base-content/40">
+                      {member.role}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+function ContactSection() {
+  return (
+    <section id="contact" className="py-20 bg-base-200/50 border-y border-base-200">
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection className="text-center">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            Contact
+          </p>
+          <h2 className="text-3xl font-bold text-base-content mb-3">
+            Talk to us
+          </h2>
+          <p className="text-base-content/50 max-w-xl mx-auto mb-8">
+            Questions about Callio, or want to book a demo for your agency?
+            Reach out directly.
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <a
+              href="mailto:jane@gmail.com"
+              className="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors"
+            >
+              <div className="card-body p-5 flex-row items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Mail size={16} className="text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-base-content/40">Email</p>
+                  <p className="text-sm font-medium text-base-content">
+                    jane@gmail.com
+                  </p>
+                </div>
+              </div>
+            </a>
+
+            <a
+              href="https://wa.me/60123456789"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors"
+            >
+              <div className="card-body p-5 flex-row items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <MessageSquare size={16} className="text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-base-content/40">WhatsApp</p>
+                  <p className="text-sm font-medium text-base-content">
+                    012-345 6789
+                  </p>
+                </div>
+              </div>
+            </a>
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
 function BottomCTA() {
   return (
     <section className="py-20 bg-primary text-primary-content">
@@ -752,7 +936,7 @@ function BottomCTA() {
   );
 }
 
-function Footer() {
+export function Footer() {
   return (
     <footer className="bg-base-100 border-t border-base-200 py-12">
       <div className="max-w-6xl mx-auto px-6">
@@ -775,18 +959,21 @@ function Footer() {
               Product
             </h4>
             <ul className="space-y-2">
-              {['Features', 'Pricing', 'For Teams', 'Integrations'].map(
-                (link) => (
-                  <li key={link}>
-                    <a
-                      href={`#${link.toLowerCase().replace(' ', '-')}`}
-                      className="text-sm text-base-content/50 hover:text-base-content transition-colors"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ),
-              )}
+              {[
+                { label: 'Features', href: '/#features' },
+                { label: 'Pricing', href: '/#pricing' },
+                { label: 'For Teams', href: '/#teams' },
+                { label: 'Integrations', href: '/#integrations' },
+              ].map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    className="text-sm text-base-content/50 hover:text-base-content transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -795,16 +982,38 @@ function Footer() {
               Company
             </h4>
             <ul className="space-y-2">
-              {['About', 'Contact', 'Privacy', 'Terms'].map((link) => (
-                <li key={link}>
-                  <a
-                    href={`#${link.toLowerCase()}`}
-                    className="text-sm text-base-content/50 hover:text-base-content transition-colors"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
+              <li>
+                <a
+                  href="/#about"
+                  className="text-sm text-base-content/50 hover:text-base-content transition-colors"
+                >
+                  About
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/#contact"
+                  className="text-sm text-base-content/50 hover:text-base-content transition-colors"
+                >
+                  Contact
+                </a>
+              </li>
+              <li>
+                <Link
+                  to="/privacy"
+                  className="text-sm text-base-content/50 hover:text-base-content transition-colors"
+                >
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms"
+                  className="text-sm text-base-content/50 hover:text-base-content transition-colors"
+                >
+                  Terms
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
@@ -844,9 +1053,12 @@ function LandingPage() {
       <Hero />
       <StatsBar />
       <Features />
+      <Integrations />
       <Spotlight />
       <Pricing />
       <TeamSection />
+      <About />
+      <ContactSection />
       <BottomCTA />
       <Footer />
     </div>

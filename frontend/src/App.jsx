@@ -23,6 +23,8 @@ const Speech = lazy(() => import('./pages/Speech'));
 const Sidebar = lazy(() => import('./components/Layout/Sidebar'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
 const ProfileSetting = lazy(() => import('./pages/ProfileSettings'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 
 function App() {
   const { user, profile, loading, logout, authError, loginDemo } = useAuth();
@@ -50,6 +52,8 @@ function App() {
               path="/landing"
               element={<Navigate to="/" replace />}
             />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route
               path="/register"
               element={
