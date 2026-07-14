@@ -18,6 +18,7 @@ function Speech() {
   const [sentiment, setSentiment] = useState(null);
   const [nextActions, setNextActions] = useState(null);
   const [preferences, setPreferences] = useState(null);
+  const [propertySuggestions, setPropertySuggestions] = useState(null);
   const [progressStep, setProgressStep] = useState(-1);
   const [taskId, setTaskId] = useState(null);
   const pollingRef = useRef(null);
@@ -62,6 +63,7 @@ function Speech() {
             setSentiment(task.data.sentiment);
             setNextActions(task.data.nextActions);
             setPreferences(task.data.preferences);
+            setPropertySuggestions(task.data.propertySuggestions);
             toast.success('Analysis complete');
           } else if (task.status === 'error') {
             stopPolling();
@@ -110,6 +112,7 @@ function Speech() {
     setSentiment(null);
     setNextActions(null);
     setPreferences(null);
+    setPropertySuggestions(null);
     setAudioUrl(null);
     setAudioFile(null);
     setProgressStep(-1);
@@ -154,6 +157,7 @@ function Speech() {
             audioUrl={audioUrl}
             sentiment={sentiment}
             nextActions={nextActions}
+            propertySuggestions={propertySuggestions}
             progressStep={progressStep}
             progressMessage={progressMessage}
             onAddToPipeline={handleAddToPipeline}

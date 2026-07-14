@@ -108,7 +108,10 @@ def get_or_create_client(
             index_name = PROPERTY_INDEX_NAME,
             relevance_score_fn = "cosine",
         )
-        _ensure_vector_search_index(property_collection, _property_vector_store_doc, PROPERTY_INDEX_NAME)
+        try:
+            _ensure_vector_search_index(property_collection, _property_vector_store_doc, PROPERTY_INDEX_NAME)
+        except Exception:
+            logger.warning("Property index could not be verified/created, continuing")
 
         _transcript_vector_store_doc = MongoDBAtlasVectorSearch(
             collection = transcript_collection,
@@ -123,9 +126,12 @@ def get_or_create_client(
             relevance_score_fn = "cosine",
         )
         # cust_id is declared as a filter field so retrieval can be scoped to one customer
-        _ensure_vector_search_index(
-            transcript_collection, _transcript_vector_store_doc, TRANSCRIPT_INDEX_NAME, filters=["cust_id"]
-        )
+        try:
+            _ensure_vector_search_index(
+                transcript_collection, _transcript_vector_store_doc, TRANSCRIPT_INDEX_NAME, filters=["cust_id"]
+            )
+        except Exception:
+            logger.warning("Transcript index could not be verified/created, continuing")
 
         property_store = _property_vector_store_query if for_query else _property_vector_store_doc
         transcript_store = _transcript_vector_store_query if for_query else _transcript_vector_store_doc
