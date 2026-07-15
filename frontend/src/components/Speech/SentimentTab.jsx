@@ -1,11 +1,29 @@
 import { Smile, Target, Zap, TriangleAlert } from 'lucide-react';
-function SentimentTab({ data }) {
+import RobotAgentLoader from './RobotAgentLoader';
+
+function SentimentTab({ data, loading = false }) {
+  if (loading && !data) {
+    return (
+      <div className="tab-panel">
+        <div className="card-body">
+          <div className="flex flex-col gap-1 mb-4">
+            <h2 className="text-section-heading">Sentiment Analysis</h2>
+            <p className="text-helper">
+              AI-generated emotional and intent insights from the conversation
+            </p>
+          </div>
+          <RobotAgentLoader />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="tab-panel">
       <div className="card-body gap-8">
         <div className="flex flex-col gap-1">
-          <h2 className="card-title text-base-content">Sentiment Analysis</h2>
-          <p className="text-sm text-base-content/50">
+          <h2 className="text-section-heading">Sentiment Analysis</h2>
+          <p className="text-helper">
             AI-generated emotional and intent insights from the conversation
           </p>
         </div>
@@ -42,7 +60,7 @@ function SentimentTab({ data }) {
 
         {/* Emotional Signals */}
         <div className="flex flex-col gap-3">
-          <span className="font-bold text-sm text-base-content">
+          <span className="text-section-heading">
             Emotional Signals
           </span>
           <div className="flex flex-wrap gap-2">
@@ -63,7 +81,7 @@ function SentimentTab({ data }) {
 
         {/* Objections */}
         <div className="flex flex-col gap-3">
-          <span className="font-bold text-sm text-base-content">
+          <span className="text-section-heading">
             Buyer Concerns / Objections
           </span>
           <div className="flex flex-col gap-3">
@@ -87,7 +105,7 @@ function SentimentTab({ data }) {
 
         {/* Interest Tags */}
         <div className="flex flex-col gap-3">
-          <span className="font-bold text-sm text-base-content">
+          <span className="text-section-heading">
             Interest Tags
           </span>
           <div className="flex flex-wrap gap-2">
