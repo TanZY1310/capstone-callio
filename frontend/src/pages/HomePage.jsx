@@ -18,7 +18,7 @@ function HomePage() {
     const initialize = async () => {
       try {
         const [customerResponse, sheetsStatusResponse] = await Promise.all([
-          api.get('/customers'),
+          api.get('/customers/all'),
           api.get('/sheets/status'),
         ]);
 

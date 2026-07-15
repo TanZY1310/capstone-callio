@@ -11,11 +11,11 @@ app = FastAPI()
 if os.getenv("ENV") != "production" or os.getenv("AUTO_MIGRATE", "").lower() == "true":
     create_tables()
 
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+frontend_urls = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
 
 app.add_middleware(
     CORSMiddleware, 
-    allow_origins=[frontend_url],
+    allow_origins=frontend_urls,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
