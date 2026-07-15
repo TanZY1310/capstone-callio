@@ -9,6 +9,7 @@ from database import db_dependency
 from models.customer import Customers
 from models.speech import SpeechAnalysis, Objection
 from services.audio_service import transcribe_audio, analyze_transcript
+from services.rag import suggest_properties
 from services.sheets import export_customers_to_sheets
 
 
@@ -248,6 +249,14 @@ async def _analyze_phase(db:db_dependency, task_id: str):
         budget = analysis.get("preferences", {}).get("budgetValue")
         location = analysis.get("preferences", {}).get("location")
 
+        prefs = analysis.get("preferences", {})
+        property_suggestions = await asyncio.to_thread(
+            suggest_properties,
+            prefs.get("preferences", ""),
+            prefs.get("budgetValue"),
+            prefs.get("location"),
+        )
+
         tasks[task_id]["step"] = 4
         tasks[task_id]["status"] = "complete"
         tasks[task_id]["data"] = {
@@ -261,6 +270,7 @@ async def _analyze_phase(db:db_dependency, task_id: str):
             "analysisId": analysis_id,
             "budget": budget,
             "location": location,
+            "propertySuggestions": property_suggestions,
         }
 
     except Exception as e:

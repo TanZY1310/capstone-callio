@@ -107,9 +107,16 @@ function TranscriptionTab({ data, loading = false, progressMessage = '' }) {
                     : 'items-end self-end'
                 }`}
               >
-                <span className="text-xs font-bold text-base-content/50 capitalize">
-                  {item.speaker}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-base-content/50 capitalize">
+                    {item.speaker}
+                  </span>
+                  {item.language && (
+                    <span className="badge badge-ghost badge-xs capitalize">
+                      {item.language}
+                    </span>
+                  )}
+                </div>
                 <div
                   className={`px-4 py-3 rounded-xl text-sm leading-relaxed ${
                     item.speaker === 'agent'

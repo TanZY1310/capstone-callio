@@ -14,6 +14,7 @@ function SpeechAnalysisCard({
   audioUrl,
   sentiment,
   nextActions,
+  propertySuggestions,
   progressStep,
   progressMessage,
   onAddToPipeline,
@@ -27,12 +28,14 @@ function SpeechAnalysisCard({
   const { state } = useLocation();
   const customer = state?.customer;
 
+  const isAnalyzing = progressStep >= 1 && progressStep < 4;
+
   const transcriptionData = transcription
     ? { conversationId: 'live', transcription }
     : null;
 
   const sentimentData = sentiment || null;
-  const nextActionData = nextActions ? { nextActions } : null;
+  const nextActionData = nextActions ? { nextActions, propertySuggestions } : null;
 
   return (
     <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl">
@@ -81,10 +84,10 @@ function SpeechAnalysisCard({
                 />
               )}
               {activeTab === 'sentiment' && (
-                <SentimentTab data={sentimentData} />
+                <SentimentTab data={sentimentData} loading={isAnalyzing} />
               )}
               {activeTab === 'next_action' && (
-                <NextAction data={nextActionData} />
+                <NextAction data={nextActionData} loading={isAnalyzing} />
               )}
             </div>
           </div>
