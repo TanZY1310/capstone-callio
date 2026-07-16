@@ -261,6 +261,7 @@ async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, 
     Do not make up facts or use knowledge outside of the provided context.
     Prefer the call transcript context for the customer's stated preferences, and the property context for factual details.
     Keep the reply concise and directly relevant to what the customer last said.
+    Ensure there's no unnecssary dashes or hyphens in your response.
 
     PROPERTY CONTEXT:
     {property_context}

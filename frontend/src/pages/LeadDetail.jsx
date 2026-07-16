@@ -38,6 +38,7 @@ function LeadDetail() {
   const inputRef = useRef(null);
   const [location, setLocation] = useState({});
   const [users, setUsers] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [responses, setResponses] = useState([]);
@@ -76,7 +77,7 @@ function LeadDetail() {
 
     const fetchChatHistory = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${FASTAPI_BASE_URL}/history/${showUser.cust_id}`,
         );
         const data = await response.data;
@@ -115,7 +116,7 @@ function LeadDetail() {
   // "isConnected / platformStatus" update logic doesn't live in two places.
   const checkConnectionStatus = useCallback(async () => {
     try {
-      const res = await axios.get(`${FASTAPI_BASE_URL}/status`);
+      const res = await api.get(`${FASTAPI_BASE_URL}/status`);
       const data = res.data;
       const connected = data?.status === 'connected';
 
@@ -149,21 +150,25 @@ function LeadDetail() {
 
   const handleUpdateStatus = async () => {
     //start whatsapp client, change to axios method later
-    await axios.post(`${FASTAPI_BASE_URL}/connect`);
+    const res = await api.get(`${FASTAPI_BASE_URL}/status`);
+    const data = res.data;
+    await api.post(`${FASTAPI_BASE_URL}/connect`);
     setShowQrModal(true);
 
     // Poll /status until connected, reusing the same status-check logic
-    const poll = setInterval(async () => {
+    if (data?.status !== 'connected'){
+      const poll = setInterval(async () => {
       const data = await checkConnectionStatus();
 
-      if (data?.status === 'connected') {
-        clearInterval(poll);
-        setQrCode(null);
-        setShowQrModal(false);
-      } else if (data?.qr) {
-        setQrCode(data.qr); // ← this is the base64 data URL
-      }
-    }, 3000);
+        if (data?.status === 'connected') {
+          clearInterval(poll);
+          setQrCode(null);
+          setShowQrModal(false);
+        } else if (data?.qr) {
+          setQrCode(data.qr); // ← this is the base64 data URL
+        }
+      }, 3000);
+    }
   };
 
   const handleSendMessage = async (e) => {
@@ -218,6 +223,7 @@ function LeadDetail() {
   // Called by AIResponseReview Generate button
   const handleGenerateAIResponse = async () => {
     try {
+      setIsGenerating(true);
       const res = await axios.post(
         `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/generate`,
       );
@@ -225,11 +231,13 @@ function LeadDetail() {
     } catch (error) {
       console.error('Failed to generate AI response:', error);
     }
+    setIsGenerating(false);
   };
 
   // Called by AIResponseReview Regenerate button
   const handleRegenerateAIResponse = async (responseId) => {
     try {
+      setIsGenerating(true);
       const res = await axios.post(
         `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/${responseId}/regenerate`,
       );
@@ -239,6 +247,7 @@ function LeadDetail() {
     } catch (error) {
       console.error('Failed to regenerate AI response:', error);
     }
+    setIsGenerating(false);
   };
 
   // Called by AIResponseReview Edit button
@@ -283,10 +292,9 @@ function LeadDetail() {
   };
 
   const handleHeaderChange = (e) => {
-    setShowUser(users.find((u) => u.cust_id === e.target.value)); // now works: e.target.value is cust_id (was cust_name before, which never matched)
-    console.log(showUser);
+    setShowUser(users.find((u) => u.cust_id === e?.value));
   };
-  // TODO: need endpoint from sheets team — no existing route handles location updates
+
   // either extend PATCH /customers/batch-status to accept location, or add a new endpoint
   const handleLocationChange = (e) => {
     return;
@@ -347,7 +355,7 @@ function LeadDetail() {
             <p className="text-sm text-base-content/50 mt-1">
               Connect above to view conversation history.
             </p>
-            <div className="py-4 flex-1 overflow-y-auto max-h-[500px]">
+            <div className="py-4 overflow-y-auto max-h-[500px]">
               <div className="chat chat-end">
                 <div className="chat-bubble whitespace-pre-wrap">
                   Sample Chat
@@ -379,11 +387,12 @@ function LeadDetail() {
               </button>
             </div>
           </div>
-        )}{' '}
+        )}
         {/*new Date(timestamp × 1000)*/}
         {isConnected && (
           <AIResponseReview
             aiResponses={responses}
+            isGenerating={isGenerating}
             onGenerate={handleGenerateAIResponse}
             onEdit={handleEditAIResponse}
             onRegenerate={handleRegenerateAIResponse}
@@ -395,7 +404,7 @@ function LeadDetail() {
       {/* QR modal — overlays everything, doesn't replace anything */}
       {showQrModal && (
         <dialog className="modal modal-open">
-          <div className="modal-box items-center text-center">
+          <div className="modal-box text-center">
             <h3 className="font-bold text-lg">Scan QR Code</h3>
             <p className="py-2">
               Open WhatsApp → Linked Devices → Link a Device
