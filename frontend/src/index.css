@@ -3,7 +3,7 @@
 @plugin "daisyui" {
   themes:
     corporate --default,
-    forest --prefersdark;
+    business --prefersdark;
 }
 
 @theme {

@@ -328,7 +328,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                 </td>
                 <td className="px-6 py-4">
                   <motion.button
-                    className="btn btn-link btn-sm text-success-icon normal-case no-underline"
+                    className="btn btn-link btn-sm text-success-icon normal-case no-underline justify-start px-0"
                     onClick={() => sendCustomerDetails('/whatsapp', customer)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}

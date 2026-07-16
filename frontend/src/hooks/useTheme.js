@@ -11,7 +11,7 @@ export function useTheme() {
   }, [theme]);
 
   const toggleTheme = () =>
-    setTheme((t) => (t === 'corporate' ? 'forest' : 'corporate'));
+    setTheme((t) => (t === 'corporate' ? 'business' : 'corporate'));
 
   return { theme, toggleTheme };
 }
