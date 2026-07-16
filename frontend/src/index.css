@@ -2,35 +2,20 @@
 @import 'tailwindcss';
 @plugin "daisyui" {
   themes:
-    lemonade --default,
+    corporate --default,
     forest --prefersdark;
 }
 
 @theme {
-  --color-success-icon: light-dark(
-    oklch(0.45 0.18 155),
-    var(--color-success)
-  );
-  --color-logout-icon: light-dark(
-    oklch(0.4 0.18 25),
-    var(--color-error)
-  );
-  --color-warning-icon: light-dark(
-    oklch(0.55 0.18 85),
-    var(--color-warning)
-  );
-  --color-info-icon: light-dark(
-    oklch(0.45 0.17 250),
-    var(--color-info)
-  );
+  --color-success-icon: light-dark(oklch(0.45 0.18 155), var(--color-success));
+  --color-logout-icon: light-dark(oklch(0.4 0.18 25), var(--color-error));
+  --color-warning-icon: light-dark(oklch(0.55 0.18 85), var(--color-warning));
+  --color-info-icon: light-dark(oklch(0.45 0.17 250), var(--color-info));
   --color-secondary-icon: light-dark(
     oklch(0.45 0.15 290),
     var(--color-secondary)
   );
-  --color-error-icon: light-dark(
-    oklch(0.4 0.18 25),
-    var(--color-error)
-  );
+  --color-error-icon: light-dark(oklch(0.4 0.18 25), var(--color-error));
 }
 
 body {

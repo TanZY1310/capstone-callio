@@ -77,7 +77,7 @@ function Sidebar({ logout, profile }) {
                   whileTap={{ scale: 0.9 }}
                   aria-label="Toggle theme"
                 >
-                  {theme === 'lemonade' ? (
+                  {theme === 'corporate' ? (
                     <Moon size={15} />
                   ) : (
                     <Sun size={15} />

@@ -1,19 +1,26 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Search,
-  MessageSquare,
-  Mic,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import { Search, Mic, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FaPeopleGroup } from 'react-icons/fa6';
+import { SiWhatsapp } from 'react-icons/si';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { statusList } from '../../data/statusList';
 import { tableHeader } from '../../data/tableHeader';
 
 const PAGE_SIZE = 10;
+
+const tableVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0 },
+};
 
 const BADGE_COLORS = {
   Completed: 'bg-success-icon text-white',
@@ -39,7 +46,34 @@ const formatDate = (dateStr) => {
   });
 };
 
-function CustomerListings({ customerData, onStatusChange }) {
+function LoadingSkeleton() {
+  return (
+    <table className="table w-full table-sm">
+      <thead>
+        <tr className="text-xs text-base-content/40 border-b border-base-200">
+          {tableHeader.map((h) => (
+            <th key={h.id} className="px-6 py-3 text-left font-medium">
+              {h.name}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <tr key={i} className="border-b border-base-200">
+            {tableHeader.map((h) => (
+              <td key={h.id} className="px-6 py-4">
+                <div className="skeleton h-4 rounded" style={{ width: `${60 + Math.random() * 30}%` }} />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function CustomerListings({ customerData, onStatusChange, loading }) {
   const [filters, setFilters] = useState({
     status: 'all',
     searchTerm: '',
@@ -236,7 +270,9 @@ function CustomerListings({ customerData, onStatusChange }) {
         </div>
       </div>
 
-      {!customerData || customerData.length === 0 ? (
+      {loading ? (
+        <LoadingSkeleton />
+      ) : !customerData || customerData.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-24 bg-base-100">
           <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-4 text-base-content/30">
             <FaPeopleGroup size={28} />
@@ -276,10 +312,11 @@ function CustomerListings({ customerData, onStatusChange }) {
               ))}
             </tr>
           </thead>
-          <tbody>
+          <motion.tbody variants={tableVariants} initial="hidden" animate="visible">
             {rows.map((customer) => (
-              <tr
+              <motion.tr
                 key={customer.cust_id}
+                variants={rowVariants}
                 className="border-b border-base-200 hover:bg-base-200 transition-colors"
               >
                 <td className="px-6 py-4">
@@ -296,8 +333,8 @@ function CustomerListings({ customerData, onStatusChange }) {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <MessageSquare size={14} className="text-primary" />
-                    <div className="text-sm text-primary">{customer.phone}</div>
+                    <SiWhatsapp size={14} className="text-success-icon" />
+                    <div className="text-sm text-success">{customer.phone}</div>
                   </motion.button>
                 </td>
                 <td className="px-6 py-4">
@@ -340,7 +377,6 @@ function CustomerListings({ customerData, onStatusChange }) {
                             onClick={() =>
                               handleStatusSelect(customer.cust_id, s.name)
                             }
-                            text-sm
                           >
                             <span
                               className={`badge ${getBadgeClass(s.name)} w-full justify-start`}
@@ -391,9 +427,9 @@ function CustomerListings({ customerData, onStatusChange }) {
                     '-'
                   )}
                 </td>
-              </tr>
+              </motion.tr>
             ))}
-          </tbody>
+          </motion.tbody>
         </table>
       )}
 
