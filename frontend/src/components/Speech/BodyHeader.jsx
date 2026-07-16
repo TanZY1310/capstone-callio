@@ -1,4 +1,4 @@
-import { AudioLines } from 'lucide-react';
+import { AudioLines, Target } from 'lucide-react';
 import Header from '../Layout/Header';
 import { useRef } from 'react';
 import axios from 'axios';
@@ -6,7 +6,14 @@ import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function BodyHeader({ onUpload, customerId, onFileSelect }) {
+function BodyHeader({
+  onUpload,
+  customerId,
+  onFileSelect,
+  onAddToPipeline,
+  taskId,
+  isAnalysisComplete,
+}) {
   const fileInputRef = useRef(null);
 
   const handleUploadClick = () => {
@@ -17,7 +24,6 @@ function BodyHeader({ onUpload, customerId, onFileSelect }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // This enables the audio player before API call
     onFileSelect?.(file);
 
     const formData = new FormData();
@@ -45,10 +51,26 @@ function BodyHeader({ onUpload, customerId, onFileSelect }) {
           p="Analyze buyer conversation and extract automated insights"
         />
       </div>
-      <button onClick={handleUploadClick} className="btn btn-neutral gap-2">
-        <AudioLines />
-        Upload New Audio
-      </button>
+      <div className="flex items-center gap-3">
+        {taskId && (
+          <button
+            onClick={onAddToPipeline}
+            disabled={!isAnalysisComplete}
+            className={`btn gap-2 ${
+              isAnalysisComplete
+                ? 'btn-primary'
+                : 'btn-outline border-base-content/20 text-base-content/40 cursor-not-allowed'
+            }`}
+          >
+            <Target size={16} />
+            Add to Lead Pipeline
+          </button>
+        )}
+        <button onClick={handleUploadClick} className="btn btn-outline gap-2">
+          <AudioLines />
+          Upload New Audio
+        </button>
+      </div>
 
       <input
         type="file"
