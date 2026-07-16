@@ -26,7 +26,6 @@ const ProfileSetting = lazy(() => import('./pages/ProfileSettings'));
 
 function App() {
   const { user, profile, loading, logout, authError, loginDemo } = useAuth();
-  console.log('Profile Details in App.jsx', profile);
 
   useEffect(() => {
     if (authError) {
@@ -34,11 +33,17 @@ function App() {
     }
   }, [authError]);
 
+  const contentFallback = (
+    <div className="flex-1 flex items-center justify-center">
+      <span className="loading loading-spinner loading-lg"></span>
+    </div>
+  );
+
   return (
     <>
       <Router>
         <Toaster position="top-right" richColors />
-        <Suspense // similar to loading or skeleton but is a built in React component, suitable for lazy loading
+        <Suspense
           fallback={
             <div className="min-h-screen flex items-center justify-center bg-base-100">
               <span className="loading loading-spinner loading-lg"></span>
@@ -81,13 +86,13 @@ function App() {
               }
             >
               {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
-              <Route path="home" element={<HomePage />} />
-              <Route path="whatsapp" element={<LeadDetail />} />
-              <Route path="agent-dashboard" element={<AgentDashboard />} />
-              <Route path="team-dashboard" element={<LeaderDashboard />} />
-              <Route path="speech" element={<Speech />} />
-              <Route path="profile" element={<UserProfile />} />
-              <Route path="profile-setting" element={<ProfileSetting />} />
+              <Route path="home" element={<Suspense fallback={contentFallback}><HomePage /></Suspense>} />
+              <Route path="whatsapp" element={<Suspense fallback={contentFallback}><LeadDetail /></Suspense>} />
+              <Route path="agent-dashboard" element={<Suspense fallback={contentFallback}><AgentDashboard /></Suspense>} />
+              <Route path="team-dashboard" element={<Suspense fallback={contentFallback}><LeaderDashboard /></Suspense>} />
+              <Route path="speech" element={<Suspense fallback={contentFallback}><Speech /></Suspense>} />
+              <Route path="profile" element={<Suspense fallback={contentFallback}><UserProfile /></Suspense>} />
+              <Route path="profile-setting" element={<Suspense fallback={contentFallback}><ProfileSetting /></Suspense>} />
             </Route>
           </Routes>
         </Suspense>

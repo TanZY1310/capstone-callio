@@ -1,10 +1,8 @@
 import { AudioLines } from 'lucide-react';
 import Header from '../Layout/Header';
 import { useRef } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import { toast } from 'sonner';
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 function BodyHeader({ onUpload, customerId, onFileSelect }) {
   const fileInputRef = useRef(null);
@@ -27,7 +25,7 @@ function BodyHeader({ onUpload, customerId, onFileSelect }) {
     }
 
     try {
-      const res = await axios.post(`${API_URL}/speech/transcribe`, formData);
+      const res = await api.post('/speech/transcribe', formData);
       onUpload?.(res.data);
       toast.success('Processing audio...');
     } catch (err) {

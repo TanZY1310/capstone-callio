@@ -12,7 +12,6 @@ import { SendHorizontal } from "lucide-react";
 // import dummyWAHistory from '../data/dummyWAHistory.js';
 import { useLocation } from 'react-router-dom';
 import { STATUS_NAME } from '../data/constants';
-import axios from 'axios';
 
 function LeadDetail() {
   const [showUser, setShowUser] = useState({
@@ -32,8 +31,6 @@ function LeadDetail() {
     ],
   });
 
-  const API_URL = import.meta.env.VITE_API_URL;
-  const FASTAPI_BASE_URL = `${API_URL}/whatsapp`;
   const { state } = useLocation();
   const inputRef = useRef(null);
   const [location, setLocation] = useState({});
@@ -55,8 +52,8 @@ function LeadDetail() {
       const customer = state?.customer;
       if (!profile?.user_id) return; // wait until profile is ready
       // const agent = profile.user_id;
-      const usersResponse = await axios.get(
-        `${FASTAPI_BASE_URL}/details/all/${profile.user_id}`,
+      const usersResponse = await api.get(
+        `/whatsapp/details/all/${profile.user_id}`,
       );
       const users = await usersResponse.data;
       const customerFound = customer
@@ -76,8 +73,8 @@ function LeadDetail() {
 
     const fetchChatHistory = async () => {
       try {
-        const response = await axios.get(
-          `${FASTAPI_BASE_URL}/history/${showUser.cust_id}`,
+        const response = await api.get(
+          `/whatsapp/history/${showUser.cust_id}`,
         );
         const data = await response.data;
         console.log(JSON.stringify(data, null, 2));
@@ -97,8 +94,8 @@ function LeadDetail() {
 
     const fetchDrafts = async () => {
       try {
-        const res = await axios.get(
-          `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}`,
+        const res = await api.get(
+          `/whatsapp/airesponse/${showUser.cust_id}`,
         );
         setResponses(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
@@ -115,7 +112,7 @@ function LeadDetail() {
   // "isConnected / platformStatus" update logic doesn't live in two places.
   const checkConnectionStatus = useCallback(async () => {
     try {
-      const res = await axios.get(`${FASTAPI_BASE_URL}/status`);
+      const res = await api.get(`/whatsapp/status`);
       const data = res.data;
       const connected = data?.status === 'connected';
 
@@ -136,7 +133,7 @@ function LeadDetail() {
       setIsConnected(false);
       return null;
     }
-  }, [FASTAPI_BASE_URL]);
+  }, []);
 
   // Check status once on mount so an already-connected backend doesn't
   // require clicking "Connect" again just to sync frontend state.
@@ -149,7 +146,7 @@ function LeadDetail() {
 
   const handleUpdateStatus = async () => {
     //start whatsapp client, change to axios method later
-    await axios.post(`${FASTAPI_BASE_URL}/connect`);
+    await api.post(`/whatsapp/connect`);
     setShowQrModal(true);
 
     // Poll /status until connected, reusing the same status-check logic
@@ -171,7 +168,7 @@ function LeadDetail() {
     const text = inputRef.current?.value.trim();
     if (!text) return;
 
-    await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {
+    await api.post(`/whatsapp/send/${showUser.cust_id}`, {
       message: text,
     });
 
@@ -196,7 +193,7 @@ function LeadDetail() {
     e.preventDefault();
     const text = inputRef.current?.value.trim();
     if (!text) return;
-    await axios.post(`${FASTAPI_BASE_URL}/send/${showUser.cust_id}`, {
+    await api.post(`/whatsapp/send/${showUser.cust_id}`, {
       message: text,
     });
 
@@ -218,8 +215,8 @@ function LeadDetail() {
   // Called by AIResponseReview Generate button
   const handleGenerateAIResponse = async () => {
     try {
-      const res = await axios.post(
-        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/generate`,
+      const res = await api.post(
+        `/whatsapp/airesponse/${showUser.cust_id}/generate`,
       );
       setResponses((prev) => [...prev, res.data]);
     } catch (error) {
@@ -230,8 +227,8 @@ function LeadDetail() {
   // Called by AIResponseReview Regenerate button
   const handleRegenerateAIResponse = async (responseId) => {
     try {
-      const res = await axios.post(
-        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/${responseId}/regenerate`,
+      const res = await api.post(
+        `/whatsapp/airesponse/${showUser.cust_id}/${responseId}/regenerate`,
       );
       setResponses((prev) =>
         prev.map((r) => (r.response_id === responseId ? res.data : r)),
@@ -244,8 +241,8 @@ function LeadDetail() {
   // Called by AIResponseReview Edit button
   const handleEditAIResponse = async (id, newText) => {
     try {
-      const res = await axios.patch(
-        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/${id}`,
+      const res = await api.patch(
+        `/whatsapp/airesponse/${showUser.cust_id}/${id}`,
         { content: newText },
       );
       setResponses((prev) =>
@@ -259,8 +256,8 @@ function LeadDetail() {
   // Called by AIResponseReview Confirm button
   const handleConfirmAIResponse = async (id) => {
     try {
-      const res = await axios.post(
-        `${FASTAPI_BASE_URL}/airesponse/${showUser.cust_id}/${id}/confirm`,
+      const res = await api.post(
+        `/whatsapp/airesponse/${showUser.cust_id}/${id}/confirm`,
       );
       const confirmed = res.data;
 

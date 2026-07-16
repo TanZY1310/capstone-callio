@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useReducer } from 'react';
 import { FaPlay, FaPause } from 'react-icons/fa';
 import {
   Volume2,
@@ -10,7 +10,6 @@ import {
   Shuffle,
 } from 'lucide-react';
 
-// Safe time formatting helper
 function formatTime(seconds) {
   if (!isFinite(seconds) || isNaN(seconds)) return '0:00';
   const m = Math.floor(seconds / 60);
@@ -18,43 +17,74 @@ function formatTime(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-// Dynamic volume icon helper
 function VolumeIcon({ volume, isMuted }) {
   if (isMuted || volume === 0) return <VolumeX size={16} />;
   if (volume < 0.5) return <Volume1 size={16} />;
   return <Volume2 size={16} />;
 }
 
+const initialState = {
+  isPlaying: false,
+  currentTime: 0,
+  duration: 0,
+  volume: 0.8,
+  isMuted: false,
+  isSeeking: false,
+  isShuffled: false,
+  isRepeating: false,
+  playbackRate: 1,
+};
+
+function audioReducer(state, action) {
+  switch (action.type) {
+    case 'SET_CURRENT_TIME':
+      return { ...state, currentTime: action.payload };
+    case 'SET_DURATION':
+      return { ...state, duration: action.payload };
+    case 'SET_PLAYING':
+      return { ...state, isPlaying: action.payload };
+    case 'SET_VOLUME':
+      return { ...state, volume: action.payload, isMuted: action.payload === 0 };
+    case 'SET_MUTED':
+      return { ...state, isMuted: action.payload };
+    case 'SET_SEEKING':
+      return { ...state, isSeeking: action.payload };
+    case 'TOGGLE_SHUFFLE':
+      return { ...state, isShuffled: !state.isShuffled };
+    case 'TOGGLE_REPEAT':
+      return { ...state, isRepeating: !state.isRepeating };
+    case 'SET_PLAYBACK_RATE':
+      return { ...state, playbackRate: action.payload };
+    case 'RESET':
+      return { ...initialState };
+    default:
+      return state;
+  }
+}
+
 function AudioPlaybackCard({ audioFile }) {
   const audioRef = useRef(null);
   const seekRef = useRef(null);
+  const seekTimeRef = useRef(0);
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.8);
-  const [isMuted, setIsMuted] = useState(false);
+  const [state, dispatch] = useReducer(audioReducer, initialState);
   const [showVolume, setShowVolume] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  const [isSeeking, setIsSeeking] = useState(false);
   const [objectUrl, setObjectUrl] = useState(null);
-  const [isShuffled, setIsShuffled] = useState(false);
-  const [isRepeating, setIsRepeating] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
 
   /* ── Object URL lifecycle ─────────────────────────────────────────── */
   useEffect(() => {
     if (!audioFile) {
       setObjectUrl(null);
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setDuration(0);
+      dispatch({ type: 'SET_PLAYING', payload: false });
+      dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
+      dispatch({ type: 'SET_DURATION', payload: 0 });
       return;
     }
     const url = URL.createObjectURL(audioFile);
     setObjectUrl(url);
-    setIsPlaying(false);
-    setCurrentTime(0);
+    dispatch({ type: 'SET_PLAYING', payload: false });
+    dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
     return () => URL.revokeObjectURL(url);
   }, [audioFile]);
 
@@ -71,11 +101,15 @@ function AudioPlaybackCard({ audioFile }) {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const onTime = () => setCurrentTime(audio.currentTime);
-    const onMeta = () => setDuration(audio.duration);
+    const onTime = () => {
+      if (!state.isSeeking) {
+        dispatch({ type: 'SET_CURRENT_TIME', payload: audio.currentTime });
+      }
+    };
+    const onMeta = () => dispatch({ type: 'SET_DURATION', payload: audio.duration });
     const onEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
+      dispatch({ type: 'SET_PLAYING', payload: false });
+      dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
     };
     audio.addEventListener('timeupdate', onTime);
     audio.addEventListener('loadedmetadata', onMeta);
@@ -85,31 +119,31 @@ function AudioPlaybackCard({ audioFile }) {
       audio.removeEventListener('loadedmetadata', onMeta);
       audio.removeEventListener('ended', onEnded);
     };
-  }, []);
+  }, [state.isSeeking]);
 
   /* ── Controls ─────────────────────────────────────────────────────── */
   const togglePlay = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio || !objectUrl) return;
-    if (isPlaying) {
+    if (state.isPlaying) {
       audio.pause();
-      setIsPlaying(false);
+      dispatch({ type: 'SET_PLAYING', payload: false });
     } else {
       await audio.play();
-      setIsPlaying(true);
+      dispatch({ type: 'SET_PLAYING', payload: true });
     }
-  }, [isPlaying, objectUrl]);
+  }, [state.isPlaying, objectUrl]);
 
   const skip = useCallback(
     (secs) => {
       const audio = audioRef.current;
-      if (!audio || !duration) return;
+      if (!audio || !state.duration) return;
       audio.currentTime = Math.min(
         Math.max(audio.currentTime + secs, 0),
-        duration,
+        state.duration,
       );
     },
-    [duration],
+    [state.duration],
   );
 
   /* ── Custom Seek Logic ────────────────────────────────────────────── */
@@ -121,43 +155,46 @@ function AudioPlaybackCard({ audioFile }) {
 
   const handleSeekDown = useCallback(
     (e) => {
-      if (!duration) return;
-      setIsSeeking(true);
-      const ratio = getRatio(e);
+      if (!state.duration) return;
+      dispatch({ type: 'SET_SEEKING', payload: true });
       const audio = audioRef.current;
+      const ratio = getRatio(e);
+      seekTimeRef.current = ratio * state.duration;
       if (audio) {
-        audio.currentTime = ratio * duration;
-        setCurrentTime(audio.currentTime);
+        audio.currentTime = seekTimeRef.current;
+        dispatch({ type: 'SET_CURRENT_TIME', payload: seekTimeRef.current });
       }
     },
-    [duration],
+    [state.duration],
   );
 
   useEffect(() => {
-    if (!isSeeking) return;
+    if (!state.isSeeking) return;
     const onMove = (e) => {
-      const ratio = getRatio(e);
       const audio = audioRef.current;
-      if (audio && duration) {
-        audio.currentTime = ratio * duration;
-        setCurrentTime(audio.currentTime);
+      if (audio && state.duration) {
+        const ratio = getRatio(e);
+        seekTimeRef.current = ratio * state.duration;
+        audio.currentTime = seekTimeRef.current;
       }
     };
-    const onUp = () => setIsSeeking(false);
+    const onUp = () => {
+      dispatch({ type: 'SET_SEEKING', payload: false });
+      dispatch({ type: 'SET_CURRENT_TIME', payload: seekTimeRef.current });
+    };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     };
-  }, [isSeeking, duration]);
+  }, [state.isSeeking, state.duration]);
 
   /* ── Volume & Playback Rate ───────────────────────────────────────── */
   const handleVolumeChange = useCallback((e) => {
     const audio = audioRef.current;
     const val = parseFloat(e.target.value);
-    setVolume(val);
-    setIsMuted(val === 0);
+    dispatch({ type: 'SET_VOLUME', payload: val });
     if (audio) {
       audio.volume = val;
       audio.muted = val === 0;
@@ -166,19 +203,19 @@ function AudioPlaybackCard({ audioFile }) {
 
   const toggleMute = useCallback(() => {
     const audio = audioRef.current;
-    const next = !isMuted;
-    setIsMuted(next);
+    const next = !state.isMuted;
+    dispatch({ type: 'SET_MUTED', payload: next });
     if (audio) audio.muted = next;
-  }, [isMuted]);
+  }, [state.isMuted]);
 
   const cycleRate = useCallback(() => {
     const rates = [0.5, 0.75, 1, 1.25, 1.5, 2];
-    const next = rates[(rates.indexOf(playbackRate) + 1) % rates.length];
-    setPlaybackRate(next);
+    const next = rates[(rates.indexOf(state.playbackRate) + 1) % rates.length];
+    dispatch({ type: 'SET_PLAYBACK_RATE', payload: next });
     if (audioRef.current) audioRef.current.playbackRate = next;
-  }, [playbackRate]);
+  }, [state.playbackRate]);
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const progress = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
   const disabled = !audioFile;
 
   return (
@@ -194,17 +231,17 @@ function AudioPlaybackCard({ audioFile }) {
           className="btn btn-circle btn-neutral btn-sm shrink-0"
           onClick={togglePlay}
           disabled={disabled}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
+          aria-label={state.isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? <FaPause size={12} /> : <FaPlay size={12} />}
+          {state.isPlaying ? <FaPause size={12} /> : <FaPlay size={12} />}
         </button>
 
         {/* Playback Settings Group (Shuffle, Back, Speed, Forward, Repeat) */}
         <div className="flex items-center gap-0.5 shrink-0">
           <button
-            onClick={() => setIsShuffled((s) => !s)}
+            onClick={() => dispatch({ type: 'TOGGLE_SHUFFLE' })}
             disabled={disabled}
-            className={`btn btn-ghost btn-xs btn-circle ${isShuffled ? 'text-primary' : 'text-base-content/40'}`}
+            className={`btn btn-ghost btn-xs btn-circle ${state.isShuffled ? 'text-primary' : 'text-base-content/40'}`}
           >
             <Shuffle size={12} />
           </button>
@@ -220,7 +257,7 @@ function AudioPlaybackCard({ audioFile }) {
             disabled={disabled}
             className="btn btn-ghost btn-xs rounded-md font-mono text-[10px] text-base-content/60 px-1 min-h-0 h-6"
           >
-            {playbackRate}x
+            {state.playbackRate}x
           </button>
           <button
             onClick={() => skip(10)}
@@ -230,9 +267,9 @@ function AudioPlaybackCard({ audioFile }) {
             <SkipForward size={12} />
           </button>
           <button
-            onClick={() => setIsRepeating((r) => !r)}
+            onClick={() => dispatch({ type: 'TOGGLE_REPEAT' })}
             disabled={disabled}
-            className={`btn btn-ghost btn-xs btn-circle ${isRepeating ? 'text-primary' : 'text-base-content/40'}`}
+            className={`btn btn-ghost btn-xs btn-circle ${state.isRepeating ? 'text-primary' : 'text-base-content/40'}`}
           >
             <Repeat size={12} />
           </button>
@@ -247,7 +284,7 @@ function AudioPlaybackCard({ audioFile }) {
             onMouseLeave={() => setIsHovering(false)}
             className={`relative w-full rounded-full bg-base-300 transition-all duration-150 dynamic-slider-bar
               ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
-              ${isHovering || isSeeking ? 'h-2.5' : 'h-1.5'}`}
+              ${isHovering || state.isSeeking ? 'h-2.5' : 'h-1.5'}`}
             role="slider"
             aria-valuemin={0}
             aria-valuemax={100}
@@ -264,7 +301,7 @@ function AudioPlaybackCard({ audioFile }) {
               style={{ width: `${progress}%` }}
             />
             {/* Thumb indicator */}
-            {(isHovering || isSeeking) && !disabled && (
+            {(isHovering || state.isSeeking) && !disabled && (
               <div
                 className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-base-content shadow pointer-events-none"
                 style={{ left: `${progress}%` }}
@@ -275,10 +312,10 @@ function AudioPlaybackCard({ audioFile }) {
           {/* Time display layout */}
           <div className="flex justify-between w-full">
             <span className="font-mono text-[10px] text-base-content/60">
-              {formatTime(currentTime)}
+              {formatTime(state.currentTime)}
             </span>
             <span className="font-mono text-[10px] text-base-content/60">
-              {duration ? formatTime(duration) : '--:--'}
+              {state.duration ? formatTime(state.duration) : '--:--'}
             </span>
           </div>
         </div>
@@ -297,7 +334,7 @@ function AudioPlaybackCard({ audioFile }) {
               min={0}
               max={1}
               step={0.01}
-              value={isMuted ? 0 : volume}
+              value={state.isMuted ? 0 : state.volume}
               onChange={handleVolumeChange}
               className="range range-xs range-neutral w-full"
               aria-label="Volume"
@@ -308,7 +345,7 @@ function AudioPlaybackCard({ audioFile }) {
             onClick={toggleMute}
             disabled={disabled}
           >
-            <VolumeIcon volume={volume} isMuted={isMuted} />
+            <VolumeIcon volume={state.volume} isMuted={state.isMuted} />
           </button>
         </div>
       </div>
