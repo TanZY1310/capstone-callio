@@ -1,4 +1,5 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from typing import List
 from services.rag import process_and_store_pdf, delete_pdf_from_store, get_all_pdfs_from_store
 import logging
@@ -22,7 +23,7 @@ async def upload_files(files: List[UploadFile] = File(...)):
             
         try:
             content = await file.read()
-            chunks = process_and_store_pdf(content, file.filename)
+            chunks = await run_in_threadpool(process_and_store_pdf, content, file.filename)
             results.append({
                 "filename": file.filename,
                 "chunks": chunks,

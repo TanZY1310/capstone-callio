@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'sonner';
 import BodyHeader from '../components/Speech/BodyHeader';
 import Preferencecard from '../components/Speech/PreferenceCard';
@@ -8,11 +8,10 @@ import SpeechAnalysisCard from '../components/Speech/SpeechAnalysisCard';
 import AudioPlaybackCard from '../components/Speech/AudioPlayCard';
 import ProgressBar from '../components/Speech/ProgressBar';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 function Speech() {
   const { state } = useLocation();
   const customer = state?.customer;
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const [transcription, setTranscription] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
@@ -47,7 +46,7 @@ function Speech() {
 
       pollingRef.current = setInterval(async () => {
         try {
-          const res = await axios.get(`${API_URL}/speech/status/${id}`);
+          const res = await api.get(`/speech/status/${id}`);
           const task = res.data;
 
           setProgressStep(task.step);
@@ -77,7 +76,7 @@ function Speech() {
         }
       }, 1500);
     },
-    [stopPolling],
+    [stopPolling, API_URL],
   );
 
   useEffect(() => {
@@ -98,7 +97,7 @@ function Speech() {
 
   const handleApprove = async () => {
     try {
-      await axios.post(`${API_URL}/speech/approve/${taskId}`);
+      await api.post(`/speech/approve/${taskId}`);
       setAwaitingApproval(false);
       startPolling(taskId, rawAudioUrl);
     } catch (err) {
@@ -123,7 +122,7 @@ function Speech() {
 
   const handleReject = async () => {
     try {
-      await axios.post(`${API_URL}/speech/reject/${taskId}`);
+      await api.post(`/speech/reject/${taskId}`);
       toast.info('Transcription rejected');
     } catch {
       // ignore backend error, reset locally anyway
@@ -134,7 +133,7 @@ function Speech() {
   const handleAddToPipeline = async () => {
     if (!taskId) return;
     try {
-      await axios.post(`${API_URL}/speech/pipeline/${taskId}`, {
+      await api.post(`/speech/pipeline/${taskId}`, {
         customer_id: customer?.cust_id || null,
       });
       toast.success('Added to lead pipeline');

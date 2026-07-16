@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import wsLogo from '../../assets/Whatsapp.png';
 // import loadimg from "../../assets/loading.lottie";
 
@@ -12,12 +12,10 @@ function SocialCard() {
   const [qrCode, setQrCode] = useState(null);
   const [pollInterval, setPollInterval] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await axios.get(`${API_URL}/whatsapp/status`);
+        const res = await api.get('/whatsapp/status');
         if (res.data && res.data.status === 'connected') {
           setIsLinked(true);
         } else {
@@ -30,7 +28,7 @@ function SocialCard() {
     };
     
     fetchStatus();
-  }, [API_URL]);
+  }, []);
 
   const link = async () => {
     setIsLoading(true);
@@ -39,7 +37,7 @@ function SocialCard() {
     setNotification(false);
 
     try {
-      const res = await axios.post(`${API_URL}/whatsapp/connect`);
+      const res = await api.post('/whatsapp/connect');
       
       if (res.data && res.data.status === 'error') {
         throw new Error(res.data.message || 'Account failed to link, Please try again');
@@ -49,7 +47,7 @@ function SocialCard() {
 
       const poll = setInterval(async () => {
         try {
-          const statusRes = await axios.get(`${API_URL}/whatsapp/status`);
+          const statusRes = await api.get('/whatsapp/status');
           const data = statusRes.data;
 
           if (data.status === 'connected') {

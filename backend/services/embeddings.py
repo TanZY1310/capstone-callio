@@ -2,6 +2,7 @@ import os
 import time
 import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from operator import itemgetter
 from pathlib import Path
 from pypdf import PdfReader
@@ -31,6 +32,7 @@ TRANSCRIPT_COLLECTION_NAME = "call_transcript_collection"
 TRANSCRIPT_INDEX_NAME = "transcript_index_1"
 EMBEDDING_DIMENSIONS = 768
 CHAT_HISTORY_LIMIT = 20
+LLM_THREAD_POOL_SIZE = 4
 
 _mongo_client = None
 _property_vector_store_doc = None
@@ -38,6 +40,21 @@ _property_vector_store_query = None
 _transcript_vector_store_doc = None
 _transcript_vector_store_query = None
 _llm = None
+_llm_executor = None
+
+def _get_llm_executor():
+    global _llm_executor
+    if _llm_executor is None:
+        _llm_executor = ThreadPoolExecutor(max_workers=LLM_THREAD_POOL_SIZE, thread_name_prefix="llm-")
+    return _llm_executor
+
+
+def shutdown_llm_executor():
+    global _llm_executor
+    if _llm_executor is not None:
+        _llm_executor.shutdown(wait=True)
+        _llm_executor = None
+
 
 def _ensure_vector_search_index(collection, vector_store, index_name, filters=None):
     """Creates the Atlas vector search index if it doesn't already exist."""
@@ -293,11 +310,14 @@ async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, 
     rag_chain = setup_and_retrieval | prompt | _llm | StrOutputParser()
     print("Querying Vector DB...")
     query = latest_customer_message(chat_history) or "Draft a helpful follow-up reply to this customer."
-    response = rag_chain.invoke({
-        "input": query,
-        "chat_history": format_chat_history(chat_history),
-        "recent_transcripts": format_transcript_history(transcript_history),
-    })
+    response = await asyncio.to_thread(
+        rag_chain.invoke,
+        {
+            "input": query,
+            "chat_history": format_chat_history(chat_history),
+            "recent_transcripts": format_transcript_history(transcript_history),
+        },
+    )
     print(f"\nAI Response: {response}")
 
     return response

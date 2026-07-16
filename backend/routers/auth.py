@@ -229,9 +229,9 @@ async def demo_login(payload: dict, db: db_dependency):
 
     if role == "team_lead":
         for idx, sub_user in enumerate(sub_users):
-            seed_demo_data(db, sub_user.user_id, set_index=idx)
+            await run_in_threadpool(seed_demo_data, db, sub_user.user_id, set_index=idx)
     else:
-        seed_demo_data(db, user.user_id, set_index=0)
+        await run_in_threadpool(seed_demo_data, db, user.user_id, set_index=0)
 
     demo_token = generate_demo_token()
     register_session(demo_token, user.firebase_uid)

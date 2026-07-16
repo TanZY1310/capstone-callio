@@ -11,7 +11,6 @@ import CallUpload from '../components/Metrics/CallUpload';
 import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
 import { CiSearch } from 'react-icons/ci';
 import { useAuth } from '../hooks/useAuth';
-import axios from 'axios';
 import LeaderCard from '../components/Metrics/LeaderCard';
 import api from '../utils/api.js';
 
@@ -22,7 +21,6 @@ function LeaderDashboard() {
   const [loading, setLoading] = useState(true); // start TRUE
   const [error, setError] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_URL;
   const { profile } = useAuth();
   console.log(profile);
 

@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1500;
+const RETRY_DELAY_MS = 300;
 
 function getInitialDemoState() {
   const demoToken = localStorage.getItem('demo_token');
@@ -86,15 +86,10 @@ export function useAuth() {
           try { setProfile(JSON.parse(cached)); } catch { /* ignore */ }
         }
 
-        await new Promise((r) => setTimeout(r, 2000));
-
         let lastError = null;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
             const idToken = await firebaseUser.getIdToken(attempt > 0);
-            if (attempt > 0) {
-              await new Promise((r) => setTimeout(r, 2000));
-            }
             const response = await axios.post(`${API_URL}/auth/session`, null, {
               headers: { Authorization: `Bearer ${idToken}` },
               signal: controller.signal,

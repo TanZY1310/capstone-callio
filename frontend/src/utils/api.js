@@ -36,7 +36,6 @@ api.interceptors.response.use(
         const authInstance = getAuth();
         if (authInstance.currentUser) {
           await authInstance.currentUser.getIdToken(true);
-          await new Promise((r) => setTimeout(r, 3000));
           return api(originalRequest);
         }
       } catch {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 export function useTheme() {
   const [theme, setTheme] = useState(
-    () => localStorage.getItem('theme') || 'lemonade',
+    () => localStorage.getItem('theme') || 'corporate',
   );
 
   useEffect(() => {
@@ -11,7 +11,7 @@ export function useTheme() {
   }, [theme]);
 
   const toggleTheme = () =>
-    setTheme((t) => (t === 'lemonade' ? 'forest' : 'lemonade'));
+    setTheme((t) => (t === 'corporate' ? 'business' : 'corporate'));
 
   return { theme, toggleTheme };
 }
