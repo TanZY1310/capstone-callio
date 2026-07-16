@@ -3,7 +3,7 @@ import UserPreferences from './UserPreferences.jsx';
 function ContactInfo({ user, onLocationChange, onStatusChange, statusList}) {
  
   return (
-    <div className="dashboard-card flex flex-col justify-start p-4">
+    <div className="dashboard-card flex flex-col p-4">
       <p className="font-semibold text-md text-base-content">
         Contact Information
       </p>
@@ -22,11 +22,13 @@ function ContactInfo({ user, onLocationChange, onStatusChange, statusList}) {
         </div>
       </div>
       <hr className="my-2 border-base-300" />
-      <div>
-        <span className="text-xs text-base-content/40">Current Status</span>
+      <div className = "flex flex-col">
+        <div className="flex text-sm text-center items-center text-base-content/70">
+          <p>Current Status</p>
+        </div>
         <div className="flex justify-end">
           <select
-            className="select select-bordered select-xs btn btn-xs mb-2 mr-2"
+            className="select select-bordered select-sm btn btn-xs mb-2 mr-2"
             value = {user.status}
             onChange={onStatusChange}
           >

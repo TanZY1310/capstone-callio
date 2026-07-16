@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { statusList } from '../data/statusList.js';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../utils/api';
-import { SendHorizontal } from "lucide-react";
+import { SendHorizontal } from 'lucide-react';
 //import users from '../data/dummyData.js';
 // import dummyWAHistory from '../data/dummyWAHistory.js';
 import { useLocation } from 'react-router-dom';
@@ -35,6 +35,7 @@ function LeadDetail() {
   const inputRef = useRef(null);
   const [location, setLocation] = useState({});
   const [users, setUsers] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [responses, setResponses] = useState([]);
@@ -73,9 +74,7 @@ function LeadDetail() {
 
     const fetchChatHistory = async () => {
       try {
-        const response = await api.get(
-          `/whatsapp/history/${showUser.cust_id}`,
-        );
+        const response = await api.get(`/whatsapp/history/${showUser.cust_id}`);
         const data = await response.data;
         console.log(JSON.stringify(data, null, 2));
         setMessages(Array.isArray(data) ? data : []);
@@ -94,9 +93,7 @@ function LeadDetail() {
 
     const fetchDrafts = async () => {
       try {
-        const res = await api.get(
-          `/whatsapp/airesponse/${showUser.cust_id}`,
-        );
+        const res = await api.get(`/whatsapp/airesponse/${showUser.cust_id}`);
         setResponses(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error('Failed to fetch AI response drafts:', error);
@@ -150,17 +147,19 @@ function LeadDetail() {
     setShowQrModal(true);
 
     // Poll /status until connected, reusing the same status-check logic
-    const poll = setInterval(async () => {
-      const data = await checkConnectionStatus();
+    if (data?.status !== 'connected') {
+      const poll = setInterval(async () => {
+        const data = await checkConnectionStatus();
 
-      if (data?.status === 'connected') {
-        clearInterval(poll);
-        setQrCode(null);
-        setShowQrModal(false);
-      } else if (data?.qr) {
-        setQrCode(data.qr); // ← this is the base64 data URL
-      }
-    }, 3000);
+        if (data?.status === 'connected') {
+          clearInterval(poll);
+          setQrCode(null);
+          setShowQrModal(false);
+        } else if (data?.qr) {
+          setQrCode(data.qr); // ← this is the base64 data URL
+        }
+      }, 3000);
+    }
   };
 
   const handleSendMessage = async (e) => {
@@ -222,6 +221,7 @@ function LeadDetail() {
     } catch (error) {
       console.error('Failed to generate AI response:', error);
     }
+    setIsGenerating(false);
   };
 
   // Called by AIResponseReview Regenerate button
@@ -236,6 +236,7 @@ function LeadDetail() {
     } catch (error) {
       console.error('Failed to regenerate AI response:', error);
     }
+    setIsGenerating(false);
   };
 
   // Called by AIResponseReview Edit button
@@ -280,10 +281,9 @@ function LeadDetail() {
   };
 
   const handleHeaderChange = (e) => {
-    setShowUser(users.find((u) => u.cust_id === e.target.value)); // now works: e.target.value is cust_id (was cust_name before, which never matched)
-    console.log(showUser);
+    setShowUser(users.find((u) => u.cust_id === e?.value));
   };
-  // TODO: need endpoint from sheets team — no existing route handles location updates
+
   // either extend PATCH /customers/batch-status to accept location, or add a new endpoint
   const handleLocationChange = (e) => {
     return;
@@ -298,7 +298,6 @@ function LeadDetail() {
       });
 
       await api.post('/sheets/export', {});
-
     } catch (err) {
       console.error('Failed to update status:', err);
     }
@@ -344,7 +343,7 @@ function LeadDetail() {
             <p className="text-sm text-base-content/50 mt-1">
               Connect above to view conversation history.
             </p>
-            <div className="py-4 flex-1 overflow-y-auto max-h-[500px]">
+            <div className="py-4 overflow-y-auto max-h-[500px]">
               <div className="chat chat-end">
                 <div className="chat-bubble whitespace-pre-wrap">
                   Sample Chat
@@ -352,7 +351,6 @@ function LeadDetail() {
                 <div className="chat-footer opacity-50">
                   {new Date().toString()}
                 </div>
-                
               </div>
               <div className="chat chat-start">
                 <div className="chat-bubble whitespace-pre-wrap">
@@ -363,24 +361,23 @@ function LeadDetail() {
                 </div>
               </div>
             </div>
-              <div className="flex items-center gap-2 p-4 border-t border-base-300">
+            <div className="flex items-center gap-2 p-4 border-t border-base-300">
               <textarea
                 type="text"
                 placeholder="Only usable after connecting to whatsapp..."
                 className="input input-bordered w-full"
               />
-              <button
-                className="btn btn-success btn-circle ml-2 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110"
-              >
+              <button className="btn btn-success btn-circle ml-2 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110">
                 <SendHorizontal />
               </button>
             </div>
           </div>
-        )}{' '}
+        )}
         {/*new Date(timestamp × 1000)*/}
         {isConnected && (
           <AIResponseReview
             aiResponses={responses}
+            isGenerating={isGenerating}
             onGenerate={handleGenerateAIResponse}
             onEdit={handleEditAIResponse}
             onRegenerate={handleRegenerateAIResponse}
@@ -392,7 +389,7 @@ function LeadDetail() {
       {/* QR modal — overlays everything, doesn't replace anything */}
       {showQrModal && (
         <dialog className="modal modal-open">
-          <div className="modal-box items-center text-center">
+          <div className="modal-box text-center">
             <h3 className="font-bold text-lg">Scan QR Code</h3>
             <p className="py-2">
               Open WhatsApp → Linked Devices → Link a Device

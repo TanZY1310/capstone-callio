@@ -6,6 +6,7 @@ import BodyHeader from '../components/Speech/BodyHeader';
 import Preferencecard from '../components/Speech/PreferenceCard';
 import SpeechAnalysisCard from '../components/Speech/SpeechAnalysisCard';
 import AudioPlaybackCard from '../components/Speech/AudioPlayCard';
+import ProgressBar from '../components/Speech/ProgressBar';
 
 function Speech() {
   const { state } = useLocation();
@@ -28,6 +29,7 @@ function Speech() {
   const [awaitingApproval, setAwaitingApproval] = useState(false);
   const [rawAudioUrl, setRawAudioUrl] = useState(null);
   const [progressMessage, setProgressMessage] = useState('');
+  const isAnalysisLoading = progressStep === 3;
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -141,15 +143,24 @@ function Speech() {
   };
 
   return (
-    <div className="flex flex-col w-full min-h-screen bg-base-200 p-6 gap-6">
+    <div className="flex flex-col w-full h-screen overflow-hidden bg-base-200 p-6 gap-6">
       <BodyHeader
         onUpload={handleUpload}
         customerId={customer?.cust_id}
         onFileSelect={setAudioFile}
+        onAddToPipeline={handleAddToPipeline}
+        taskId={taskId}
+        isAnalysisComplete={sentiment !== null}
       />
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-        <div className="flex-1">
+      {progressStep >= 0 && (
+        <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl px-6 py-4 shrink-0">
+          <ProgressBar step={progressStep} awaitingApproval={awaitingApproval} />
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-1 min-h-0">
+        <div className="flex-1 min-h-0">
           <SpeechAnalysisCard
             data={null}
             transcription={transcription}
@@ -159,7 +170,6 @@ function Speech() {
             propertySuggestions={propertySuggestions}
             progressStep={progressStep}
             progressMessage={progressMessage}
-            onAddToPipeline={handleAddToPipeline}
             audioFile={audioFile}
             awaitingApproval={awaitingApproval}
             onApprove={handleApprove}
@@ -167,9 +177,9 @@ function Speech() {
           />
         </div>
         <div className="w-full lg:w-96 flex">
-          <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl w-full">
+          <div className={`card bg-base-100 border border-base-200 shadow-sm rounded-2xl w-full ${isAnalysisLoading ? 'animate-pulse' : ''}`}>
             <div className="card-body p-6">
-              <Preferencecard data={preferences} />
+              <Preferencecard data={preferences} loading={isAnalysisLoading} />
             </div>
           </div>
         </div>

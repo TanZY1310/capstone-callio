@@ -1,31 +1,112 @@
-import { Building2, MapPin, DollarSign } from 'lucide-react';
-import RobotAgentLoader from './RobotAgentLoader';
+import { useState } from 'react';
+import { Building, MapPin, DollarSign, Sparkles, X } from 'lucide-react';
 
-function matchBarGradient(score) {
-  if (score >= 80) return 'from-success to-success/80';
-  if (score >= 60) return 'from-info to-info/80';
-  if (score >= 40) return 'from-warning to-warning/80';
-  return 'from-base-300 to-base-400';
-}
-
-function matchScoreColor(score) {
-  if (score >= 80) return 'text-success';
-  if (score >= 60) return 'text-info';
-  return 'text-warning';
+function matchBadgeStyle(score) {
+  if (score >= 80) return 'bg-emerald-50 text-emerald-700';
+  if (score >= 60) return 'bg-blue-50 text-blue-700';
+  return 'bg-amber-50 text-amber-700';
 }
 
 function NextAction({ data, loading = false }) {
+  const [completedActions, setCompletedActions] = useState(new Set());
+  const [dismissed, setDismissed] = useState(false);
+
+  const toggleAction = (index) => {
+    setCompletedActions((prev) => {
+      const next = new Set(prev);
+      next.has(index) ? next.delete(index) : next.add(index);
+      return next;
+    });
+  };
+
   if (loading && !data) {
     return (
       <div className="tab-panel">
-        <div className="card-body">
-          <div className="flex flex-col gap-1 mb-4">
-            <h2 className="text-section-heading">Next Actions</h2>
-            <p className="text-helper">
-              AI-generated follow-up recommendations based on buyer conversation
-            </p>
+        <div className="card-body gap-8 relative">
+          <div className="animate-pulse flex flex-col gap-8">
+            {/* Section header skeleton */}
+            <div className="flex flex-col gap-1">
+              <div className="h-5 w-40 bg-base-300 rounded-md" />
+              <div className="h-3 w-72 bg-base-300 rounded-md" />
+            </div>
+
+            {/* Action cards skeleton */}
+            <div className="flex flex-col gap-4">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="flex items-start gap-4 p-5 bg-base-200 border border-base-200 rounded-xl">
+                  <div className="w-5 h-5 mt-1 rounded bg-base-300 shrink-0" />
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div className="h-3.5 w-36 bg-base-300 rounded-md" />
+                    <div className="h-3 w-full bg-base-300 rounded-md" />
+                    <div className="h-3 w-3/4 bg-base-300 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Property section header skeleton */}
+            <div className="flex items-center gap-2">
+              <div className="w-[18px] h-[18px] bg-base-300 rounded-md" />
+              <div className="h-5 w-48 bg-base-300 rounded-md" />
+            </div>
+
+            {/* Property cards skeleton */}
+            <div className="flex flex-col gap-3">
+              {[1, 2].map((n) => (
+                <div key={n} className="flex flex-col gap-3 p-5 bg-base-200 rounded-xl border border-base-300">
+                  <div className="flex items-center gap-3">
+                    <div className="h-5 w-48 bg-base-300 rounded-md" />
+                    <div className="h-6 w-12 bg-base-300 rounded-full" />
+                  </div>
+                  <div className="h-5 w-32 bg-base-300 rounded-md" />
+                  <div className="h-3.5 w-40 bg-base-300 rounded-md" />
+                  <div className="h-3 w-full bg-base-300 rounded-md" />
+                  <div className="flex gap-2">
+                    <div className="h-6 w-24 bg-base-300 rounded-md" />
+                    <div className="h-6 w-32 bg-base-300 rounded-md" />
+                    <div className="h-6 w-20 bg-base-300 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* AI footer skeleton */}
+            <div className="flex flex-col gap-2 p-5 bg-base-300 rounded-xl">
+              <div className="h-4 w-48 bg-base-200/60 rounded-md" />
+              <div className="h-3 w-full bg-base-200/60 rounded-md" />
+              <div className="h-3 w-2/3 bg-base-200/60 rounded-md" />
+            </div>
           </div>
-          <RobotAgentLoader />
+
+          {/* Overlay loading message */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <span className="loading loading-spinner loading-md text-primary" />
+              <span className="text-sm font-medium text-base-content/60">
+                Generating tailored recommendations...
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && !data) {
+    return (
+      <div className="tab-panel">
+        <div className="card-body">
+          <div className="flex flex-col items-center gap-4 py-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center">
+              <Sparkles size={28} className="text-base-content/30" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <h3 className="font-bold text-base text-[#2D3748]">No Analysis Yet</h3>
+              <p className="text-sm text-[#2D3748]/60 max-w-sm">
+                Analysis pending. Review the transcript and click 'Approve' to extract next actions and property matches.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -41,24 +122,53 @@ function NextAction({ data, loading = false }) {
           </p>
         </div>
 
+        {!dismissed && (
+          <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+            <Sparkles size={16} className="text-primary mt-0.5 shrink-0" />
+            <div className="flex flex-col gap-1 flex-1">
+              <span className="font-bold text-sm text-base-content">AI Workflow Suggestion</span>
+              <span className="text-sm text-base-content/60 leading-relaxed">
+                Complete all recommended follow-up actions within the next 24 hours
+                to maximize conversion probability and maintain buyer engagement.
+              </span>
+            </div>
+            <button
+              onClick={() => setDismissed(true)}
+              className="btn btn-ghost btn-xs btn-circle shrink-0"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col gap-4">
           {data?.nextActions?.length ? (
             data.nextActions.map((action, i) => (
               <div
                 key={i}
-                className="flex items-start gap-4 p-5 bg-base-200 border border-base-200 rounded-xl hover:shadow-sm transition-all"
+                className={`flex items-start gap-4 p-5 bg-base-200 border border-base-200 rounded-xl hover:shadow-sm transition-all ${
+                  completedActions.has(i) ? 'opacity-50' : ''
+                }`}
               >
-                <div className="flex items-center justify-center min-w-9 h-9 rounded-full bg-neutral text-neutral-content font-bold text-sm">
-                  {i + 1}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-bold text-sm text-base-content">
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-primary mt-1 shrink-0"
+                  checked={completedActions.has(i)}
+                  onChange={() => toggleAction(i)}
+                />
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <span className={`font-bold text-sm text-base-content ${
+                    completedActions.has(i) ? 'line-through' : ''
+                  }`}>
                     Recommended Action
                   </span>
-                  <span className="text-sm leading-relaxed text-base-content/60">
+                  <span className={`text-sm leading-relaxed text-base-content/60 break-words ${
+                    completedActions.has(i) ? 'line-through' : ''
+                  }`}>
                     {action}
                   </span>
                 </div>
+
               </div>
             ))
           ) : (
@@ -69,7 +179,7 @@ function NextAction({ data, loading = false }) {
         {data?.propertySuggestions?.length > 0 && (
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <Building2 size={18} className="text-primary" />
+              <Building size={18} className="text-primary" />
               <span className="text-section-heading">Suggested Properties</span>
             </div>
             <div className="flex flex-col gap-3">
@@ -78,44 +188,36 @@ function NextAction({ data, loading = false }) {
                   key={i}
                   className="flex flex-col gap-3 p-5 bg-base-200 rounded-xl border border-base-300 hover:shadow-md hover:-translate-y-0.5 transition-all"
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
                     <span className="font-bold text-base text-base-content truncate">{prop.propertyName}</span>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="relative w-20 h-3 bg-base-300 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full bg-gradient-to-r ${matchBarGradient(prop.matchScore)} transition-all duration-700 ease-out relative overflow-hidden`}
-                          style={{ width: `${prop.matchScore}%` }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_ease-in-out_infinite]" />
-                        </div>
-                      </div>
-                      <span className={`text-sm font-bold ${matchScoreColor(prop.matchScore)}`}>
-                        {prop.matchScore}%
-                      </span>
-                    </div>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${matchBadgeStyle(prop.matchScore)}`}>
+                      {prop.matchScore}%
+                    </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <div className="flex flex-col gap-1">
+                    {prop.budget && (
+                      <div className="flex items-center gap-1.5 text-lg font-bold text-primary">
+                        <DollarSign size={18} />
+                        <span>{prop.budget}</span>
+                      </div>
+                    )}
                     {prop.location && (
-                      <div className="flex items-center gap-1.5 text-sm text-base-content/60">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-base-content/70">
                         <MapPin size={14} />
                         <span>{prop.location}</span>
                       </div>
                     )}
-                    {prop.budget && (
-                      <div className="flex items-center gap-1.5 text-sm text-base-content/60">
-                        <DollarSign size={14} />
-                        <span>{prop.budget}</span>
-                      </div>
-                    )}
                   </div>
 
-                  <span className="text-sm text-base-content/70 leading-relaxed">{prop.reason}</span>
+                  <span className="text-sm text-base-content/70 leading-relaxed break-words">{prop.reason}</span>
 
                   {prop.highlights?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {prop.highlights.map((h, j) => (
-                        <span key={j} className="badge badge-ghost badge-sm">{h}</span>
+                        <span key={j} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-xs">
+                          {h}
+                        </span>
                       ))}
                     </div>
                   )}
@@ -135,15 +237,6 @@ function NextAction({ data, loading = false }) {
           </div>
         )}
 
-        <div className="flex flex-col gap-3 p-5 bg-neutral rounded-xl">
-          <span className="font-bold text-sm text-neutral-content">
-            🤖 AI Workflow Suggestion
-          </span>
-          <span className="text-sm text-neutral-content/70 leading-relaxed">
-            Complete all recommended follow-up actions within the next 24 hours
-            to maximize conversion probability and maintain buyer engagement.
-          </span>
-        </div>
       </div>
     </div>
   );

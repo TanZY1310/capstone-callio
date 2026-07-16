@@ -220,12 +220,12 @@ function AudioPlaybackCard({ audioFile }) {
 
   return (
     <div
-      className={`flex flex-col gap-2 p-4 w-full rounded-xl bg-base-200 transition-opacity duration-200 ${disabled ? 'opacity-60' : ''}`}
+      className={`flex flex-col gap-2 p-5 w-full rounded-xl bg-base-200 transition-opacity duration-200 ${disabled ? 'opacity-60' : ''}`}
     >
       <audio ref={audioRef} preload="metadata" />
 
       {/* Main Player Row */}
-      <div className="flex flex-row items-center gap-3 w-full">
+      <div className="flex flex-row items-center gap-4 w-full">
         {/* Play/Pause Button */}
         <button
           className="btn btn-circle btn-neutral btn-sm shrink-0"
@@ -237,7 +237,7 @@ function AudioPlaybackCard({ audioFile }) {
         </button>
 
         {/* Playback Settings Group (Shuffle, Back, Speed, Forward, Repeat) */}
-        <div className="flex items-center gap-0.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => dispatch({ type: 'TOGGLE_SHUFFLE' })}
             disabled={disabled}
