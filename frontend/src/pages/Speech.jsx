@@ -7,7 +7,7 @@ import Preferencecard from '../components/Speech/PreferenceCard';
 import SpeechAnalysisCard from '../components/Speech/SpeechAnalysisCard';
 import AudioPlaybackCard from '../components/Speech/AudioPlayCard';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Speech() {
   const { state } = useLocation();

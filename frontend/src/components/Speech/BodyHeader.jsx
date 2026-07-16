@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function BodyHeader({ onUpload, customerId, onFileSelect }) {
   const fileInputRef = useRef(null);

@@ -32,7 +32,8 @@ function LeadDetail() {
     ],
   });
 
-  const FASTAPI_BASE_URL = 'http://127.0.0.1:8000/whatsapp';
+  const API_URL = import.meta.env.VITE_API_URL;
+  const FASTAPI_BASE_URL = `${API_URL}/whatsapp`;
   const { state } = useLocation();
   const inputRef = useRef(null);
   const [location, setLocation] = useState({});

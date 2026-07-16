@@ -22,7 +22,7 @@ function LeaderDashboard() {
   const [loading, setLoading] = useState(true); // start TRUE
   const [error, setError] = useState(null);
 
-  const API_URL = 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL;
   const { profile } = useAuth();
   console.log(profile);
 
