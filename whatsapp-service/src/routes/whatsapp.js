@@ -6,8 +6,8 @@ router.get('/', (req, res) => {
     res.send('Server is up and running!');
 });
 
-router.post('/whatsapp/connect', (req, res) => {
-    initializeClient();
+router.post('/whatsapp/connect', async (req, res) => {
+    await initializeClient();
     res.status(200).json({ status: 'connecting' });
 });
 
