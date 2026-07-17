@@ -488,6 +488,10 @@ function DailyCallPoint({
     <div className="card bg-base-100 border border-base-200 shadow-sm">
       <div className="card-body">
         <div className="flex items-center justify-between">
+          {/* With justify-between, the first child is pushed to the far left and the last child to the far right. */}
+          {/* items-center -> makes the naming is centered vertically */}
+          {/* flex container as a row */}
+
           <h2 className="card-title text-base-content">Daily Call Volume </h2>
 
           {/* <p className="text-xs text-base-content/50"> This Month</p> */}
