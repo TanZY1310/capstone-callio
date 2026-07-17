@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field, StrictInt
 from datetime import date
 import uuid
 from enum import StrEnum
+from typing import Optional
+
 
 #-------------------------------------------- #
 # SELECTING PERIOD
@@ -26,8 +28,12 @@ class AgentStats(BaseModel):
     followUps: int
     appointments: int
     bookings: int
-    calls_change: float = 0.00
-    bookings_change: float = 0.00
+    
+class ConversionRate(BaseModel):
+    calls_change: int
+    appointments_change: int
+    bookings_change: int
+
 
 class CallCount(BaseModel):
     call_date: str | int
@@ -43,6 +49,7 @@ class ObjectionCount(BaseModel):
 
 class AgentDashboardResponse(BaseModel):
     kpis: AgentStats
+    conversion: ConversionRate
     total_region: list[RegionCount]
     top_objection: list[ObjectionCount]
     # total_calls: list[CallCount]
@@ -59,24 +66,22 @@ class AgentTable(BaseModel):
     leads: int
     followUps: int
     appointments: int
+    appointment_rate: int
+    bookings: int
+    booking_rate: int
+    status: str
 
 class TeamStats(BaseModel):
     team_kpis: AgentStats
     team_regions: list[RegionCount]
+    # team_completed: int
     # team_objections: list[ObjectionCount]
     
 class LeaderDashboardResponse(BaseModel):
-    # total_agents: int
-    # team_calls: int
-    # team_leads: int
-    # team_appointments: int
-    # team_bookings: int
-    # team_prev_bookings: int
-    # team_prev_calls: int
     total_agents: int
     team_stats: TeamStats
-    team_completed: int
     team_overview: list[AgentTable]
+    team_conversion: ConversionRate
 
 
 

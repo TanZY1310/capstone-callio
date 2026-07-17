@@ -21,7 +21,8 @@ from schemas.metric import (
     AgentTable,
     TeamStats,
     AgentDashboardResponse,
-    Period
+    Period,
+    ConversionRate
 )
 
 #GET/POST/PUT/DELETE /metrics
@@ -78,17 +79,6 @@ def get_period(period, year: int, month: int, day: int): # explicitly state what
         end = date(year, month, day) # it ends on the same day
         return start, end
 
-        # start = date(year, month, 1)
-
-        # # month_end rolls forward to first day of the next month
-
-        # if month == 12:
-        #     end = date(year + 1, 1, 1)
-
-        # else: end = date(year, month + 1, 1)
-
-        # return start, end
-    
     elif period == Period.MONTHLY:
         start = date(year, month, 1)
 
@@ -100,11 +90,6 @@ def get_period(period, year: int, month: int, day: int): # explicitly state what
         else: end = date(year, month + 1, 1)
 
         return start, end
-
-        # start = date(year, 1, 1)
-        # end = date(year + 1, 1, 1)
-
-        # return start, end
 
 # ------------------this is get period for KPIs (LAST MONTH)---------------------------
 def get_previous_period(period, year: int, month: int, day: int):
@@ -129,8 +114,8 @@ def get_previous_period(period, year: int, month: int, day: int):
 # ------------------compute % changes---------------------------
 def pct_change(current, previous):
     if previous == 0:
-        return 0.00  # no previous data — return 0 instead of None
-    return round(((current - previous) / previous) * 100, 1)
+        return 0  # no previous data — return 0 instead of None
+    return int(((current - previous) / previous) * 100)
     
         
 #-------------------------------------------- #
@@ -203,11 +188,19 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
                   )
         
         ######################## Total Leads ###########################  
-        total_leads = ( db.query(func.count(Customers.cust_id))
-                   .filter(Customers.user_id == user_id)
-                   .filter(func.date(Customers.last_contact) == start)
-                   .scalar() or 0
-                   )
+        # total_leads = ( db.query(func.count(Customers.cust_id))
+        #            .filter(Customers.user_id == user_id)
+        #            .filter(func.date(Customers.last_contact) == start)
+        #            .scalar() or 0
+        #            )
+        
+        total_leads = (
+                    db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
+                    .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
+                    .filter(Customers.user_id == user_id)
+                    .filter(func.date(SpeechAnalysis.created_at) == start)
+                    .scalar() or 0
+                     )
         
         # ---------------------------------------------------------------------
         #         AGENT STATS CALCULATION FOR PREVIOUS MONTH
@@ -225,12 +218,23 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id == user_id)
             .filter(Customers.status.in_(BOOKING_OR_BEYOND))
-            .filter(Customers.last_contact >= prev_start)
+            .filter(Customers.last_contact == prev_start)
+            .scalar() or 0
+        )
+
+        # previous period appointments
+        prev_appointments = (
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id == user_id)
+            .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
+            .filter(Customers.last_contact == prev_start)
             .scalar() or 0
         )
 
         calls_change = pct_change(total_calls, prev_calls) 
         bookings_change = pct_change(total_bookings, prev_bookings)
+        appointments_change = pct_change(total_appointments, prev_appointments)
+
         
     else: 
 
@@ -266,12 +270,22 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
                   )
         
         ######################## Total Leads ###########################
-        total_leads = ( db.query(func.count(Customers.cust_id))
-                   .filter(Customers.user_id == user_id)
-                   .filter(func.date(Customers.last_contact) >= start, func.date(Customers.last_contact) < end)
-                   .scalar() or 0
-                   )
+        # total_leads = ( db.query(func.count(Customers.cust_id))
+        #            .filter(Customers.user_id == user_id)
+        #            .filter(func.date(SpeechAnalysis.created_at) >= start, func.date(SpeechAnalysis.created_at) < end)
+        #            .filter(func.date(Customers.last_contact) >= start, func.date(Customers.last_contact) < end)
+        #            .scalar() or 0
+        #            )
         
+        total_leads = (
+                    db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
+                    .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
+                    .filter(Customers.user_id == user_id)
+                    .filter(func.date(SpeechAnalysis.created_at) >= start)
+                    .filter(func.date(SpeechAnalysis.created_at) < end)
+                    .scalar() or 0
+                     )
+                        
         prev_calls = (
             db.query(func.count(SpeechAnalysis.id))
             .filter(SpeechAnalysis.user_id == user_id)
@@ -290,8 +304,18 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
             .scalar() or 0
         )
 
+        prev_appointments = (
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id == user_id)
+            .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
+            .filter(Customers.last_contact >= prev_start,
+                    Customers.last_contact < prev_end)
+            .scalar() or 0
+        )
+
         calls_change = pct_change(total_calls, prev_calls)
         bookings_change = pct_change(total_bookings, prev_bookings)
+        appointments_change = pct_change(total_appointments, prev_appointments)
         
     # finalize for the top metrics - for NORMAL AGENTS
     kpis = AgentStats(
@@ -300,8 +324,12 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         followUps=pending_follow_ups,
         appointments=total_appointments,
         bookings=total_bookings,
-        calls_change=prev_calls,
-        bookings_change=prev_bookings
+    )
+
+    conversionPct = ConversionRate(
+        calls_change=calls_change,
+        appointments_change=appointments_change,
+        bookings_change=bookings_change
     )
 
     ######################## Top Regions ###########################
@@ -365,6 +393,7 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
     
     return AgentDashboardResponse(
         kpis = kpis,
+        conversion=conversionPct,
         # total_calls = total_calls,
         total_region = regions,
         top_objection = top_objections
@@ -469,27 +498,26 @@ async def get_agent_calls(db: db_dependency, user_id: uuid.UUID,
 @router.get("/leader/{user_id}", response_model=LeaderDashboardResponse)
 async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
 
-    # get the current user info
+    # --------------- get the current user info ----------------------------
     current_user = db.query(Users).filter(Users.user_id == user_id).first()
 
     if current_user is None:
         raise(HTTPException(status_code=404, detail= "User not found"))
     
-
+    # --------------- get the customers under the agent ----------------------------
     team_members = db.query(Users).filter(Users.team_lead_id == user_id).all()
     team_agent_ids = [m.user_id for m in team_members]
 
-    # Get the date for today
+    # --------------- Get the date for today ---------------
     today = datetime.now(timezone.utc).date()
 
     # CURRENT MONTH
     year = today.year
     month = today.month
-
-    # Focus on monthly
     start = datetime(year, month, 1)
     end = datetime(year, month + 1, 1)
 
+    # PREVIOUS MONTH
     # get previous period boundaries
     if month == 1:
             prev_month = 12
@@ -509,8 +537,9 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     if not team_agent_ids:
         team_kpis = AgentStats(calls = 0, leads=0, followUps=0, appointments=0, bookings=0)
         team_overview = []
-        team_bookings = 0
+        total_agents = 0
         team_leads = 0
+        team_bookings = 0
         team_appointments = 0
         team_regions = []
         team_stats = TeamStats(
@@ -573,7 +602,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
         team_prev_bookings = ( 
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
-            .filter(Customers.status.in_(PENDING_FOLLOWUPS))
+            .filter(Customers.status.in_(BOOKING_OR_BEYOND))
             .filter(Customers.last_contact >= prev_start, Customers.last_contact < prev_end)
             .scalar() or 0
         )
@@ -585,29 +614,41 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             .scalar() or 0
             )
         
+        team_prev_appointments = ( 
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
+            .filter(Customers.last_contact >= prev_start, Customers.last_contact < prev_end)
+            .scalar() or 0
+        )
+        
 
         team_calls_change = pct_change(team_calls, team_prev_calls)
-   
         team_bookings_change = pct_change(team_bookings, team_prev_bookings)
+        team_appointments_change = pct_change(team_appointments, team_prev_appointments)
 
-        # Overall total kpis (call today, leads, followUps, appointments)
 
+        # Overall total kpis (call today, leads, followUps, appointments, bookings)
         team_kpis = AgentStats(
             calls= team_calls,
             leads= team_leads,
             followUps= team_followUps,
             appointments= team_appointments,
             bookings=team_bookings,
+        )
+
+        team_conversion = ConversionRate(
             calls_change=team_calls_change,
+            appointments_change=team_appointments_change,
             bookings_change=team_bookings_change
         )
 
         # Total team regions - not according to monthly, just in general
-
         team_region_rows = (
             db.query(Customers.location, func.count(Customers.cust_id).label("count"))
             .filter(Customers.user_id.in_(team_agent_ids))
             .filter(Customers.location.isnot(None)) # filter out rows with empty location
+
             .group_by(Customers.location)
             .order_by(func.count(Customers.cust_id).desc())
             .limit(5)
@@ -634,10 +675,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             team_kpis= team_kpis,
             team_regions= team_regions,
             # team_objections= team_objections
-            
         )
-
-        
 
         # ---------------------------------------------------------------------
         #                    AGENT TABLE:
@@ -648,8 +686,25 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             team_overview = []
 
         else:
+            
+       
+            # lead_rows = (
+            #         db.query(
+            #             Customers.user_id,
+            #             func.count(func.distinct(SpeechAnalysis.customer_id)).label("count")
+            #         )
+            #         .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
+            #         .filter(Customers.user_id.in_(team_agent_ids))
+            #         .filter(func.date(SpeechAnalysis.created_at) >= start,
+            #                 func.date(SpeechAnalysis.created_at) < end)
+            #         .group_by(Customers.user_id)  # one row per agent
+            #         .all()
+            #     )
+
+
             lead_rows = (
                 db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
+              
                 .filter(Customers.last_contact >= start, Customers.last_contact < end)
                 .filter(Customers.user_id.in_(team_agent_ids))
                 .group_by(Customers.user_id)
@@ -693,21 +748,63 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
 
             appointments_map = { r.user_id: r.count for r in appointment_rows}
 
+            bookings_rows = (
+                db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
+                .filter(Customers.user_id.in_(team_agent_ids))
+                .filter(func.lower(Customers.status) == "booking")
+                .filter(Customers.last_contact >= start, Customers.last_contact < end)
+                .group_by(Customers.user_id)
+                .all()
+            )
+
+            bookings_map = { r.user_id: r.count for r in bookings_rows}
 
             team_overview = [] 
 
-            team_overview = [ AgentTable(
-                agent_id= m.user_id,
-                agent_name= f'{m.first_name} {m.last_name}',
-                leads= leads_map.get(m.user_id, 0),
-                # dict.get(key, default) returns the value if key exists, or default if it doesn't 
-                # — exactly what you want here, since not every agent will have rows in every map 
-                # (e.g. an agent with zero calls today won't appear in calls_today_map at all).
-                calls= calls_map.get(m.user_id, 0),
-                followUps= follow_up_map.get(m.user_id, 0),
-                appointments= appointments_map.get(m.user_id, 0),
+            for m in team_members:
+                leads        = leads_map.get(m.user_id, 0)
+                calls        = calls_map.get(m.user_id, 0)
+                follow_ups   = follow_up_map.get(m.user_id, 0)
+                appointments = appointments_map.get(m.user_id, 0)
+                bookings     = bookings_map.get(m.user_id, 0)
+
+                appt_rate    = round((appointments / leads) * 100, 1) if leads > 0 else 0.0
+                booking_rate = round((bookings / leads) * 100, 1) if leads > 0 else 0.0
+
+                if follow_ups > 0 and calls == 0:
+                    status = "needs_attention"
+                elif follow_ups > 0 and calls > 0:
+                    status = "follow_ups_needed"
+                elif follow_ups == 0 and calls == 0:
+                    status = "no_activity"
+                else:
+                    status = "on_track"
+
+                team_overview.append(AgentTable(
+                    agent_id=m.user_id,
+                    agent_name=f"{m.first_name} {m.last_name}",
+                    leads=leads,
+                    calls=calls,
+                    followUps=follow_ups,
+                    appointments=appointments,
+                    bookings=bookings,
+                    appointment_rate=appt_rate,
+                    booking_rate=booking_rate,
+                    status=status,
+                ))
+
+            # team_overview = [ AgentTable(
+            #     agent_id= m.user_id,
+            #     agent_name= f'{m.first_name} {m.last_name}',
+            #     leads= leads_map.get(m.user_id, 0),
+            #     # dict.get(key, default) returns the value if key exists, or default if it doesn't 
+            #     # — exactly what you want here, since not every agent will have rows in every map 
+            #     # (e.g. an agent with zero calls today won't appear in calls_today_map at all).
+            #     calls= calls_map.get(m.user_id, 0),
+            #     followUps= follow_up_map.get(m.user_id, 0),
+            #     appointments= appointments_map.get(m.user_id, 0),
             
-            )  for m in team_members ]
+            # )  for m in team_members ]
 
     # What the API returns to frontend
     return LeaderDashboardResponse(
@@ -717,10 +814,11 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
         # team_prev_bookings=team_prev_bookings,
         # team_prev_calls=team_prev_calls,
 
-        team_completed=team_completed,
-        team_stats= team_stats,
-        team_overview=team_overview,
-        total_agents = len(team_agent_ids)
+        team_conversion=team_conversion,
+
+        team_stats= team_stats, # for top metric card in dashboard
+        team_overview=team_overview, # get the kpi metrics for agent performance
+        total_agents = len(team_agent_ids) # get the total agents under the leader
     )
     
 

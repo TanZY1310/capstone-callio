@@ -100,10 +100,6 @@ function LeaderDashboard() {
                     label: 'Leads Contacted',
                     count: teamData.team_stats.team_kpis.leads,
                   },
-                  // {
-                  //   label: 'Follow Ups',
-                  //   count: teamData.team_stats.team_kpis.followUps,
-                  // },
 
                   {
                     label: 'Appointments Set',

@@ -11,12 +11,28 @@ function TopCard({ period, calls, leads, followUps, appointments, bookings }) {
   const [date, setDate] = useState(today.getMonth());
 
   const METRIC_CARDS = [
-    // { label: 'Total Leads', key: 'leads', icon: IoPersonSharp, value: leads },
-    { label: 'Total Calls', key: 'calls', icon: MdCall, value: calls },
+    {
+      label: 'Leads Contacted',
+      key: 'leads',
+      icon: IoPersonSharp,
+      iconBg: 'bg-indigo-100',
+      iconColor: 'text-indigo-600',
+      value: leads,
+    },
+    {
+      label: 'Total Calls',
+      key: 'calls',
+      icon: MdCall,
+      iconBg: 'bg-cyan-100',
+      iconColor: 'text-cyan-600',
+      value: calls,
+    },
     {
       label: 'Follow-Ups',
       key: 'pendingFollowUps',
       icon: IoChatboxEllipsesSharp,
+      iconBg: 'bg-yellow-100',
+      iconColor: 'text-yellow-500',
       value: followUps,
     },
     {
@@ -24,30 +40,42 @@ function TopCard({ period, calls, leads, followUps, appointments, bookings }) {
       key: 'appointments',
       icon: FaRegCalendarAlt,
       value: appointments,
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
     },
-    // { label: 'Bookings', key: 'bookings', icon: TiTick, value: bookings },
+    // {
+    //   label: 'Bookings Confirmed',
+    //   key: 'bookings',
+    //   icon: TiTick,
+    //   value: bookings,
+    // },
   ];
 
   return (
     <>
-      <div className="card bg-base-100 border border-base-200 shadow-sm">
-        <div className="stats shadow">
-          {METRIC_CARDS.map((item) => (
-            <div className="stat" key={item.key}>
-              <div className="stat-figure text-secondary">
-                <item.icon size={32} />
-              </div>
-
-              <div className="stat-title">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {METRIC_CARDS.map((item) => (
+          <div
+            className="card bg-base-100 border border-base-200 shadow-sm p-4"
+            key={item.key}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <span className="font-semibold text-md text-base-content">
                 {period === 'monthly'
                   ? `${item.label} - ${today.toLocaleString('en-US', { month: 'long' })}`
                   : `${item.label} - Today`}
-              </div>
+              </span>
 
-              <div className="stat-value">{item.value}</div>
+              <div className={`${item.iconBg} rounded-lg p-2 shrink-0`}>
+                <item.icon size={24} className={item.iconColor} />
+              </div>
             </div>
-          ))}
-        </div>
+
+            <div className="text-2xl font-bold text-base-content">
+              {item.value}
+            </div>
+          </div>
+        ))}
       </div>
     </>
   );
