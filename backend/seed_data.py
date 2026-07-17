@@ -6,16 +6,8 @@ from models.customer import Customers
 from models.speech import SpeechAnalysis, Objection
 
 CUSTOMER_SETS = [
-    # Set 0 — Demo Agent (Amir Hassan)
-    [
-        {"cust_name": "Tan Ze Yan",              "phone": "60199460642", "budget": "",  "location": "",     "status": "Not Yet Call"},
-        {"cust_name": "Nurul Huda Binti Abdullah", "phone": "60125556701", "budget": "$300K-$500K",  "location": "Bukit Bintang",  "status": "WhatsApp"},
-        {"cust_name": "Lee Chong Wei",             "phone": "60125556702", "budget": "$800K-$1M",    "location": "Damansara",      "status": "Appointment"},
-        {"cust_name": "Priya Devi",                "phone": "60125556703", "budget": "$200K-$300K",  "location": "Cheras",         "status": "Not Yet Call"},
-        {"cust_name": "Wong Kok Wai",              "phone": "60125556704", "budget": "$1M-$2M",      "location": "Bangsar",        "status": "Completed"},
-        {"cust_name": "Ahmad Faizal",              "phone": "60125556705", "budget": "$400K-$600K",  "location": "Setapak",        "status": "No Pickup"},
-        {"cust_name": "Goh Siew Ling",             "phone": "60125556706", "budget": "$600K-$900K",  "location": "Subang Jaya",    "status": "Might Keep In Touch"},
-    ],
+    # Set 0 — Demo Agent (Amir Hassan) — imported from Google Sheets
+    [],
     # Set 1 — Sub-agent 1 (Sarah Chen)
     [
         {"cust_name": "Ramesh Kumar",     "phone": "60125556800", "budget": "$350K-$550K",   "location": "Puchong",          "status": "Pending Appointment"},
@@ -35,6 +27,26 @@ CUSTOMER_SETS = [
         {"cust_name": "Yap Mei Fong",     "phone": "60125556904", "budget": "$800K-$1.2M",   "location": "Damansara Heights","status": "Completed"},
         {"cust_name": "Mohd Rizal",       "phone": "60125556905", "budget": "$350K-$500K",   "location": "Gombak",           "status": "No Pickup"},
         {"cust_name": "Angela Pereira",   "phone": "60125556906", "budget": "$600K-$850K",   "location": "Kelana Jaya",      "status": "Might Keep In Touch"},
+    ],
+    # Set 3 — Sub-agent 3 (Aisha Rahman)
+    [
+        {"cust_name": "Vincent Tan",      "phone": "60125557000", "budget": "$550K-$750K",   "location": "Mont Kiara",       "status": "Booking"},
+        {"cust_name": "Nadia Husna",      "phone": "60125557001", "budget": "$300K-$450K",   "location": "Wangsa Maju",      "status": "WhatsApp"},
+        {"cust_name": "Thomas Ong",       "phone": "60125557002", "budget": "$900K-$1.4M",   "location": "Kenny Hills",      "status": "Appointment"},
+        {"cust_name": "Azman Hashim",     "phone": "60125557003", "budget": "$200K-$350K",   "location": "Rawang",           "status": "Not Yet Call"},
+        {"cust_name": "Grace Liew",       "phone": "60125557004", "budget": "$1.2M-$1.8M",   "location": "Bangsar South",    "status": "Pending Appointment"},
+        {"cust_name": "Chew Wei Han",     "phone": "60125557005", "budget": "$400K-$600K",   "location": "Cyberjaya",        "status": "No Pickup"},
+        {"cust_name": "Syafiqah Ramli",   "phone": "60125557006", "budget": "$700K-$950K",   "location": "Putrajaya",        "status": "Stop Following Up"},
+    ],
+    # Set 4 — Sub-agent 4 (Daniel Wong)
+    [
+        {"cust_name": "Kamalesh Naidu",   "phone": "60125557100", "budget": "$450K-$650K",   "location": "Batu Caves",       "status": "Completed"},
+        {"cust_name": "Chow Mei Yan",     "phone": "60125557101", "budget": "$350K-$500K",   "location": "PJ Old Town",      "status": "Not Yet Call"},
+        {"cust_name": "Ridzuan Hakimi",   "phone": "60125557102", "budget": "$1.5M-$2M",     "location": "KLCC",             "status": "Appointment"},
+        {"cust_name": "Josephine Lee",    "phone": "60125557103", "budget": "$250K-$380K",   "location": "Cheras Selatan",   "status": "WhatsApp"},
+        {"cust_name": "Karim Sulaiman",   "phone": "60125557104", "budget": "$800K-$1.1M",   "location": "Damansara Jaya",   "status": "Booking"},
+        {"cust_name": "Lily Chong",       "phone": "60125557105", "budget": "$500K-$700K",   "location": "SS2",              "status": "No Pickup"},
+        {"cust_name": "Faizal Zainal",    "phone": "60125557106", "budget": "$1M-$1.3M",     "location": "Brickfields",      "status": "Might Keep In Touch"},
     ],
 ]
 

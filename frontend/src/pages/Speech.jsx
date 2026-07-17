@@ -19,6 +19,7 @@ function Speech() {
   const [nextActions, setNextActions] = useState(null);
   const [preferences, setPreferences] = useState(null);
   const [propertySuggestions, setPropertySuggestions] = useState(null);
+  const [isPipelineLoading, setIsPipelineLoading] = useState(false);
   const [progressStep, setProgressStep] = useState(-1);
   const [taskId, setTaskId] = useState(null);
   const pollingRef = useRef(null);
@@ -131,14 +132,17 @@ function Speech() {
   };
 
   const handleAddToPipeline = async () => {
-    if (!taskId) return;
+    if (!taskId || isPipelineLoading) return;
+    setIsPipelineLoading(true);
     try {
       await api.post(`/speech/pipeline/${taskId}`, {
         customer_id: customer?.cust_id || null,
       });
-      toast.success('Added to lead pipeline');
+      toast.success('Successfully added to lead pipeline');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to add to pipeline');
+    } finally {
+      setIsPipelineLoading(false);
     }
   };
 
@@ -151,11 +155,15 @@ function Speech() {
         onAddToPipeline={handleAddToPipeline}
         taskId={taskId}
         isAnalysisComplete={sentiment !== null}
+        isPipelineLoading={isPipelineLoading}
       />
 
       {progressStep >= 0 && (
         <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl px-6 py-4 shrink-0">
-          <ProgressBar step={progressStep} awaitingApproval={awaitingApproval} />
+          <ProgressBar
+            step={progressStep}
+            awaitingApproval={awaitingApproval}
+          />
         </div>
       )}
 
@@ -177,7 +185,9 @@ function Speech() {
           />
         </div>
         <div className="w-full lg:w-96 flex">
-          <div className={`card bg-base-100 border border-base-200 shadow-sm rounded-2xl w-full ${isAnalysisLoading ? 'animate-pulse' : ''}`}>
+          <div
+            className={`card bg-base-100 border border-base-200 shadow-sm rounded-2xl w-full ${isAnalysisLoading ? 'animate-pulse' : ''}`}
+          >
             <div className="card-body p-6">
               <Preferencecard data={preferences} loading={isAnalysisLoading} />
             </div>

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Mic, ChevronLeft, ChevronRight, ChevronDown, Calendar, Tag, Target, Heart, ArrowRight, List, FileText } from 'lucide-react';
+import { Search, Mic, ChevronLeft, ChevronRight, ChevronDown, Calendar, Tag, Target, Heart, ArrowRight, List, FileText, User, Phone, MapPin, Flag, Clock, Zap, MessageSquare } from 'lucide-react';
 import { FaPeopleGroup } from 'react-icons/fa6';
 import { SiWhatsapp } from 'react-icons/si';
 import { motion } from 'motion/react';
@@ -54,6 +54,16 @@ const SENTIMENT_BADGE = {
 
 const getBadgeClass = (status) => BADGE_COLORS[status] || 'badge-ghost';
 
+const HEADER_ICONS = {
+  Name: User,
+  Contact: Phone,
+  'Budget & Location': MapPin,
+  Status: Flag,
+  'Last Contact': Clock,
+  Actions: Zap,
+  Remarks: MessageSquare,
+};
+
 const formatDate = (dateStr) => {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -65,12 +75,19 @@ const formatDate = (dateStr) => {
 
 function LoadingSkeleton() {
   return (
-    <table className="table w-full table-sm table-zebra">
+    <table className="table w-full table-sm">
       <thead>
         <tr className="text-xs uppercase tracking-wider text-base-content/60 border-b-2 border-base-300">
           {tableHeader.map((h) => (
             <th key={h.id} className="px-6 py-3 text-left font-semibold">
-              {h.name}
+              <div className="flex items-center gap-1.5 text-base-content/50">
+                {HEADER_ICONS[h.name] &&
+                  (() => {
+                    const Icon = HEADER_ICONS[h.name];
+                    return <Icon size={12} className="shrink-0" />;
+                  })()}
+                <span>{h.name}</span>
+              </div>
             </th>
           ))}
         </tr>
@@ -317,7 +334,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
         </div>
       ) : (
         <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
-          <table className="table w-full table-sm table-zebra">
+          <table className="table w-full table-sm">
             <thead className="sticky top-0 bg-base-100 z-10 shadow-sm">
               <tr className="text-xs uppercase tracking-wider text-base-content/60 border-b-2 border-base-300">
                 {tableHeader.map((eachHeader) => (
@@ -325,7 +342,14 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                     key={eachHeader.id}
                     className="px-6 py-3 text-left font-semibold"
                   >
-                    {eachHeader.name}
+                    <div className="flex items-center gap-1.5 text-base-content/50">
+                      {HEADER_ICONS[eachHeader.name] &&
+                        (() => {
+                          const Icon = HEADER_ICONS[eachHeader.name];
+                          return <Icon size={12} className="shrink-0" />;
+                        })()}
+                      <span>{eachHeader.name}</span>
+                    </div>
                   </th>
                 ))}
               </tr>

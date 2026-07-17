@@ -189,6 +189,7 @@ async def demo_login(payload: dict, db: db_dependency):
             registered_year=demo_data.get("registered_year"),
             license_number=demo_data.get("license_number"),
             agency_branch=demo_data.get("agency_branch"),
+            sheets_id=demo_data.get("sheets_id"),
         )
         db.add(user)
         db.flush()
@@ -201,6 +202,9 @@ async def demo_login(payload: dict, db: db_dependency):
                 existing_sub = sub_result.scalar_one_or_none()
                 if existing_sub:
                     existing_sub.team_lead_id = user.user_id
+                    if sub.get("sheets_id"):
+                        existing_sub.sheets_id = sub["sheets_id"]
+                    db.flush()
                     sub_users.append(existing_sub)
                 else:
                     sub_user = Users(
@@ -210,6 +214,7 @@ async def demo_login(payload: dict, db: db_dependency):
                         last_name=sub["last_name"],
                         role=sub["role"],
                         agency_branch=sub["agency_branch"],
+                        sheets_id=sub.get("sheets_id"),
                         team_lead_id=user.user_id,
                     )
                     db.add(sub_user)
