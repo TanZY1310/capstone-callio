@@ -142,8 +142,8 @@ function LeadDetail() {
   }, [checkConnectionStatus]);
 
   const handleUpdateStatus = async () => {
-    //start whatsapp client, change to axios method later
     await api.post(`/whatsapp/connect`);
+    const data = await checkConnectionStatus();
     setShowQrModal(true);
 
     // Poll /status until connected, reusing the same status-check logic
@@ -214,6 +214,7 @@ function LeadDetail() {
   // Called by AIResponseReview Generate button
   const handleGenerateAIResponse = async () => {
     try {
+      setIsGenerating(true);
       const res = await api.post(
         `/whatsapp/airesponse/${showUser.cust_id}/generate`,
       );
@@ -227,6 +228,7 @@ function LeadDetail() {
   // Called by AIResponseReview Regenerate button
   const handleRegenerateAIResponse = async (responseId) => {
     try {
+      setIsGenerating(true);
       const res = await api.post(
         `/whatsapp/airesponse/${showUser.cust_id}/${responseId}/regenerate`,
       );
