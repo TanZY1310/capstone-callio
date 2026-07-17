@@ -66,7 +66,7 @@ function LeadDetail() {
     };
 
     loading();
-  }, [FASTAPI_BASE_URL, state, profile]);
+  }, [state, profile]);
 
   // Load chat history when user changes
   useEffect(() => {
@@ -85,7 +85,7 @@ function LeadDetail() {
     };
 
     fetchChatHistory();
-  }, [FASTAPI_BASE_URL, showUser, platformStatus]);
+  }, [showUser, platformStatus]);
 
   // Load AI response drafts when user changes
   useEffect(() => {
@@ -102,7 +102,7 @@ function LeadDetail() {
     };
 
     fetchDrafts();
-  }, [FASTAPI_BASE_URL, showUser]);
+  }, [showUser]);
 
   // Single source of truth for reading + applying WhatsApp connection status,
   // shared by the initial mount check and the post-connect poll below so the
