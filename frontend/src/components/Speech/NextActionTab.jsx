@@ -150,25 +150,24 @@ function NextAction({ data, loading = false }) {
                   completedActions.has(i) ? 'opacity-50' : ''
                 }`}
               >
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/60 shrink-0 mt-0.5">
+                  Action
+                </span>
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className={`text-sm leading-relaxed break-words ${
+                    completedActions.has(i)
+                      ? 'line-through text-base-content/30'
+                      : 'text-base-content/60'
+                  }`}>
+                    {action}
+                  </span>
+                </div>
                 <input
                   type="checkbox"
                   className="checkbox checkbox-primary mt-1 shrink-0"
                   checked={completedActions.has(i)}
                   onChange={() => toggleAction(i)}
                 />
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                  <span className={`font-bold text-sm text-base-content ${
-                    completedActions.has(i) ? 'line-through' : ''
-                  }`}>
-                    Recommended Action
-                  </span>
-                  <span className={`text-sm leading-relaxed text-base-content/60 break-words ${
-                    completedActions.has(i) ? 'line-through' : ''
-                  }`}>
-                    {action}
-                  </span>
-                </div>
-
               </div>
             ))
           ) : (

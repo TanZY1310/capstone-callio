@@ -139,6 +139,7 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         "- What signals indicate the buyer's intent level (price checks, viewing requests, comparisons)?\n"
         "- What should the agent do next to move the deal forward?\n\n"
 
+        "- For the 'location' field, extract ONLY the place name (e.g. 'Shah Alam', 'Kg Kayu Ara', 'Bukit Jalil'). Do not include travel time, proximity notes, or any qualifiers.\n\n"
         "Then output your final answer as a JSON code block with this exact structure:\n"
         "```json\n"
         "{\n"
@@ -157,7 +158,7 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         '    "signals": ["buying signal 1"],\n'
         '    "budgetValue": "budget range or not specified",\n'
         '    "budgetNote": "flexibility or constraints",\n'
-        '    "location": "preferred area",\n'
+        '    "location": "place name ONLY (e.g. \'Shah Alam\', \'Kg Kayu Ara\'). No travel time, no proximity notes.",\n'
         '    "locationNote": "details about location preference",\n'
         '    "purpose": "main purpose of this call"\n'
         "  },\n"
