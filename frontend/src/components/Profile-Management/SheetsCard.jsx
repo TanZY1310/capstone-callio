@@ -31,6 +31,7 @@ function SheetsCard() {
     if (profile?.sheets_id) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       checkStatus();
+      setSheetsId(profile.sheets_id);
     }
   }, [profile?.sheets_id]);
 
