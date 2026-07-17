@@ -122,7 +122,9 @@ function RagUpload() {
                       <td>
                         <div className="flex items-center gap-2">
                           <File className="h-4 w-4 text-primary shrink-0" />
-                          <span className="text-xs truncate max-w-[150px] sm:max-w-[200px] block" title={file.name}>{file.name}</span>
+                          <div className="tooltip tooltip-right z-50 before:max-w-[250px] before:content-[attr(data-tip)]" data-tip={file.name}>
+                            <span className="text-xs truncate max-w-[120px] sm:max-w-[150px] block cursor-pointer">{file.name}</span>
+                          </div>
                         </div>
                       </td>
                       <td>
@@ -197,9 +199,11 @@ function RagUpload() {
               <ul className="space-y-2">
                 {selectedFiles.map((file, idx) => (
                   <li key={idx} className="flex items-center justify-between bg-base-200/50 p-2 rounded-lg border border-base-300">
-                    <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
                       <File className="h-4 w-4 text-primary shrink-0" />
-                      <span className="text-xs text-base-content truncate">{file.name}</span>
+                      <div className="tooltip tooltip-right z-50 truncate before:max-w-[250px] before:content-[attr(data-tip)]" data-tip={file.name}>
+                        <span className="text-xs text-base-content cursor-pointer">{file.name}</span>
+                      </div>
                     </div>
                     <button 
                       className="btn btn-ghost btn-xs btn-circle text-base-content/50 hover:text-error-icon shrink-0"
