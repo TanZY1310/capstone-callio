@@ -11,6 +11,7 @@ function BodyHeader({
   onAddToPipeline,
   taskId,
   isAnalysisComplete,
+  isPipelineLoading,
 }) {
   const fileInputRef = useRef(null);
 
@@ -51,18 +52,22 @@ function BodyHeader({
       </div>
       <div className="flex items-center gap-3">
         {taskId && (
-          <button
-            onClick={onAddToPipeline}
-            disabled={!isAnalysisComplete}
-            className={`btn gap-2 ${
-              isAnalysisComplete
-                ? 'btn-primary'
-                : 'btn-outline border-base-content/20 text-base-content/40 cursor-not-allowed'
-            }`}
-          >
-            <Target size={16} />
-            Add to Lead Pipeline
-          </button>
+            <button
+              onClick={onAddToPipeline}
+              disabled={!isAnalysisComplete || isPipelineLoading}
+              className={`btn gap-2 ${
+                isAnalysisComplete && !isPipelineLoading
+                  ? 'btn-primary'
+                  : 'btn-outline border-base-content/20 text-base-content/40 cursor-not-allowed'
+              }`}
+            >
+              {isPipelineLoading ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <Target size={16} />
+              )}
+              {isPipelineLoading ? 'Adding...' : 'Add to Lead Pipeline'}
+            </button>
         )}
         <button onClick={handleUploadClick} className="btn btn-outline gap-2">
           <AudioLines />
