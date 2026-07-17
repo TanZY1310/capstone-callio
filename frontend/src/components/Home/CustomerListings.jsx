@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Mic, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Mic, ChevronLeft, ChevronRight, ChevronDown, Calendar, Tag, Target, Heart, ArrowRight, List, FileText } from 'lucide-react';
 import { FaPeopleGroup } from 'react-icons/fa6';
 import { SiWhatsapp } from 'react-icons/si';
 import { motion } from 'motion/react';
@@ -22,6 +22,17 @@ const rowVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+const getRelativeTime = (dateStr) => {
+  if (!dateStr) return null;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return null;
+};
+
 const BADGE_COLORS = {
   Completed: 'bg-success-icon text-white',
   Booking: 'bg-success-icon text-white',
@@ -33,6 +44,12 @@ const BADGE_COLORS = {
   'No Pickup': 'badge-ghost',
   'Not Interested': 'bg-error-icon text-white',
   'Stop Following Up': 'bg-error-icon text-white',
+};
+
+const SENTIMENT_BADGE = {
+  Positive: 'badge badge-success',
+  Neutral: 'badge badge-warning',
+  Negative: 'badge badge-error',
 };
 
 const getBadgeClass = (status) => BADGE_COLORS[status] || 'badge-ghost';
@@ -48,11 +65,11 @@ const formatDate = (dateStr) => {
 
 function LoadingSkeleton() {
   return (
-    <table className="table w-full table-sm">
+    <table className="table w-full table-sm table-zebra">
       <thead>
-        <tr className="text-xs text-base-content/40 border-b border-base-200">
+        <tr className="text-xs uppercase tracking-wider text-base-content/60 border-b-2 border-base-300">
           {tableHeader.map((h) => (
-            <th key={h.id} className="px-6 py-3 text-left font-medium">
+            <th key={h.id} className="px-6 py-3 text-left font-semibold">
               {h.name}
             </th>
           ))}
@@ -62,7 +79,7 @@ function LoadingSkeleton() {
         {Array.from({ length: 6 }).map((_, i) => (
           <tr key={i} className="border-b border-base-200">
             {tableHeader.map((h) => (
-              <td key={h.id} className="px-6 py-4">
+              <td key={h.id} className="px-6 py-3">
                 <div className="skeleton h-4 rounded" style={{ width: `${60 + Math.random() * 30}%` }} />
               </td>
             ))}
@@ -299,138 +316,155 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
           </p>
         </div>
       ) : (
-        <table className="table w-full table-sm">
-          <thead>
-            <tr className="text-xs text-base-content/40 border-b border-base-200">
-              {tableHeader.map((eachHeader) => (
-                <th
-                  key={eachHeader.id}
-                  className="px-6 py-3 text-left font-medium"
+        <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
+          <table className="table w-full table-sm table-zebra">
+            <thead className="sticky top-0 bg-base-100 z-10 shadow-sm">
+              <tr className="text-xs uppercase tracking-wider text-base-content/60 border-b-2 border-base-300">
+                {tableHeader.map((eachHeader) => (
+                  <th
+                    key={eachHeader.id}
+                    className="px-6 py-3 text-left font-semibold"
+                  >
+                    {eachHeader.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <motion.tbody variants={tableVariants} initial="hidden" animate="visible">
+              {rows.map((customer) => (
+                <motion.tr
+                  key={customer.cust_id}
+                  variants={rowVariants}
+                  className="border-b border-base-200 hover:bg-base-200 transition-colors"
                 >
-                  {eachHeader.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <motion.tbody variants={tableVariants} initial="hidden" animate="visible">
-            {rows.map((customer) => (
-              <motion.tr
-                key={customer.cust_id}
-                variants={rowVariants}
-                className="border-b border-base-200 hover:bg-base-200 transition-colors"
-              >
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-base-content">
+                  <td className="px-6 py-3">
+                    <span className="text-sm font-medium text-base-content">
                       {customer.cust_name}
                     </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <motion.button
-                    className="btn btn-link btn-sm text-success-icon normal-case no-underline justify-start px-0"
-                    onClick={() => sendCustomerDetails('/whatsapp', customer)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <SiWhatsapp size={14} className="text-success-icon" />
-                    <div className="text-sm text-success">{customer.phone}</div>
-                  </motion.button>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-base-content/70">
-                    {customer.location ?? '-'}
-                  </div>
-                  <div className="text-xs text-base-content/40">
-                    {customer.budget ?? '-'}
-                  </div>
-                </td>
-                <td>
-                  <div
-                    className={`dropdown dropdown-end ${activeDropdown === customer.cust_id ? 'dropdown-open' : ''}`}
-                    data-dropdown-container
-                  >
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      className="cursor-pointer"
-                      onClick={() => handleDropdownClick(customer.cust_id)}
-                    >
-                      <span
-                        className={`badge ${getBadgeClass(customer.status)}`}
-                      >
-                        {customer.status}
-                      </span>
-                    </div>
-                    <ul
-                      tabIndex={0}
-                      className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
-                    >
-                      {statusList.map((s) => (
-                        <li key={s.id}>
-                          <button
-                            className={
-                              s.name === customer.status
-                                ? 'text-base-content font-semibold'
-                                : ''
-                            }
-                            onClick={() =>
-                              handleStatusSelect(customer.cust_id, s.name)
-                            }
-                          >
-                            <span
-                              className={`badge ${getBadgeClass(s.name)} w-full justify-start`}
-                            >
-                              {s.name}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </td>
-                <td className="text-sm px-6 py-4 text-base-content/60">
-                  {formatDate(customer.last_contact)}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
+                  </td>
+                  <td className="px-6 py-3">
                     <motion.button
-                      name="micButton"
-                      className="btn btn-sm btn-ghost border border-success-icon/30 hover:bg-success-icon/10"
-                      onClick={() => sendCustomerDetails('/speech', customer)}
-                      whileHover={{ scale: 1.15 }}
+                      className="btn btn-link btn-sm text-success-icon normal-case no-underline justify-start px-0"
+                      onClick={() => sendCustomerDetails('/whatsapp', customer)}
+                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Mic size={15} />
+                      <SiWhatsapp size={14} className="text-success-icon" />
+                      <span className="text-sm text-success">{customer.phone}</span>
                     </motion.button>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-base-content/60 max-w-xs">
-                  {customer.remarks?.speechAnalysis ? (
-                    <>
-                      <p className="line-clamp-2 mb-1 text-sm">
-                        {customer.remarks.speechAnalysis.summary ||
-                          'No summary'}
-                      </p>
-                      <button
-                        className="btn btn-link btn-xs text-info-icon normal-case no-underline"
-                        onClick={() => {
-                          setModalCustomer(customer.cust_name);
-                          setModalRemark(customer.remarks.speechAnalysis);
-                          remarksDialogRef.current?.showModal();
-                        }}
+                  </td>
+                  <td className="px-6 py-3">
+                    <div className="text-sm text-base-content/70">
+                      {customer.location ?? (
+                        <span className="italic text-base-content/30">-</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-base-content/40">
+                      {customer.budget ?? (
+                        <span className="italic text-base-content/30">-</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3">
+                    <div
+                      className={`dropdown dropdown-end ${activeDropdown === customer.cust_id ? 'dropdown-open' : ''}`}
+                      data-dropdown-container
+                    >
+                      <div
+                        tabIndex={0}
+                        role="button"
+                        className="cursor-pointer"
+                        onClick={() => handleDropdownClick(customer.cust_id)}
                       >
-                        Details
-                      </button>
-                    </>
-                  ) : (
-                    '-'
-                  )}
-                </td>
-              </motion.tr>
-            ))}
-          </motion.tbody>
-        </table>
+                        <span
+                          className={`badge ${getBadgeClass(customer.status)} gap-1`}
+                        >
+                          {customer.status}
+                          <ChevronDown size={10} />
+                        </span>
+                      </div>
+                      <ul
+                        tabIndex={0}
+                        className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
+                      >
+                        {statusList.map((s) => (
+                          <li key={s.id}>
+                            <button
+                              className={
+                                s.name === customer.status
+                                  ? 'text-base-content font-semibold'
+                                  : ''
+                              }
+                              onClick={() =>
+                                handleStatusSelect(customer.cust_id, s.name)
+                              }
+                            >
+                              <span
+                                className={`badge ${getBadgeClass(s.name)} w-full justify-start`}
+                              >
+                                {s.name}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </td>
+                  <td className="px-6 py-3">
+                    <div className="text-sm text-base-content/70">
+                      {customer.last_contact ? (
+                        formatDate(customer.last_contact)
+                      ) : (
+                        <span className="italic text-base-content/30">-</span>
+                      )}
+                    </div>
+                    {customer.last_contact &&
+                      getRelativeTime(customer.last_contact) && (
+                        <div className="text-xs text-base-content/40">
+                          {getRelativeTime(customer.last_contact)}
+                        </div>
+                      )}
+                  </td>
+                  <td className="px-6 py-3">
+                    <div className="flex items-center gap-2">
+                      <motion.button
+                        name="micButton"
+                        className="btn btn-sm btn-ghost border border-success-icon/30 hover:bg-success-icon/10"
+                        onClick={() => sendCustomerDetails('/speech', customer)}
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Mic size={15} />
+                      </motion.button>
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 text-base-content/60 max-w-xs">
+                    {customer.remarks?.speechAnalysis ? (
+                      <>
+                        <p className="line-clamp-2 mb-1 text-sm">
+                          {customer.remarks.speechAnalysis.summary ||
+                            'No summary'}
+                        </p>
+                        <button
+                          className="btn btn-link btn-xs text-info-icon normal-case no-underline"
+                          onClick={() => {
+                            setModalCustomer(customer.cust_name);
+                            setModalRemark(customer.remarks.speechAnalysis);
+                            remarksDialogRef.current?.showModal();
+                          }}
+                        >
+                          Details
+                        </button>
+                      </>
+                    ) : (
+                      <span className="italic text-base-content/30">-</span>
+                    )}
+                  </td>
+                </motion.tr>
+              ))}
+            </motion.tbody>
+          </table>
+        </div>
       )}
 
       {customerData && customerData.length > 0 && (
@@ -477,57 +511,136 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
           </form>
           <h3 className="font-bold text-lg mb-4">Remarks — {modalCustomer}</h3>
           {modalRemark && (
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Call Datetime:
-                </span>{' '}
-                {modalRemark.callDatetime
-                  ? new Date(modalRemark.callDatetime).toLocaleString()
-                  : '-'}
-              </div>
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Buyer Stage:
-                </span>{' '}
-                {modalRemark.buyerStage || '-'}
-              </div>
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Purpose:
-                </span>{' '}
-                {modalRemark.purpose || '-'}
-              </div>
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Sentiment:
-                </span>{' '}
-                {modalRemark.sentiment || '-'}
-              </div>
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Next Action:
-                </span>{' '}
-                {modalRemark.nextActions?.[0] || '-'}
-              </div>
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Preferences:
-                </span>{' '}
-                {modalRemark.preferences || '-'}
-              </div>
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Next Follow Up:
-                </span>{' '}
-                {modalRemark.nextActions?.[1] || '-'}
-              </div>
-              <div>
-                <span className="font-semibold text-base-content/80">
-                  Summary:
-                </span>{' '}
-                {modalRemark.summary || '-'}
-              </div>
+            <div className="overflow-x-auto border border-base-200 rounded-box">
+              <table className="table table-sm table-zebra">
+                <tbody>
+                  <tr>
+                    <td colSpan={2} className="pt-3 pb-1 px-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-base-content/30">
+                        Call Information
+                      </span>
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} className="text-base-content/40 shrink-0" />
+                        <span>Call Datetime</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5">
+                      {modalRemark.callDatetime
+                        ? new Date(modalRemark.callDatetime).toLocaleString()
+                        : <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td colSpan={2} className="pt-4 pb-1 px-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-base-content/30">
+                        Analysis
+                      </span>
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Tag size={14} className="text-base-content/40 shrink-0" />
+                        <span>Buyer Stage</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5">
+                      {modalRemark.buyerStage
+                        ? <span className={`badge ${getBadgeClass(modalRemark.buyerStage)}`}>{modalRemark.buyerStage}</span>
+                        : <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Target size={14} className="text-base-content/40 shrink-0" />
+                        <span>Purpose</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5">
+                      {modalRemark.purpose || <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Heart size={14} className="text-base-content/40 shrink-0" />
+                        <span>Sentiment</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5">
+                      {modalRemark.sentiment
+                        ? <span className={`badge ${SENTIMENT_BADGE[modalRemark.sentiment] || 'badge-ghost'}`}>{modalRemark.sentiment}</span>
+                        : <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td colSpan={2} className="pt-4 pb-1 px-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-base-content/30">
+                        Follow-Up
+                      </span>
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <ArrowRight size={14} className="text-base-content/40 shrink-0" />
+                        <span>Next Action</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5">
+                      {modalRemark.nextActions?.[0] || <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <ArrowRight size={14} className="text-base-content/40 shrink-0" />
+                        <span>Next Follow Up</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5">
+                      {modalRemark.nextActions?.[1] || <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td colSpan={2} className="pt-4 pb-1 px-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-base-content/30">
+                        Insights
+                      </span>
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <List size={14} className="text-base-content/40 shrink-0" />
+                        <span>Preferences</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5">
+                      {modalRemark.preferences || <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+                  <tr className="align-top bg-primary/5">
+                    <td className="font-semibold text-base-content/80 w-40 whitespace-nowrap px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <FileText size={14} className="text-base-content/40 shrink-0" />
+                        <span>Summary</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-normal px-4 py-2.5 border-l-2 border-primary/30">
+                      {modalRemark.summary || <span className="italic text-base-content/30">-</span>}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           )}
         </div>
