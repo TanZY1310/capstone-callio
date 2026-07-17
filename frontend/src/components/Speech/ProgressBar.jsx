@@ -9,18 +9,18 @@ const steps = [
 ];
 
 function ProgressBar({ step = -1, awaitingApproval = false }) {
-  const fillPercent = step >= 0 ? 10 + step * 20 : 0;
+  const fillPercent = step >= 0 ? (step / 5) * 80 : 0;
 
   return (
     <div className="flex flex-col w-full">
       {/* Track layer */}
       <div className="relative flex items-center w-full">
         {/* Background track */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-[3px] bg-base-content/15 rounded-full" />
+        <div className="absolute top-1/2 -translate-y-1/2 left-[10%] right-[10%] h-[3px] bg-base-content/15 rounded-full" />
 
         {/* Progress fill */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 left-0 h-[3px] bg-primary rounded-full transition-all duration-500"
+          className="absolute top-1/2 -translate-y-1/2 left-[10%] h-[3px] bg-primary rounded-full transition-all duration-500"
           style={{ width: `${fillPercent}%` }}
         />
 

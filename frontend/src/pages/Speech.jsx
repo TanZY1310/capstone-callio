@@ -136,6 +136,7 @@ function Speech() {
       await api.post(`/speech/pipeline/${taskId}`, {
         customer_id: customer?.cust_id || null,
       });
+      setProgressStep(5);
       toast.success('Added to lead pipeline');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to add to pipeline');
@@ -154,7 +155,7 @@ function Speech() {
       />
 
       {progressStep >= 0 && (
-        <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl px-6 py-4 shrink-0">
+        <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl px-6 py-4 shrink-0 overflow-hidden">
           <ProgressBar step={progressStep} awaitingApproval={awaitingApproval} />
         </div>
       )}
