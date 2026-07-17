@@ -31,8 +31,46 @@ function SheetsCard() {
     if (profile?.sheets_id) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       checkStatus();
+      setSheetsId(profile.sheets_id);
     }
   }, [profile?.sheets_id]);
+
+  // Auto-sync every 30 seconds when connected
+  useEffect(() => {
+    let intervalId;
+    if (isLinked) {
+      intervalId = setInterval(async () => {
+        try {
+          setIsSyncing(true);
+          await api.post('/sheets/sync');
+          await api.post('/sheets/export');
+          
+          const now = new Date();
+          const formattedTime =
+            now.getFullYear() +
+            '-' +
+            String(now.getMonth() + 1).padStart(2, '0') +
+            '-' +
+            String(now.getDate()).padStart(2, '0') +
+            ' ' +
+            String(now.getHours()).padStart(2, '0') +
+            ':' +
+            String(now.getMinutes()).padStart(2, '0') +
+            ':' +
+            String(now.getSeconds()).padStart(2, '0');
+          setLastSyncTime(formattedTime);
+        } catch (err) {
+          console.error('Auto-sync error:', err);
+        } finally {
+          setIsSyncing(false);
+        }
+      }, 30000);
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isLinked]);
 
   const handleSync = async () => {
     if (!sheetsId || !sheetsId.trim()) {
@@ -45,6 +83,7 @@ function SheetsCard() {
     try {
       await api.put('/user_profile/', { sheets_id: sheetsId });
       await api.post('/sheets/sync');
+      await api.post('/sheets/export');
       setIsLinked(true);
       toast.success('Sync successful');
 
