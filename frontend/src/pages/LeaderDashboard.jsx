@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import TopCard from '../components/Metrics/TopCard';
 import PerformanceCard from '../components/Metrics/PerformanceCard';
-import ConversionFunnel from '../components/Metrics/ConversionFunnel';
-// import TeamFunnelCard from '../components/Metrics/TeamFunnelCard';
+import TeamConversionFunnel from '../components/Metrics/TeamConversionFunnel.jsx';
 import Objections from '../components/Metrics/Objections';
 import LeadsByRegion from '../components/Metrics/LeadsByRegion';
 import Header from '../components/Layout/Header';
@@ -17,14 +16,12 @@ import api from '../utils/api.js';
 
 function LeaderDashboard() {
   const [teamData, setTeamData] = useState(null);
-  // const [teamRegions, setTeamRegions] = useState(null);
-  // const [teamObjections, setTeamObjections] = useState(null)
   const [loading, setLoading] = useState(true); // start TRUE
   const [error, setError] = useState(null);
 
   const API_URL = 'http://localhost:8000';
   const { profile } = useAuth();
-  console.log(profile);
+  // console.log(profile);
 
   useEffect(() => {
     if (!profile?.user_id) return; // wait until profile is ready
@@ -49,7 +46,7 @@ function LeaderDashboard() {
   if (loading)
     return (
       <div className="card ...">
-        <span className="loading loading-spinner loading-md"></span>
+        <span className="loading loading-spinner loading-md">Loading...</span>
       </div>
     );
 
@@ -62,6 +59,17 @@ function LeaderDashboard() {
 
   if (!teamData) return null; // belt-and-suspenders guard
 
+  // check if there are leads contacted this month.
+  // if no one, 0. else calculate
+  const conversionRate =
+    teamData.team_stats.team_kpis.leads > 0
+      ? (
+          (teamData.team_stats.team_kpis.bookings /
+            teamData.team_stats.team_kpis.leads) *
+          100
+        ).toFixed(2)
+      : 0;
+
   return (
     <>
       <div className="flex h-screen bg-base-200">
@@ -73,26 +81,25 @@ function LeaderDashboard() {
           />
 
           {/* 1. Top Card - Personal Metrics Performance */}
-
           <LeaderCard
             agents={teamData.total_agents}
             calls={teamData.team_stats.team_kpis.calls}
-            leads={teamData.team_stats.team_kpis.leads}
-            appointments={teamData.team_stats.team_kpis.appointments}
+            followUps={teamData.team_stats.team_kpis.followUps}
+            bookings={teamData.team_stats.team_kpis.bookings}
+            callsDeltaPct={teamData.team_stats.team_kpis.calls_change}
+            bookingsDeltaPct={teamData.team_stats.team_kpis.bookings_change}
           />
 
           {/* 2. Team Performance*/}
-
           <PerformanceCard teamTable={teamData.team_overview} />
 
           {/* 3. Bottom Card */}
-
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="col-span-2 card  bg-base-100 ">
-              <ConversionFunnel
+              <TeamConversionFunnel
                 stages={[
                   {
-                    label: 'Total Leads',
+                    label: 'Leads Contacted',
                     count: teamData.team_stats.team_kpis.leads,
                   },
                   // {
@@ -105,20 +112,24 @@ function LeaderDashboard() {
                     count: teamData.team_stats.team_kpis.appointments,
                   },
                   {
-                    label: 'Bookings',
+                    label: 'Bookings Confirmed',
                     count: teamData.team_stats.team_kpis.bookings,
                   },
                 ]}
               />
             </div>
 
+            {/* Total Regions */}
+
             <div className="col-span-2 card  bg-base-100">
               <LeadsByRegion regions={teamData.team_stats.team_regions} />
             </div>
 
-            <div className="col-span-1 card bg-base-100 ">
+            {/* Objections */}
+
+            {/* <div className="col-span-1 card bg-base-100 ">
               <Objections objection={teamData.team_stats.team_objections} />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

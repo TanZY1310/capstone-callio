@@ -16,7 +16,7 @@ const STAGE_STYLES = [
   },
 ];
 
-function ConversionFunnel({ stages }) {
+function TeamConversionFunnel({ stages }) {
   const totalLeads = stages[0]?.count || 1;
 
   return (
@@ -77,4 +77,4 @@ function ConversionFunnel({ stages }) {
   );
 }
 
-export default ConversionFunnel;
+export default TeamConversionFunnel;

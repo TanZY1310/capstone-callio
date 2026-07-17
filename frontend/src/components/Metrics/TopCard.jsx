@@ -2,62 +2,51 @@ import { MdCall } from 'react-icons/md';
 import { IoPersonSharp } from 'react-icons/io5';
 import { IoChatboxEllipsesSharp } from 'react-icons/io5';
 import { TiTick } from 'react-icons/ti';
+import { FaRegCalendarAlt } from 'react-icons/fa';
+import { useState } from 'react';
 
-const METRIC_CARDS = [
-  { label: 'Total Leads', key: 'leads', icon: IoPersonSharp },
-  { label: 'Total Calls Today', key: 'calls', icon: MdCall },
-  {
-    label: 'Pending Follow-Ups',
-    key: 'pendingFollowUps',
-    icon: IoChatboxEllipsesSharp,
-  },
-  { label: 'Appointment Set', key: 'appointments', icon: TiTick },
-];
+function TopCard({ period, calls, leads, followUps, appointments, bookings }) {
+  const today = new Date();
 
-function TopCard({ calls, leads, followUps, appointments }) {
+  const [date, setDate] = useState(today.getMonth());
+
+  const METRIC_CARDS = [
+    // { label: 'Total Leads', key: 'leads', icon: IoPersonSharp, value: leads },
+    { label: 'Total Calls', key: 'calls', icon: MdCall, value: calls },
+    {
+      label: 'Follow-Ups',
+      key: 'pendingFollowUps',
+      icon: IoChatboxEllipsesSharp,
+      value: followUps,
+    },
+    {
+      label: 'Appointment Set',
+      key: 'appointments',
+      icon: FaRegCalendarAlt,
+      value: appointments,
+    },
+    // { label: 'Bookings', key: 'bookings', icon: TiTick, value: bookings },
+  ];
+
   return (
     <>
       <div className="card bg-base-100 border border-base-200 shadow-sm">
-        {/* 1. Total Calls */}
-
         <div className="stats shadow">
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <MdCall size={32} />
+          {METRIC_CARDS.map((item) => (
+            <div className="stat" key={item.key}>
+              <div className="stat-figure text-secondary">
+                <item.icon size={32} />
+              </div>
+
+              <div className="stat-title">
+                {period === 'monthly'
+                  ? `${item.label} - ${today.toLocaleString('en-US', { month: 'long' })}`
+                  : `${item.label} - Today`}
+              </div>
+
+              <div className="stat-value">{item.value}</div>
             </div>
-            <div className="stat-title">Total Calls Today</div>
-            <div className="stat-value">{calls}</div>
-          </div>
-
-          {/* 2. Total Leads */}
-
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <IoPersonSharp size={32} />
-            </div>
-            <div className="stat-title">Total Leads</div>
-            <div className="stat-value">{leads}</div>
-          </div>
-
-          {/* 3. Pending Follow-ups */}
-
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <IoChatboxEllipsesSharp size={32} />
-            </div>
-            <div className="stat-title">Pending Follow-Ups</div>
-            <div className="stat-value">{followUps}</div>
-          </div>
-
-          {/* 4. Booking confirmed */}
-
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <TiTick size={32} />
-            </div>
-            <div className="stat-title">Appointment Sets</div>
-            <div className="stat-value">{appointments}</div>
-          </div>
+          ))}
         </div>
       </div>
     </>
