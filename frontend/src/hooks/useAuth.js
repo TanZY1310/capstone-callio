@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import axios from 'axios';
+import { toast } from 'sonner';
+import { resetForceLogoutFlag } from '../utils/api';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const MAX_RETRIES = 3;
@@ -51,6 +53,7 @@ export function useAuth() {
         setProfile(profileData);
         setIsDemo(true);
         setAuthError(null);
+        resetForceLogoutFlag();
       }
     } catch (err) {
       console.error('Demo login failed:', err);
@@ -97,6 +100,7 @@ export function useAuth() {
             if (mountedRef.current) {
               setProfile(response.data);
               setAuthError(null);
+              resetForceLogoutFlag();
             }
             lastError = null;
             break;
@@ -135,6 +139,23 @@ export function useAuth() {
       unsubscribe();
     };
   }, [isDemo]);
+
+  useEffect(() => {
+    const handleForceLogout = () => {
+      localStorage.removeItem('demo_token');
+      localStorage.removeItem('userProfile');
+      signOut(auth).catch(() => {});
+      setUser(null);
+      setProfile(null);
+      setIsDemo(false);
+      setLoading(false);
+      setAuthError(null);
+      toast.error('Session expired. Please log in again.', { duration: 3000 });
+    };
+
+    window.addEventListener('force_logout', handleForceLogout);
+    return () => window.removeEventListener('force_logout', handleForceLogout);
+  }, []);
 
   const logout = async () => {
     if (isDemo) {

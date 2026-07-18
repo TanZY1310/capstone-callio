@@ -5,6 +5,8 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
+let forceLogoutDispatched = false;
+
 api.interceptors.request.use(async (config) => {
   const demoToken = localStorage.getItem('demo_token');
   if (demoToken) {
@@ -27,6 +29,12 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && (originalRequest._retry || 0) < 2) {
       if (localStorage.getItem('demo_token')) {
+        if (!forceLogoutDispatched) {
+          forceLogoutDispatched = true;
+          localStorage.removeItem('demo_token');
+          localStorage.removeItem('userProfile');
+          window.dispatchEvent(new CustomEvent('force_logout'));
+        }
         return Promise.reject(error);
       }
 
@@ -43,8 +51,18 @@ api.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 401 && !forceLogoutDispatched) {
+      forceLogoutDispatched = true;
+      localStorage.removeItem('userProfile');
+      window.dispatchEvent(new CustomEvent('force_logout'));
+    }
+
     return Promise.reject(error);
   }
 );
+
+export function resetForceLogoutFlag() {
+  forceLogoutDispatched = false;
+}
 
 export default api;

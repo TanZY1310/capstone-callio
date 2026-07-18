@@ -66,9 +66,9 @@ class AgentTable(BaseModel):
     leads: int
     followUps: int
     appointments: int
-    appointment_rate: int
+    appointment_rate: float
     bookings: int
-    booking_rate: int
+    booking_rate: float
     status: str
 
 class TeamStats(BaseModel):
