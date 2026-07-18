@@ -1,23 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'sonner';
 import BodyHeader from '../components/Speech/BodyHeader';
 import Preferencecard from '../components/Speech/PreferenceCard';
 import SpeechAnalysisCard from '../components/Speech/SpeechAnalysisCard';
 import AudioPlaybackCard from '../components/Speech/AudioPlayCard';
-
-const API_URL = 'http://localhost:8000';
+import ProgressBar from '../components/Speech/ProgressBar';
 
 function Speech() {
   const { state } = useLocation();
   const customer = state?.customer;
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const [transcription, setTranscription] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
   const [sentiment, setSentiment] = useState(null);
   const [nextActions, setNextActions] = useState(null);
   const [preferences, setPreferences] = useState(null);
+  const [propertySuggestions, setPropertySuggestions] = useState(null);
+  const [isPipelineLoading, setIsPipelineLoading] = useState(false);
   const [progressStep, setProgressStep] = useState(-1);
   const [taskId, setTaskId] = useState(null);
   const pollingRef = useRef(null);
@@ -27,6 +29,8 @@ function Speech() {
 
   const [awaitingApproval, setAwaitingApproval] = useState(false);
   const [rawAudioUrl, setRawAudioUrl] = useState(null);
+  const [progressMessage, setProgressMessage] = useState('');
+  const isAnalysisLoading = progressStep === 3;
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -43,10 +47,11 @@ function Speech() {
 
       pollingRef.current = setInterval(async () => {
         try {
-          const res = await axios.get(`${API_URL}/speech/status/${id}`);
+          const res = await api.get(`/speech/status/${id}`);
           const task = res.data;
 
           setProgressStep(task.step);
+          setProgressMessage(task.progress_message || '');
 
           if (task.status === 'awaiting_approval') {
             stopPolling();
@@ -60,6 +65,7 @@ function Speech() {
             setSentiment(task.data.sentiment);
             setNextActions(task.data.nextActions);
             setPreferences(task.data.preferences);
+            setPropertySuggestions(task.data.propertySuggestions);
             toast.success('Analysis complete');
           } else if (task.status === 'error') {
             stopPolling();
@@ -71,7 +77,7 @@ function Speech() {
         }
       }, 1500);
     },
-    [stopPolling],
+    [stopPolling, API_URL],
   );
 
   useEffect(() => {
@@ -86,12 +92,13 @@ function Speech() {
     setNextActions(null);
     setPreferences(null);
     setAudioUrl(null);
+    setProgressMessage('');
     startPolling(data.task_id, data.audio_url);
   };
 
   const handleApprove = async () => {
     try {
-      await axios.post(`${API_URL}/speech/approve/${taskId}`);
+      await api.post(`/speech/approve/${taskId}`);
       setAwaitingApproval(false);
       startPolling(taskId, rawAudioUrl);
     } catch (err) {
@@ -107,6 +114,7 @@ function Speech() {
     setSentiment(null);
     setNextActions(null);
     setPreferences(null);
+    setPropertySuggestions(null);
     setAudioUrl(null);
     setAudioFile(null);
     setProgressStep(-1);
@@ -115,7 +123,7 @@ function Speech() {
 
   const handleReject = async () => {
     try {
-      await axios.post(`${API_URL}/speech/reject/${taskId}`);
+      await api.post(`/speech/reject/${taskId}`);
       toast.info('Transcription rejected');
     } catch {
       // ignore backend error, reset locally anyway
@@ -124,35 +132,52 @@ function Speech() {
   };
 
   const handleAddToPipeline = async () => {
-    if (!taskId) return;
+    if (!taskId || isPipelineLoading) return;
+    setIsPipelineLoading(true);
     try {
-      await axios.post(`${API_URL}/speech/pipeline/${taskId}`, {
+      await api.post(`/speech/pipeline/${taskId}`, {
         customer_id: customer?.cust_id || null,
       });
-      toast.success('Added to lead pipeline');
+      toast.success('Successfully added to lead pipeline');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to add to pipeline');
+    } finally {
+      setIsPipelineLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col w-full min-h-screen bg-base-200 p-6 gap-6">
+    <div className="flex flex-col w-full h-screen overflow-hidden bg-base-200 p-6 gap-6">
       <BodyHeader
         onUpload={handleUpload}
         customerId={customer?.cust_id}
         onFileSelect={setAudioFile}
+        onAddToPipeline={handleAddToPipeline}
+        taskId={taskId}
+        isAnalysisComplete={sentiment !== null}
+        isPipelineLoading={isPipelineLoading}
       />
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-        <div className="flex-1">
+      {progressStep >= 0 && (
+        <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl px-6 py-4 shrink-0">
+          <ProgressBar
+            step={progressStep}
+            awaitingApproval={awaitingApproval}
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-1 min-h-0">
+        <div className="flex-1 min-h-0">
           <SpeechAnalysisCard
             data={null}
             transcription={transcription}
             audioUrl={audioUrl}
             sentiment={sentiment}
             nextActions={nextActions}
+            propertySuggestions={propertySuggestions}
             progressStep={progressStep}
-            onAddToPipeline={handleAddToPipeline}
+            progressMessage={progressMessage}
             audioFile={audioFile}
             awaitingApproval={awaitingApproval}
             onApprove={handleApprove}
@@ -160,9 +185,11 @@ function Speech() {
           />
         </div>
         <div className="w-full lg:w-96 flex">
-          <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl w-full">
+          <div
+            className={`card bg-base-100 border border-base-200 shadow-sm rounded-2xl w-full ${isAnalysisLoading ? 'animate-pulse' : ''}`}
+          >
             <div className="card-body p-6">
-              <Preferencecard data={preferences} />
+              <Preferencecard data={preferences} loading={isAnalysisLoading} />
             </div>
           </div>
         </div>

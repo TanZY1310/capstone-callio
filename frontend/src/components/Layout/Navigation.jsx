@@ -3,34 +3,36 @@ import { LayoutDashboard, Mic, ChartArea, Users } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import { motion, AnimatePresence } from 'motion/react';
 
+const MotionNavLink = motion.create(NavLink);
+
 const NAV_ITEMS = [
   {
     id: 1,
     label: 'Customer Listings',
     icon: <LayoutDashboard />,
-    path: '/',
-    activeColour: 'text-blue-500',
+    path: '/home',
+    activeColour: 'text-primary',
   },
   {
     id: 2,
     label: 'Speech Analysis',
     icon: <Mic />,
     path: '/speech',
-    activeColour: 'text-yellow-500',
+    activeColour: 'text-warning-icon',
   },
   {
     id: 3,
     label: 'WhatsApp Conversation',
     icon: <SiWhatsapp size={24} />,
     path: '/whatsapp',
-    activeColour: 'text-green-500',
+    activeColour: 'text-success-icon',
   },
   {
     id: 4,
     label: 'Agent Dashboard',
     icon: <ChartArea />,
     path: '/agent-dashboard',
-    activeColour: 'text-purple-500',
+    activeColour: 'text-info-icon',
     roles: ['agent', 'team_lead'],
   },
   {
@@ -38,7 +40,7 @@ const NAV_ITEMS = [
     label: 'Team Dashboard',
     icon: <Users />,
     path: '/team-dashboard',
-    activeColour: 'text-purple-500',
+    activeColour: 'text-secondary-icon',
     roles: ['team_lead'],
   },
 ];
@@ -63,13 +65,15 @@ function Navigation({ isDrawerOpen, role }) {
             visible: { opacity: 1, x: 0 },
           }}
         >
-          <NavLink
+          <MotionNavLink
             to={item.path}
-            end={item.path === '/'}
+            end={item.path === '/home'}
             className={({ isActive }) =>
               `is-drawer-close:tooltip is-drawer-close:tooltip-right ${isActive ? `active ${item.activeColour} font-semibold` : 'text-base-content/60'}`
             }
             data-tip={item.label}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {item.icon}
             <AnimatePresence>
@@ -85,7 +89,7 @@ function Navigation({ isDrawerOpen, role }) {
                 </motion.div>
               )}
             </AnimatePresence>
-          </NavLink>
+          </MotionNavLink>
         </motion.li>
       ))}
     </motion.ul>

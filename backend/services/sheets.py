@@ -1,5 +1,7 @@
 import json
+import os
 import uuid
+import google.auth
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -14,16 +16,18 @@ from models.user import Users
 from schemas.customer import CustomerSheetRow, SyncResult
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SERVICE_ACCOUNT_FILE = "sheets_credentials.json"   # path to your JSON key
+SERVICE_ACCOUNT_FILE = "sheets_credentials.json"
+
+def _get_credentials():
+    if os.path.exists(SERVICE_ACCOUNT_FILE):
+        return service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES
+        )
+    creds, _ = google.auth.default(scopes=SCOPES)
+    return creds
+
 SHEET_RANGE = "Sheet1!A2:G"                 # skip header row, 7 columns, Sheet1 follow name of sheet below
 SHEET_HEADER_RANGE = "Sheet1!A1:H"          # header + data range for export
-
-# Uncomment the credentials path when using CICD variable as deployment
-# credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-# print(f"Credentials path: {credentials_path}")
-
-# if not credentials_path:
-#     raise ValueError("GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable is not set")
 
 # Column order expected in the sheet:
 # Cust_Name | Phone | Budget | Location | Status | Last_Contact | UserID
@@ -43,9 +47,7 @@ def _get_user_sheets_id(db: db_dependency, user_id: uuid.UUID) -> str:
 
 def _fetch_sheet_rows(spreadsheet_id: str) -> list[dict]:
     """Sync Google Sheets call — runs in threadpool."""
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
+    creds = _get_credentials()
     service = build("sheets", "v4", credentials=creds)
     result = (
         service.spreadsheets()
@@ -112,9 +114,7 @@ async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> S
 
 def _write_rows_to_sheet(rows: list[list], spreadsheet_id: str) -> dict:
     """Sync Google Sheets write call — runs in threadpool."""
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
+    creds = _get_credentials()
     service = build("sheets", "v4", credentials=creds)
 
     # Write header row
@@ -171,8 +171,6 @@ async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> d
 
 
 async def fetch_status(spreadsheet_id: str):
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
+    creds = _get_credentials()
     service = build("sheets", "v4", credentials=creds)
-    service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    await run_in_threadpool(service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute)

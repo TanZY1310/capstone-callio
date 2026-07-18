@@ -1,66 +1,73 @@
 const STAGE_STYLES = [
-  { bg: 'bg-blue-50', text: 'text-blue-700', value: 'text-slate-900' },
-  { bg: 'bg-blue-200', text: 'text-blue-900', value: 'text-slate-900' },
-  { bg: 'bg-slate-900', text: 'text-white', value: 'text-white' },
+  {
+    track: 'rgb(220, 228, 245)', // very light periwinkle — Total Leads track
+    fill: 'rgb(180, 198, 235)', // slightly deeper periwinkle — Total Leads fill
+    text: '#1e3a6e', // dark navy text
+  },
+  {
+    track: 'rgb(148, 163, 190)', // medium slate blue — Appointments track
+    fill: 'rgb(100, 116, 150)', // deeper slate — Appointments fill
+    text: '#1e2d4a', // dark text
+  },
+  {
+    track: 'rgb(68, 88, 134)', // dark navy — Bookings track
+    fill: 'rgb(15, 30, 68)', // deeper navy — Bookings fill
+    text: '#ffffff', // white text
+  },
 ];
 
-const MIN_WIDTH_PCT = 50;
-
 function ConversionFunnel({ stages }) {
-  const maxCount = stages[0]?.count || 1;
+  const totalLeads = stages[0]?.count || 1;
 
   return (
     <div className="card bg-base-100 p-6">
-      <h2 className="card-title text-base-content" style={{ padding: '5px' }}>
-        Conversion Funnel
+      <h2 className="card-title text-base-content mb-6">
+        Performance Overview
       </h2>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         {stages.map((stage, i) => {
-          const rawPct = (stage.count / maxCount) * 100;
-          const widthPct = Math.max(rawPct, MIN_WIDTH_PCT);
-          const style = STAGE_STYLES[i % STAGE_STYLES.length];
+          const pct = ((stage.count / totalLeads) * 100).toFixed(0);
+          const fillPct = (stage.count / totalLeads) * 100;
 
-          // step-over-step % change vs previous stage — guard against div-by-zero
-          const prevCount = i > 0 ? stages[i - 1].count : null;
-          const pctChange =
-            prevCount !== null
-              ? prevCount === 0
-                ? null // previous stage was 0 — "% change" is undefined, don't fake a number
-                : ((stage.count / prevCount) * 100).toFixed(0)
-              : null;
+          const style =
+            i === stages.length - 1
+              ? STAGE_STYLES[STAGE_STYLES.length - 1]
+              : STAGE_STYLES[i % (STAGE_STYLES.length - 1)];
 
           return (
-            <div
-              key={stage.label}
-              className={`flex items-center justify-between rounded-2xl px-6 py-5 shadow-sm p-6 ${style.bg}`}
-              style={{ width: `${widthPct}%` }}
-            >
+            <div key={stage.label} className="flex items-center gap-4">
+              {/* label */}
               <span
-                className={`text-sm font-bold uppercase tracking-wide ${style.text}`}
+                className="text-sm font-medium w-36 shrink-0 text-right"
+                style={{ color: '#475569' }}
               >
                 {stage.label}
               </span>
 
-              <div className="flex items-center gap-3">
-                <span className={`text-2xl font-extrabold ${style.value}`}>
-                  {stage.count.toLocaleString()}
-                </span>
+              {/* outer track — always full width */}
+              <div
+                className="relative flex-1 h-11 rounded-full"
+                style={{ backgroundColor: style.track }}
+              >
+                {/* inner fill — proportional */}
+                <div
+                  className="absolute left-0 top-0 h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${fillPct}%`,
+                    backgroundColor: style.fill,
+                  }}
+                />
 
-                {/* only render if we have a meaningful previous-stage comparison */}
-                {pctChange !== null && (
-                  <span
-                    className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                      i === 0
-                        ? ''
-                        : style.value === 'text-white'
-                          ? 'bg-white/20 text-white'
-                          : 'bg-black/10 text-slate-700'
-                    }`}
-                  >
-                    {pctChange}%
+                {/* text — always at right edge of track */}
+                <div
+                  className="absolute inset-0 flex items-center justify-end px-5 z-10"
+                  style={{ color: style.text }}
+                >
+                  <span className="text-sm font-bold whitespace-nowrap">
+                    {stage.count.toLocaleString()} ({pct}%)
                   </span>
-                )}
+                </div>
               </div>
             </div>
           );

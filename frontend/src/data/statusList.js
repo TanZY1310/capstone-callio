@@ -1,7 +1,7 @@
 // src/data/statusList.js
 export const statusList = [
   { id: 1, name: 'No Pickup' },
-  { id: 2, name: 'Bonding / Might Keep In Touch' },
+  { id: 2, name: 'Might Keep In Touch' },
   { id: 3, name: 'Not Interested' },
   { id: 4, name: 'WhatsApp' },
   { id: 5, name: 'Stop Following Up' },

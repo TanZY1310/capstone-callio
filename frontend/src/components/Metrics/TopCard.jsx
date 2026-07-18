@@ -2,63 +2,80 @@ import { MdCall } from 'react-icons/md';
 import { IoPersonSharp } from 'react-icons/io5';
 import { IoChatboxEllipsesSharp } from 'react-icons/io5';
 import { TiTick } from 'react-icons/ti';
+import { FaRegCalendarAlt } from 'react-icons/fa';
+import { useState } from 'react';
 
-const METRIC_CARDS = [
-  { label: 'Total Leads', key: 'leads', icon: IoPersonSharp },
-  { label: 'Total Calls Today', key: 'calls', icon: MdCall },
-  {
-    label: 'Pending Follow-Ups',
-    key: 'pendingFollowUps',
-    icon: IoChatboxEllipsesSharp,
-  },
-  { label: 'Appointment Set', key: 'appointments', icon: TiTick },
-];
+function TopCard({ period, calls, leads, followUps, appointments, bookings }) {
+  const today = new Date();
 
-function TopCard({ calls, leads, followUps, appointments }) {
+  const [date, setDate] = useState(today.getMonth());
+
+  const METRIC_CARDS = [
+    {
+      label: 'Leads Contacted',
+      key: 'leads',
+      icon: IoPersonSharp,
+      iconBg: 'bg-indigo-100',
+      iconColor: 'text-indigo-600',
+      value: leads,
+    },
+    {
+      label: 'Total Calls',
+      key: 'calls',
+      icon: MdCall,
+      iconBg: 'bg-cyan-100',
+      iconColor: 'text-cyan-600',
+      value: calls,
+    },
+    {
+      label: 'Follow-Ups',
+      key: 'pendingFollowUps',
+      icon: IoChatboxEllipsesSharp,
+      iconBg: 'bg-yellow-100',
+      iconColor: 'text-yellow-500',
+      value: followUps,
+    },
+    {
+      label: 'Appointment Set',
+      key: 'appointments',
+      icon: FaRegCalendarAlt,
+      value: appointments,
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+    },
+    // {
+    //   label: 'Bookings Confirmed',
+    //   key: 'bookings',
+    //   icon: TiTick,
+    //   value: bookings,
+    // },
+  ];
+
   return (
     <>
-      <div className="card bg-base-100 border border-base-200 shadow-sm">
-        {/* 1. Total Leads */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {METRIC_CARDS.map((item) => (
+          <div
+            className="card bg-base-100 border border-base-200 shadow-sm p-4"
+            key={item.key}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <span className="font-semibold text-md text-base-content">
+                {period === 'monthly'
+                  ? `${item.label} - ${today.toLocaleString('en-US', { month: 'long' })}`
+                  : `${item.label} - Today`}
+              </span>
 
-        <div className="stats shadow">
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <IoPersonSharp size={32} />
+              <div className={`${item.iconBg} rounded-lg p-2 shrink-0`}>
+                <item.icon size={24} className={item.iconColor} />
+              </div>
             </div>
-            <div className="stat-title">Total Leads</div>
-            <div className="stat-value">{leads}</div>
-          </div>
 
-          {/* 2. Total Calls */}
-
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <MdCall size={32} />
+            <div className="text-2xl font-bold text-base-content">
+              {item.value}
             </div>
-            <div className="stat-title">Total Calls Today</div>
-            <div className="stat-value">{calls}</div>
           </div>
-
-          {/* 3. Pending Follow-ups */}
-
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <IoChatboxEllipsesSharp size={32} />
-            </div>
-            <div className="stat-title">Pending Follow-Ups</div>
-            <div className="stat-value">{followUps}</div>
-          </div>
-
-          {/* 4. Booking confirmed */}
-
-          <div className="stat">
-            <div className="stat-figure text-secondary">
-              <TiTick size={32} />
-            </div>
-            <div className="stat-title">Appointment Sets</div>
-            <div className="stat-value">{appointments}</div>
-          </div>
-        </div>
+        ))}
       </div>
     </>
   );

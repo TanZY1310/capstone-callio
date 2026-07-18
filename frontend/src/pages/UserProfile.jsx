@@ -4,6 +4,7 @@ import SocialCard from '../components/Profile-Management/SocialCard';
 import { useAuth } from '../hooks/useAuth';
 import CredentialCard from '../components/Profile-Management/CredentialCard';
 import RagUpload from '../components/Profile-Management/RagUpload';
+import TokenUsage from '../components/Profile-Management/TokenUsage';
 
 function UserProfile() {
   const { profile } = useAuth();
@@ -21,11 +22,14 @@ function UserProfile() {
         <SheetsCard />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
-        <CredentialCard 
-          license_number={profile?.license_number || ''}
-          agency_branch={profile?.agency_branch || ''}
-          bio={profile?.bio || ''}
-        />
+        <div className="flex flex-col gap-6">
+          <CredentialCard
+            license_number={profile?.license_number || ''}
+            agency_branch={profile?.agency_branch || ''}
+            bio={profile?.bio || ''}
+          />
+          <TokenUsage />
+        </div>
         <RagUpload />
       </div>
     </div>

@@ -11,142 +11,6 @@ import { useAuth } from '../hooks/useAuth.js';
 import api from '../utils/api.js';
 import DailyCallPoint from '../components/Metrics/DailyCallPoint.jsx';
 
-function AgentDashboard() {
-  const [agent, setAgent] = useState(null);
-  const [loading, setLoading] = useState(true); // start TRUE
-  const [error, setError] = useState(null);
-
-  const API_URL = 'http://localhost:8000';
-  const { profile } = useAuth();
-  console.log(profile);
-
-  useEffect(() => {
-    if (!profile?.user_id) return; // wait until profile is ready
-
-    async function fetchKPIs() {
-      setLoading(true);
-      try {
-        const response = await api.get(`/dashboard/agent/${profile.user_id}`);
-
-        setAgent(response.data);
-      } catch (err) {
-        setError(err.message);
-        console.log(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchKPIs();
-  }, [profile]); // re-runs when profile loads
-
-  console.log(agent);
-
-  if (loading)
-    return (
-      <div className="card ...">
-        <span className="loading loading-spinner loading-md"></span>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="card ...">
-        <p className="text-error">Couldn't load dashboard stats: {error}</p>
-      </div>
-    );
-
-  if (!agent) return null; // belt-and-suspenders guard
-
-  return (
-    <>
-      <div className="flex h-screen bg-base-200">
-        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-          {/* // Header  */}
-          <Header h1="Agent Dashboard" p="Monitor logs and tracks activity" />
-
-          {/* 1. Top Card - Personal Metrics Performance */}
-          {/* TopCard({ calls, leads, followUps, appointments }) */}
-
-          <TopCard
-            calls={agent.kpis.calls}
-            leads={agent.kpis.leads}
-            followUps={agent.kpis.followUps}
-            appointments={agent.kpis.appointments}
-          />
-
-          {/* 2. Line Chart Card - Call Upload Activity*/}
-
-          {/* <div className="card bg-base-100 border border-base-200 shadow-sm">
-            <div className="card-body gap-4">
-              <h2 className="card-title text-base-content">
-                Lead Conversion Funnel
-              </h2>
-              <FunnelCard data={stats} />
-            </div>
-          </div> */}
-
-          <CallUpload daily_calls={agent.daily_calls} />
-          {/* <DailyCallPoint /> */}
-          {/* <CallUpload /> */}
-
-          {/* 3. Divider Part - LeadsByRegion + Leads Budget Breakdown*/}
-
-          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <BudgetBreakdown />
-
-            <Objections />
-
-            <LeadsByRegion />
-          </div> */}
-
-          {/* <!-- 3-Column Grid Layout --> */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* <!-- Main content spanning 2 columns --> */}
-            <div className="col-span-2 card  bg-base-100 ">
-              {/* <BudgetBreakdown /> */}
-              <ConversionFunnel
-                stages={[
-                  { label: 'Total Leads', count: agent.kpis.leads },
-                  {
-                    label: 'Follow Ups',
-                    count: agent.kpis.followUps,
-                  },
-
-                  { label: 'Appointments Set', count: agent.kpis.appointments },
-                  // {
-                  //   label: 'Bookings',
-                  //   count: agent.kpis.bookings,
-                  // },
-                ]}
-              />
-            </div>
-
-            {/* <!-- Main content spanning 2 columns --> */}
-            <div className="col-span-2 card  bg-base-100">
-              <LeadsByRegion regions={agent.total_region} />
-            </div>
-
-            {/* <!-- Sidebar spanning 1 column --> */}
-            <div className="col-span-1 card bg-base-100 ">
-              <Objections objection={agent.top_objection} />
-            </div>
-          </div>
-
-          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <BudgetBreakdown />
-
-            <Objections />
-
-            <LeadsByRegion />
-          </div> */}
-        </div>
-      </div>
-    </>
-  );
-}
-
-export default AgentDashboard;
-
 // The data from API will in below form (example)
 
 // {
@@ -170,29 +34,170 @@ export default AgentDashboard;
 //   ]
 // }
 
-///////////////////////////////////////////////////////////////////
-///////////////////// NOT IMPORTANT ///////////////////////////////
-///////////////////////////////////////////////////////////////////
+function AgentDashboard() {
+  // --- for KPI ---
+  const [agent, setAgent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-// const [stats, setStats] = useState({
-//   calls: 0,
-//   leads: 0,
-//   pendingFollowUps: 0,
-//   followUps: 0,
-//   appointments: 0,
-//   booking: 0,
-// });
+  const { profile } = useAuth();
 
-// useEffect(() => {
-//   // pretends get the data
-//   const data = {
-//     calls: 50,
-//     leads: 100,
-//     pendingFollowUps: 10,
-//     followUps: 5,
-//     appointments: 2,
-//     booking: 1,
-//   };
+  // --- Daily Call Volume state ---
+  const today = new Date();
+  const [calls, setCalls] = useState(null);
+  const [period, setPeriod] = useState('monthly');
+  const [year] = useState(today.getFullYear());
+  const [month] = useState(today.getMonth() + 1);
+  const [day] = useState(today.getDate());
+  const [dcLoading, setDcLoading] = useState(true);
+  const [dcError, setDcError] = useState(null);
 
-//   setStats(data);
-// }, []);
+  // --- Main agent KPI fetch useEffect ---
+  useEffect(() => {
+    if (!profile?.user_id) return; // if False, return.
+    // This is a guard clause
+    // The ?. is called optional chaining.
+    // "Does profile exist? If yes, get user_id. If no, return undefined."
+    // if use normal profile.user_id, when the profile is null, the JS crash
+
+    // --- FETCHING KPIS AGENT ---
+    async function fetchKPIs() {
+      setLoading(true);
+
+      const params = new URLSearchParams({
+        period,
+        year,
+        month,
+        day,
+      });
+
+      try {
+        const res = await api.get(
+          `/dashboard/agent?user_id=${profile.user_id}&${params}`,
+        );
+        setAgent(res.data);
+      } catch (err) {
+        setError(err.message);
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchKPIs();
+  }, [profile, period, year, month, day]);
+
+  // --- Call Volume fetch, separate effect ---
+  useEffect(() => {
+    if (!profile?.user_id) return;
+
+    const params = new URLSearchParams({
+      period,
+      year,
+      month,
+      day,
+    });
+
+    async function fetchCalls() {
+      setDcLoading(true);
+      try {
+        const response = await api.get(
+          `/dashboard/calls?user_id=${profile.user_id}&${params}`,
+        );
+        setCalls(response.data);
+      } catch (err) {
+        setDcError(err.message);
+        console.log(err);
+      } finally {
+        setDcLoading(false);
+      }
+    }
+    fetchCalls();
+  }, [profile, period, year, month, day]);
+
+  if (loading)
+    return (
+      <div className="card ...">
+        <span className="loading loading-spinner loading-md"></span>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="card ...">
+        <p className="text-error">Couldn't load dashboard stats: {error}</p>
+      </div>
+    );
+
+  if (!agent) return null;
+
+  return (
+    <>
+      <div className="flex h-screen bg-base-200">
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+          <div className="flex items-center justify-between">
+            {/* With justify-between, the first child is pushed to the far left and the last child to the far right. */}
+            {/* items-center -> makes the naming is centered vertically */}
+            {/* flex container as a row */}
+
+            <Header h1="Agent Dashboard" p="Monitor logs and tracks activity" />
+
+            {/* name of each tab group should be unique */}
+            <div className="tabs tabs-box">
+              {['daily', 'monthly'].map((item) => (
+                <button
+                  key={item}
+                  className={`tab ${period === item ? 'tab-active' : ''}`} // this line just basically to highlight the tab selected
+                  onClick={() => setPeriod(item)}
+                >
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <TopCard
+            period={period}
+            leads={agent.kpis.leads}
+            calls={agent.kpis.calls}
+            followUps={agent.kpis.followUps}
+            appointments={agent.kpis.appointments}
+            bookings={agent.kpis.bookings}
+          />
+
+          <CallUpload
+            calls={calls}
+            // loading={dcLoading}
+            error={dcError}
+            period={period}
+            year={year}
+            month={month}
+            day={day}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="col-span-3 card bg-base-100">
+              <ConversionFunnel
+                stages={[
+                  { label: 'Leads Contacted', count: agent.kpis.leads },
+                  // { label: 'Follow Ups', count: agent.kpis.followUps },
+                  { label: 'Appointments Set', count: agent.kpis.appointments },
+                  { label: 'Bookings Confirmed', count: agent.kpis.bookings },
+                ]}
+              />
+            </div>
+
+            <div className="col-span-2 card bg-base-100">
+              <Objections objection={agent.top_objection} />
+            </div>
+
+            {/* <div className="col-span-2 card bg-base-100">
+              <LeadsByRegion regions={agent.total_region} />
+            </div> */}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AgentDashboard;

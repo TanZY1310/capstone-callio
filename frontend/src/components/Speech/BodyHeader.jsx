@@ -1,12 +1,18 @@
-import { AudioLines } from 'lucide-react';
+import { AudioLines, Target } from 'lucide-react';
 import Header from '../Layout/Header';
 import { useRef } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import { toast } from 'sonner';
 
-const API_URL = 'http://localhost:8000';
-
-function BodyHeader({ onUpload, customerId, onFileSelect }) {
+function BodyHeader({
+  onUpload,
+  customerId,
+  onFileSelect,
+  onAddToPipeline,
+  taskId,
+  isAnalysisComplete,
+  isPipelineLoading,
+}) {
   const fileInputRef = useRef(null);
 
   const handleUploadClick = () => {
@@ -17,7 +23,6 @@ function BodyHeader({ onUpload, customerId, onFileSelect }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // This enables the audio player before API call
     onFileSelect?.(file);
 
     const formData = new FormData();
@@ -27,7 +32,7 @@ function BodyHeader({ onUpload, customerId, onFileSelect }) {
     }
 
     try {
-      const res = await axios.post(`${API_URL}/speech/transcribe`, formData);
+      const res = await api.post('/speech/transcribe', formData);
       onUpload?.(res.data);
       toast.success('Processing audio...');
     } catch (err) {
@@ -45,10 +50,30 @@ function BodyHeader({ onUpload, customerId, onFileSelect }) {
           p="Analyze buyer conversation and extract automated insights"
         />
       </div>
-      <button onClick={handleUploadClick} className="btn btn-neutral gap-2">
-        <AudioLines />
-        Upload New Audio
-      </button>
+      <div className="flex items-center gap-3">
+        {taskId && (
+            <button
+              onClick={onAddToPipeline}
+              disabled={!isAnalysisComplete || isPipelineLoading}
+              className={`btn gap-2 ${
+                isAnalysisComplete && !isPipelineLoading
+                  ? 'btn-primary'
+                  : 'btn-outline border-base-content/20 text-base-content/40 cursor-not-allowed'
+              }`}
+            >
+              {isPipelineLoading ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <Target size={16} />
+              )}
+              {isPipelineLoading ? 'Adding...' : 'Add to Lead Pipeline'}
+            </button>
+        )}
+        <button onClick={handleUploadClick} className="btn btn-outline gap-2">
+          <AudioLines />
+          Upload New Audio
+        </button>
+      </div>
 
       <input
         type="file"

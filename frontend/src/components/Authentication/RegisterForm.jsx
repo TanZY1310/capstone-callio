@@ -189,7 +189,7 @@ function RegisterForm() {
         return await api.post('/auth/register', payload);
       } catch (err) {
         if (err.response?.status === 401 && i < 2) {
-          await new Promise((r) => setTimeout(r, 3000));
+          await new Promise((r) => setTimeout(r, 300 * (i + 1)));
           continue;
         }
         throw err;
@@ -214,13 +214,10 @@ function RegisterForm() {
         state.password,
       );
 
-      // Set dislay name in Firebase (optional but useful)
+      // Set display name in Firebase
       await updateProfile(userCredential.user, {
         displayName: `${state.first_name} ${state.last_name}`,
       });
-
-      // Let Firebase session timestamps settle before first API call
-      await new Promise((r) => setTimeout(r, 3000));
 
       // Create DB profile backend (with retry on 401)
       const registerResponse = await registerUserProfile({
@@ -246,7 +243,7 @@ function RegisterForm() {
       sessionStorage.removeItem('callio_pending_registration');
       dispatch({ type: ACTIONS.REGISTER_SUCCESS });
       toast.success('Account created! Welcome to Callio.');
-      window.location.href = '/';
+      window.location.href = '/home';
     } catch (err) {
       sessionStorage.removeItem('callio_pending_registration');
       // Firebase errors use err.code , Axios uses err.response

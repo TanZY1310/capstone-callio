@@ -2,20 +2,73 @@ import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import axios from 'axios';
+import { toast } from 'sonner';
+import { resetForceLogoutFlag } from '../utils/api';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1500;
+const RETRY_DELAY_MS = 300;
+
+function getInitialDemoState() {
+  const demoToken = localStorage.getItem('demo_token');
+  if (!demoToken) return { isDemo: false, profile: null };
+  const cached = localStorage.getItem('userProfile');
+  if (!cached) {
+    localStorage.removeItem('demo_token');
+    return { isDemo: false, profile: null };
+  }
+  try {
+    const profile = JSON.parse(cached);
+    return { isDemo: true, profile };
+  } catch {
+    localStorage.removeItem('demo_token');
+    localStorage.removeItem('userProfile');
+    return { isDemo: false, profile: null };
+  }
+}
 
 export function useAuth() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const initial = getInitialDemoState();
+  const [user, setUser] = useState(
+    initial.isDemo ? { uid: initial.profile.firebase_uid, email: initial.profile.email } : null,
+  );
+  const [profile, setProfile] = useState(initial.profile);
+  const [loading, setLoading] = useState(!initial.isDemo);
   const [authError, setAuthError] = useState(null);
+  const [isDemo, setIsDemo] = useState(initial.isDemo);
   const mountedRef = useRef(true);
   const abortRef = useRef(null);
 
+  const loginDemo = async (role) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(`${API_URL}/auth/demo-login`, { role });
+      const { demo_token, user: profileData } = response.data;
+
+      localStorage.setItem('demo_token', demo_token);
+      localStorage.setItem('userProfile', JSON.stringify(profileData));
+
+      if (mountedRef.current) {
+        setUser({ uid: profileData.firebase_uid, email: profileData.email });
+        setProfile(profileData);
+        setIsDemo(true);
+        setAuthError(null);
+        resetForceLogoutFlag();
+      }
+    } catch (err) {
+      console.error('Demo login failed:', err);
+      if (mountedRef.current) {
+        setAuthError('Demo login failed. Is the backend running?');
+      }
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  };
+
+  // Main Firebase auth effect — only runs when not in demo mode
   useEffect(() => {
+    if (isDemo) return;
+
     const controller = new AbortController();
     abortRef.current = controller;
     mountedRef.current = true;
@@ -31,23 +84,15 @@ export function useAuth() {
           return;
         }
 
-        // Use cached profile from registration as instant fallback
         const cached = localStorage.getItem('userProfile');
         if (cached) {
           try { setProfile(JSON.parse(cached)); } catch { /* ignore */ }
         }
 
-        // Small cooldown so token timestamps settle post-authentication
-        await new Promise((r) => setTimeout(r, 2000));
-
         let lastError = null;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
             const idToken = await firebaseUser.getIdToken(attempt > 0);
-            // On retry, let the freshly-refreshed token age before sending
-            if (attempt > 0) {
-              await new Promise((r) => setTimeout(r, 2000));
-            }
             const response = await axios.post(`${API_URL}/auth/session`, null, {
               headers: { Authorization: `Bearer ${idToken}` },
               signal: controller.signal,
@@ -55,6 +100,7 @@ export function useAuth() {
             if (mountedRef.current) {
               setProfile(response.data);
               setAuthError(null);
+              resetForceLogoutFlag();
             }
             lastError = null;
             break;
@@ -92,11 +138,37 @@ export function useAuth() {
       mountedRef.current = false;
       unsubscribe();
     };
+  }, [isDemo]);
+
+  useEffect(() => {
+    const handleForceLogout = () => {
+      localStorage.removeItem('demo_token');
+      localStorage.removeItem('userProfile');
+      signOut(auth).catch(() => {});
+      setUser(null);
+      setProfile(null);
+      setIsDemo(false);
+      setLoading(false);
+      setAuthError(null);
+      toast.error('Session expired. Please log in again.', { duration: 3000 });
+    };
+
+    window.addEventListener('force_logout', handleForceLogout);
+    return () => window.removeEventListener('force_logout', handleForceLogout);
   }, []);
 
   const logout = async () => {
+    if (isDemo) {
+      localStorage.removeItem('demo_token');
+      localStorage.removeItem('userProfile');
+      setIsDemo(false);
+      setUser(null);
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
     await signOut(auth);
   };
 
-  return { user, profile, loading, logout, authError };
+  return { user, profile, loading, logout, authError, loginDemo };
 }

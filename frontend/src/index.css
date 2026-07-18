@@ -1,9 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 @import 'tailwindcss';
 @plugin "daisyui" {
   themes:
     corporate --default,
     business --prefersdark;
+}
+
+@theme {
+  --color-success-icon: light-dark(oklch(0.45 0.18 155), var(--color-success));
+  --color-logout-icon: light-dark(oklch(0.4 0.18 25), var(--color-error));
+  --color-warning-icon: light-dark(oklch(0.55 0.18 85), var(--color-warning));
+  --color-info-icon: light-dark(oklch(0.45 0.17 250), var(--color-info));
+  --color-secondary-icon: light-dark(
+    oklch(0.45 0.15 290),
+    var(--color-secondary)
+  );
+  --color-error-icon: light-dark(oklch(0.4 0.18 25), var(--color-error));
 }
 
 body {
@@ -126,4 +139,35 @@ body {
   .text-badge {
     @apply text-xs font-medium;
   }
+}
+
+@keyframes wave-bounce {
+  0% {
+    transform: scaleY(0.4);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.reveal-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
+}
+
+.reveal-section.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
 }

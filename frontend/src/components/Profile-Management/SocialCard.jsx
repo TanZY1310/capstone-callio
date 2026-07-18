@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import wsLogo from '../../assets/Whatsapp.png';
 // import loadimg from "../../assets/loading.lottie";
 
@@ -9,13 +9,13 @@ function SocialCard() {
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const [qrCode, setQrCode] = useState(null);
+  const [pollInterval, setPollInterval] = useState(null);
 
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await axios.get(`${API_URL}/whatsapp/status`);
+        const res = await api.get('/whatsapp/status');
         if (res.data && res.data.status === 'connected') {
           setIsLinked(true);
         } else {
@@ -28,41 +28,64 @@ function SocialCard() {
     };
     
     fetchStatus();
-  }, [API_URL]);
+  }, []);
 
   const link = async () => {
     setIsLoading(true);
     setError(null);
+    setQrCode(null);
+    setNotification(false);
 
     try {
-      const res = await axios.post(`${API_URL}/whatsapp/connect`);
+      const res = await api.post('/whatsapp/connect');
       
-      // The backend returns a JSON with an explicit error status if Node.js fails 
       if (res.data && res.data.status === 'error') {
         throw new Error(res.data.message || 'Account failed to link, Please try again');
       }
 
-      // Add a 2-second delay to keep the loading animation visible
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setIsLoading(false); // Stop loader, start polling for QR
 
-      console.log('Linked Succesfully');
-      setIsLinked(true);
-      setNotification(true);
+      const poll = setInterval(async () => {
+        try {
+          const statusRes = await api.get('/whatsapp/status');
+          const data = statusRes.data;
+
+          if (data.status === 'connected') {
+            clearInterval(poll);
+            setPollInterval(null);
+            setQrCode(null);
+            setIsLinked(true);
+            setNotification(true);
+          } else if (data.qr) {
+            setQrCode(data.qr);
+          }
+        } catch (pollErr) {
+          clearInterval(poll);
+          setPollInterval(null);
+          setError('Failed to fetch WhatsApp status');
+        }
+      }, 3000);
+      
+      setPollInterval(poll);
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Account failed to link, Please try again');
-    } finally {
       setIsLoading(false);
     }
   };
 
   const handleLinkAccount = async () => {
     document.getElementById('ws-acc').showModal();
-    await link();
+    await link(); 
   };
 
   const handleClose = () => {
     setError(null);
     setNotification(false);
+    setQrCode(null);
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      setPollInterval(null);
+    }
   };
 
   return (
@@ -74,7 +97,7 @@ function SocialCard() {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
-                <div className="w-10 rounded-lg bg-success/10 p-1.5">
+                <div className="w-10 rounded-lg bg-success-icon/10 p-1.5">
                   <img src={wsLogo} alt="WhatsApp Business" />
                 </div>
               </div>
@@ -90,7 +113,7 @@ function SocialCard() {
 
             {/* Status Badge */}
             <span
-              className={`badge ${isLinked ? 'badge-success text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
+              className={`badge ${isLinked ? 'bg-success-icon text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
             >
               {isLinked ? 'Connected' : 'Disconnected'}
             </span>
@@ -124,7 +147,7 @@ function SocialCard() {
           {/* Primary CTA Action Button */}
           <div className="card-actions mt-auto">
             <button
-              className="btn btn-success text-white w-full normal-case font-medium gap-2 shadow-sm"
+              className="btn bg-success-icon text-white w-full normal-case font-medium gap-2 shadow-sm"
               onClick={handleLinkAccount}
             >
               <span className="material-symbols-outlined text-xl">
@@ -139,8 +162,24 @@ function SocialCard() {
       {/* DaisyUI Responsive Modal Component */}
       <dialog id="ws-acc" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box text-center p-8 max-w-sm">
-          {/* Loading View State */}
-          {isLoading && (
+      
+          {/* QR Code View State */}
+          {qrCode && !notification && !error && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <h3 className="font-bold text-lg text-base-content">
+                Scan QR Code to Connect
+              </h3>
+              <div className="bg-white p-4 rounded-xl shadow-sm inline-block">
+                <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64 object-contain" />
+              </div>
+              <p className="text-sm text-base-content/70 animate-pulse">
+                Waiting for scan...
+              </p>
+            </div> 
+          )}
+
+          {/* Waiting for QR Code (Generating / Loading) */}
+          {!qrCode && !notification && !error && (
             <div className="flex flex-col items-center gap-4 py-4">
               <div className="w-32 h-32">
                 <DotLottieReact
@@ -150,7 +189,7 @@ function SocialCard() {
                 />
               </div>
               <p className="text-sm font-medium text-base-content/70 animate-pulse">
-                Linking Account...
+                Generating QR Code...
               </p>
             </div>
           )}
@@ -158,7 +197,7 @@ function SocialCard() {
           {/* Success View State */}
           {notification && !error && (
             <div className="space-y-3 py-2">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-success/10 text-success mb-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-success-icon/10 text-success-icon mb-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -187,7 +226,7 @@ function SocialCard() {
           {/* Error View State */}
           {error && (
             <div className="space-y-3 py-2">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-error/10 text-error mb-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-error-icon/10 text-error-icon mb-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -203,8 +242,8 @@ function SocialCard() {
                   />
                 </svg>
               </div>
-              <h3 className="font-bold text-xl text-error">Linking Failed!</h3>
-              <p className="text-sm font-medium text-error/80 bg-error/5 py-2 rounded-lg border border-error/10">
+              <h3 className="font-bold text-xl text-error-icon">Linking Failed!</h3>
+              <p className="text-sm font-medium text-error-icon/80 bg-error-icon/5 py-2 rounded-lg border border-error-icon/10">
                 {error}
               </p>
              

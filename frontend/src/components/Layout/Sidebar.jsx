@@ -1,69 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import {
   LogOut,
-  Building2,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings,
-  Bell,
   Sun,
   Moon,
 } from 'lucide-react';
 import Navigation from './Navigation';
 import { motion, AnimatePresence } from 'motion/react';
-
-const SIDEBAR_COLORS = {
-  corporate: {
-    bg: 'bg-slate-300',
-    border: 'border-slate-200',
-    header: 'bg-slate-300',
-    toggleBg: 'bg-slate-300 border-slate-200',
-  },
-  business: {
-    bg: 'bg-slate-900',
-    border: 'border-slate-700',
-    header: 'bg-slate-900',
-    toggleBg: 'bg-slate-900 border-slate-700',
-  },
-};
+import { useTheme } from '../../hooks/useTheme';
+import callioLogo from '../../assets/Callio LOGO.png';
 
 function Sidebar({ logout, profile }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const navigate = useNavigate();
   const role = profile?.role || 'agent';
 
-  //For Theme Toggle
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem('theme') || 'corporate',
-  );
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () =>
-    setTheme((t) => (t === 'corporate' ? 'business' : 'corporate'));
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const c = SIDEBAR_COLORS[theme] ?? SIDEBAR_COLORS.corporate;
-
   return (
     <div className="flex h-screen overflow-hidden">
       {/* ===== SIDEBAR ===== */}
       <motion.aside
-        className={`relative flex flex-col h-full ${c.bg} border-r ${c.border} overflow-visible shrink-0 z-20`}
+        className={`relative flex flex-col h-full bg-base-100 border-r border-base-200 overflow-visible shrink-0 z-20`}
         animate={{ width: isDrawerOpen ? 256 : 64 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
       >
         {/* ── Toggle button sitting on the right border edge ── */}
         <motion.button
-          className={`absolute -right-3.5 top-6 z-30 w-7 h-7 rounded-full ${c.toggleBg} border shadow-sm flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors`}
+          className={`absolute -right-3.5 top-6 z-30 w-7 h-7 rounded-full bg-base-100 border border-base-200 shadow-sm flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors`}
           onClick={() => setIsDrawerOpen((o) => !o)}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -77,14 +48,21 @@ function Sidebar({ logout, profile }) {
 
         {/* ── Logo header ── */}
         <div
-          className={`flex items-center gap-2 px-4 py-4 border-b ${c.border} overflow-hidden`}
+          className={`flex items-center border-b border-base-200 overflow-hidden ${isDrawerOpen ? 'gap-2 px-2 py-2' : 'gap-1 px-1 py-2'}`}
         >
-          {/* Logo icon */}
-          <div className="bg-blue-600 text-white rounded-lg w-8 h-8 flex items-center justify-center shrink-0">
-            <Building2 size={16} />
+          <div className="shrink-0 rounded-xl bg-white p-1">
+            <img
+              src={callioLogo}
+              alt="Callio"
+              style={{
+                height: 48,
+                width: isDrawerOpen ? 'auto' : 48,
+                maxWidth: isDrawerOpen ? 224 : 48,
+                objectFit: 'contain',
+              }}
+            />
           </div>
 
-          {/* CALLIO text + theme toggle */}
           <AnimatePresence>
             {isDrawerOpen && (
               <motion.div
@@ -94,11 +72,13 @@ function Sidebar({ logout, profile }) {
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.15 }}
               >
-                <span className="font-bold tracking-widest text-sm text-base-content whitespace-nowrap">
+                <span
+                  className="uppercase tracking-[0.15em] text-lg text-base-content whitespace-nowrap"
+                  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+                >
                   CALLIO
                 </span>
 
-                {/* ✅ Theme toggle right beside CALLIO */}
                 <motion.button
                   className="btn btn-ghost btn-xs btn-circle text-base-content/60 hover:text-base-content"
                   onClick={toggleTheme}
@@ -119,7 +99,7 @@ function Sidebar({ logout, profile }) {
 
         {/* ── User profile block — matches reference image ── */}
         <div
-          className={`flex items-center gap-3 px-4 py-4 border-b ${c.border} overflow-hidden`}
+          className={`flex items-center gap-3 px-4 py-4 border-b border-base-200 overflow-hidden`}
         >
           <NavLink to="/profile" className="shrink-0">
             <motion.div
@@ -127,9 +107,9 @@ function Sidebar({ logout, profile }) {
               whileTap={{ scale: 0.95 }}
               className="avatar"
             >
-              <div className="w-10 h-10 rounded-full ring-2 ring-base-300">
+              <div className="w-10 h-10 rounded-full ring-2 ring-primary/20">
                 <img
-                  src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80"
                   alt="User avatar"
                 />
               </div>
@@ -165,52 +145,8 @@ function Sidebar({ logout, profile }) {
           <ul className="menu w-full p-2 gap-0.5">
             <li>
               <motion.button
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 ${!isDrawerOpen ? 'justify-center' : ''}`}
-                data-tip="Notification"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Bell size={18} />
-                <AnimatePresence>
-                  {isDrawerOpen && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Notification
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </li>
-            <li>
-              <motion.button
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 ${!isDrawerOpen ? 'justify-center' : ''}`}
-                data-tip="Settings"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Settings size={18} />
-                <AnimatePresence>
-                  {isDrawerOpen && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Settings
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </li>
-            <li>
-              <motion.button
                 onClick={handleLogout}
-                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 text-error hover:bg-error/10 ${!isDrawerOpen ? 'justify-center' : ''}`}
+                className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center gap-3 text-logout-icon hover:bg-logout-icon/10 ${!isDrawerOpen ? 'justify-center' : ''}`}
                 data-tip="Logout"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import sheetsimg from '../../assets/sheets_icon.png';
 import { Info } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,59 +7,87 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 
 function SheetsCard() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [notification, setNotification] = useState(false);
-  const [sheetsId, setSheetsId] = useState('');
+  const { profile } = useAuth();
+  const [sheetsId, setSheetsId] = useState(profile?.sheets_id || '');
   const [isLinked, setIsLinked] = useState(false);
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('2026-05-12 14:22:10');
 
-  const { user } = useAuth();
+  const checkStatus = async () => {
+    try {
+      const statusRes = await api.get('/sheets/status');
+      if (statusRes.data && statusRes.data.connected) {
+        setIsLinked(true);
+      } else {
+        setIsLinked(false);
+      }
+    } catch {
+      setIsLinked(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        try {
-          const response = await api.get('/user_profile/');
-          if (response.data.sheets_id) {
-            setSheetsId(response.data.sheets_id);
-          }
+    if (profile?.sheets_id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      checkStatus();
+      setSheetsId(profile.sheets_id);
+    }
+  }, [profile?.sheets_id]);
 
-          try {
-            const statusRes = await api.get('/sheets/status');
-            if (statusRes.data && statusRes.data.connected) {
-              setIsLinked(true);
-            } else {
-              setIsLinked(false);
-            }
-          } catch (statusErr) {
-            setIsLinked(false);
-            console.error('Failed to fetch Sheets status:', statusErr);
-          }
+  // Auto-sync every 30 seconds when connected
+  useEffect(() => {
+    let intervalId;
+    if (isLinked) {
+      intervalId = setInterval(async () => {
+        try {
+          setIsSyncing(true);
+          await api.post('/sheets/sync');
+          await api.post('/sheets/export');
+          
+          const now = new Date();
+          const formattedTime =
+            now.getFullYear() +
+            '-' +
+            String(now.getMonth() + 1).padStart(2, '0') +
+            '-' +
+            String(now.getDate()).padStart(2, '0') +
+            ' ' +
+            String(now.getHours()).padStart(2, '0') +
+            ':' +
+            String(now.getMinutes()).padStart(2, '0') +
+            ':' +
+            String(now.getSeconds()).padStart(2, '0');
+          setLastSyncTime(formattedTime);
         } catch (err) {
-          console.error('Failed to fetch profile data:', err);
+          console.error('Auto-sync error:', err);
+        } finally {
+          setIsSyncing(false);
         }
-      }
+      }, 30000);
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
     };
-    fetchProfile();
-  }, [user]);
+  }, [isLinked]);
 
   const handleSync = async () => {
+    if (!sheetsId || !sheetsId.trim()) {
+      toast.error('You must key in the Spreadsheet ID');
+      return;
+    }
+
     setIsSyncing(true);
 
     try {
-      if (user) {
-        await api.put('/user_profile/', { sheets_id: sheetsId });
+      await api.put('/user_profile/', { sheets_id: sheetsId });
+      await api.post('/sheets/sync');
+      await api.post('/sheets/export');
+      setIsLinked(true);
+      toast.success('Sync successful');
 
-        const syncResponse = await api.post('/sheets/sync', {});
-        
-        setIsLinked(true);
-        toast.success(`Sync successful: ${syncResponse.data.synced} synced, ${syncResponse.data.skipped} skipped`);
-      }
-
-      // Format current time: YYYY-MM-DD HH:mm:ss
+      // Format current time
       const now = new Date();
       const formattedTime =
         now.getFullYear() +
@@ -75,41 +103,14 @@ function SheetsCard() {
         String(now.getSeconds()).padStart(2, '0');
 
       setLastSyncTime(formattedTime);
+
+      await checkStatus();
     } catch (err) {
       console.error(err);
       toast.error('Failed to sync Sheets ID.');
     } finally {
       setIsSyncing(false);
     }
-  };
-
-  const insert_api = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      //simulate API calling
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      if (Math.random() > 0.3) {
-        console.log('Linked Succesfully');
-        setNotification(true);
-      } else {
-        throw new Error('Account failed to linked, Please try again');
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleClick = () => {
-    document.getElementById('setting_modal').showModal();
-  };
-
-  const handleSave = () => {
-    insert_api();
   };
 
   return (
@@ -121,7 +122,7 @@ function SheetsCard() {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
-                <div className="w-10 rounded-lg bg-success/10 p-1.5">
+                <div className="w-10 rounded-lg bg-success-icon/10 p-1.5">
                   <img src={sheetsimg} alt="Google Sheets" />
                 </div>
               </div>
@@ -148,7 +149,7 @@ function SheetsCard() {
 
             {/* Status Badge */}
             <span
-              className={`badge ${isLinked ? 'badge-success text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
+              className={`badge ${isLinked ? 'bg-success-icon text-white border-none' : 'badge-neutral badge-outline'} py-3 text-xs uppercase font-mono tracking-wider`}
             >
               {isLinked ? 'Connected' : 'Disconnected'}
             </span>
@@ -177,7 +178,7 @@ function SheetsCard() {
                 Last Sync Status
               </span>
               <span
-                className={`text-base-content/60 font-mono transition-all duration-300 ${isSyncing ? 'animate-pulse text-success' : ''}`}
+                className={`text-base-content/60 font-mono transition-all duration-300 ${isSyncing ? 'animate-pulse text-success-icon' : ''}`}
               >
                 {isSyncing ? 'Syncing...' : lastSyncTime}
               </span>
@@ -215,7 +216,7 @@ function SheetsCard() {
           </form>
 
           <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <Info className="h-5 w-5 text-info" />
+            <Info className="h-5 w-5 text-info-icon" />
             How to find your Spreadsheet ID
           </h3>
 
