@@ -16,6 +16,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
 from services.whatsapp_client import fetch_chat_messages
+from services.llm_tracker import extract_token_usage_from_langchain
 # this services layer needs to be imported into my langchain related router functions
 
 load_dotenv()
@@ -259,7 +260,7 @@ def format_transcript_history(transcript_history) -> str:
 
 # function: retrieval and generation - drafts a reply grounded in property info,
 # semantically-relevant past-call chunks, raw recent call transcripts, and chat history
-async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, transcript_history=None):
+async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, transcript_history=None, metadata_out=None):
     # for_query=True: querying at retrieval time needs the RETRIEVAL_QUERY-mode
     # embedding, not the RETRIEVAL_DOCUMENT-mode embedding used to index the docs
     _, _property_vector_store, _transcript_vector_store, _llm = get_or_create_client(MONGODB_URI, for_query=True)
@@ -307,7 +308,7 @@ async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, 
         "input": itemgetter("input"),
     }
 
-    rag_chain = setup_and_retrieval | prompt | _llm | StrOutputParser()
+    rag_chain = setup_and_retrieval | prompt | _llm
     print("Querying Vector DB...")
     query = latest_customer_message(chat_history) or "Draft a helpful follow-up reply to this customer."
     response = await asyncio.to_thread(
@@ -318,9 +319,19 @@ async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, 
             "recent_transcripts": format_transcript_history(transcript_history),
         },
     )
-    print(f"\nAI Response: {response}")
+    
+    if isinstance(metadata_out, dict):
+        metadata_out["tokens_used"] = extract_token_usage_from_langchain(response)
 
-    return response
+    final_content = response.content
+    if isinstance(final_content, list):
+        final_content = " ".join([block.get("text", "") if isinstance(block, dict) else str(block) for block in final_content])
+    elif not isinstance(final_content, str):
+        final_content = str(final_content)
+
+    print(f"\nAI Response: {final_content}")
+
+    return final_content
 
 # if __name__ == "__main__":
 #     get_or_create_client(MONGODB_URI)
