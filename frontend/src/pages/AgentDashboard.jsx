@@ -157,11 +157,11 @@ function AgentDashboard() {
 
           <TopCard
             period={period}
+            leads={agent.kpis.leads}
             calls={agent.kpis.calls}
-            // leads={agent.kpis.leads}
             followUps={agent.kpis.followUps}
             appointments={agent.kpis.appointments}
-            // bookings={agent.kpis.bookings}
+            bookings={agent.kpis.bookings}
           />
 
           <CallUpload

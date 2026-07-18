@@ -38,18 +38,18 @@ function LeaderCard({
       icon: RiTeamFill,
       iconBg: 'bg-indigo-100',
       iconColor: 'text-indigo-600',
-      subtext: 'Overall',
-      subtextColor: 'text-slate-400',
+      // subtext: 'Overall',
+      // subtextColor: 'text-slate-400',
     },
     {
       label: 'Team Calls',
       key: 'calls',
       value: calls,
       icon: MdCall,
-      iconBg: 'bg-emerald-100',
-      iconColor: 'text-emerald-600',
-      subtext: formatDelta(callsDeltaPct),
-      subtextColor: deltaColor(callsDeltaPct),
+      iconBg: 'bg-cyan-100',
+      iconColor: 'text-cyan-600',
+      // subtext: formatDelta(callsDeltaPct),
+      // subtextColor: deltaColor(callsDeltaPct),
     },
     {
       label: 'Pending Follow-Ups',
@@ -58,8 +58,8 @@ function LeaderCard({
       icon: IoWarningSharp,
       iconBg: 'bg-red-100',
       iconColor: 'text-red-500',
-      subtext: followUps > 0 ? 'Action required' : 'All caught up',
-      subtextColor: followUps > 0 ? 'text-red-500' : 'text-green-600',
+      // subtext: followUps > 0 ? 'Action required' : 'All caught up',
+      // subtextColor: followUps > 0 ? 'text-red-500' : 'text-green-600',
     },
     {
       label: 'Team Bookings',
@@ -68,8 +68,8 @@ function LeaderCard({
       icon: TiTick,
       iconBg: 'bg-emerald-100',
       iconColor: 'text-emerald-600',
-      subtext: formatDelta(bookingsDeltaPct),
-      subtextColor: deltaColor(bookingsDeltaPct),
+      // subtext: formatDelta(bookingsDeltaPct),
+      // subtextColor: deltaColor(bookingsDeltaPct),
     },
   ];
 
@@ -81,7 +81,7 @@ function LeaderCard({
           className="card bg-base-100 border border-base-200 shadow-sm p-4"
         >
           <div className="flex items-start justify-between mb-3">
-            <span className="font-semibold text-lg text-base-content">
+            <span className="font-semibold text-md text-base-content">
               {item.label}
             </span>
             <div className={`${item.iconBg} rounded-lg p-2 shrink-0`}>
