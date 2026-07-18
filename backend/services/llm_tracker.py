@@ -30,7 +30,20 @@ def extract_token_usage_from_langchain(response) -> int:
         update_user_token_usage(db, current_user.user_id, tokens)
     """
     try:
-        # Langchain AIMessage usually contains response_metadata
+        # Debug logging to file
+        try:
+            with open("token_debug.txt", "a") as f:
+                f.write(f"Type: {type(response)}\n")
+                f.write(f"Usage metadata: {getattr(response, 'usage_metadata', 'MISSING')}\n")
+                f.write(f"Response metadata: {getattr(response, 'response_metadata', 'MISSING')}\n")
+        except Exception:
+            pass
+            
+        # Check standard usage_metadata introduced in LangChain Core >= 0.2.x
+        if hasattr(response, 'usage_metadata') and response.usage_metadata:
+            return response.usage_metadata.get('input_tokens', 0) + response.usage_metadata.get('output_tokens', 0) or response.usage_metadata.get('total_tokens', 0)
+            
+        # Fallback to older response_metadata structure
         if hasattr(response, 'response_metadata'):
             metadata = response.response_metadata
             if 'token_usage' in metadata:
