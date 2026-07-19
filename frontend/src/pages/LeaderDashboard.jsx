@@ -12,6 +12,7 @@ import { CiSearch } from 'react-icons/ci';
 import { useAuth } from '../hooks/useAuth';
 import LeaderCard from '../components/Metrics/LeaderCard';
 import api from '../utils/api.js';
+import TeamLeadsRegion from '../components/Metrics/TeamLeadsRegion.jsx';
 
 function LeaderDashboard() {
   const [teamData, setTeamData] = useState(null);
@@ -116,7 +117,7 @@ function LeaderDashboard() {
             {/* Total Regions */}
 
             <div className="col-span-2 card  bg-base-100">
-              <LeadsByRegion regions={teamData.team_stats.team_regions} />
+              <TeamLeadsRegion regions={teamData.team_stats.team_regions} />
             </div>
 
             {/* Objections */}

@@ -22,7 +22,7 @@ function TeamConversionFunnel({ stages }) {
   return (
     <div className="card bg-base-100 p-6">
       <h2 className="card-title text-base-content mb-6">
-        Performance Overview
+        Team Performance Overview
       </h2>
 
       <div className="flex flex-col gap-5">

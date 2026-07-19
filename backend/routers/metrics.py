@@ -31,7 +31,6 @@ router = APIRouter(
     tags=["metrics"]
 )
 
-PENDING_STATUS = ["draft", "edited"]
 PENDING_FOLLOWUPS = ["Pending Appointment", "WhatsApp"]
 APPOINTMENT_OR_BEYOND = ["Appointment", "Booking", "Completed"]
 BOOKING_OR_BEYOND = ["Booking", "Completed"]
@@ -69,6 +68,9 @@ def get_period_calls(period, year: int, month: int, day: int): # explicitly stat
         end = date(year + 1, 1, 1)
 
         return start, end
+    
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported period: {period}")
 
 
 # ------------------this is get period for KPIs---------------------------
@@ -90,6 +92,8 @@ def get_period(period, year: int, month: int, day: int): # explicitly state what
         else: end = date(year, month + 1, 1)
 
         return start, end
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported period: {period}")
 
 # ------------------this is get period for KPIs (LAST MONTH)---------------------------
 def get_previous_period(period, year: int, month: int, day: int):
@@ -188,19 +192,19 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
                   )
         
         ######################## Total Leads ###########################  
-        # total_leads = ( db.query(func.count(Customers.cust_id))
-        #            .filter(Customers.user_id == user_id)
-        #            .filter(func.date(Customers.last_contact) == start)
-        #            .scalar() or 0
-        #            )
+        total_leads = ( db.query(func.count(Customers.cust_id))
+                   .filter(Customers.user_id == user_id)
+                   .filter(func.date(Customers.last_contact) == start)
+                   .scalar() or 0
+                   )
         
-        total_leads = (
-                    db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
-                    .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
-                    .filter(Customers.user_id == user_id)
-                    .filter(func.date(SpeechAnalysis.created_at) == start)
-                    .scalar() or 0
-                     )
+        # total_leads = (
+        #             db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
+        #             .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
+        #             .filter(Customers.user_id == user_id)
+        #             .filter(func.date(SpeechAnalysis.created_at) == start)
+        #             .scalar() or 0
+        #              )
         
         # ---------------------------------------------------------------------
         #         AGENT STATS CALCULATION FOR PREVIOUS MONTH
@@ -209,7 +213,7 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         prev_calls = (
             db.query(func.count(SpeechAnalysis.id))
             .filter(SpeechAnalysis.user_id == user_id)
-            .filter(SpeechAnalysis.created_at == prev_start)
+            .filter(func.date(SpeechAnalysis.created_at) == prev_start)
             .scalar() or 0
         )
 
@@ -218,7 +222,7 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id == user_id)
             .filter(Customers.status.in_(BOOKING_OR_BEYOND))
-            .filter(Customers.last_contact == prev_start)
+            .filter(func.date(Customers.last_contact) == prev_start)
             .scalar() or 0
         )
 
@@ -227,7 +231,7 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id == user_id)
             .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
-            .filter(Customers.last_contact == prev_start)
+            .filter(func.date(Customers.last_contact) == prev_start)
             .scalar() or 0
         )
 
@@ -241,7 +245,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         ######################## Total Calls Section ###########################
         total_calls = ( db.query(func.count(SpeechAnalysis.id))
                        .filter(SpeechAnalysis.user_id == user_id)
-                       .filter(func.date(SpeechAnalysis.created_at) >= start, func.date(SpeechAnalysis.created_at) < end)
+                       .filter(func.date(SpeechAnalysis.created_at) >= start, 
+                               func.date(SpeechAnalysis.created_at) < end)
                        .scalar() or 0 
                        )
         
@@ -249,7 +254,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         pending_follow_ups = ( db.query(func.count(Customers.cust_id))
                   .filter(Customers.user_id == user_id)
                   .filter(Customers.status.in_(PENDING_FOLLOWUPS))
-                  .filter(func.date(Customers.last_contact) >= start, func.date(Customers.last_contact) < end)
+                  .filter(func.date(Customers.last_contact) >= start, 
+                          func.date(Customers.last_contact) < end)
                   .scalar() or 0
                   )
                   
@@ -257,7 +263,16 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         total_appointments = ( db.query(func.count(Customers.cust_id))
                   .filter(Customers.user_id == user_id)
                   .filter(Customers.status == "Appointment")
-                  .filter(func.date(Customers.last_contact) >= start, func.date(Customers.last_contact) < end)
+                  .filter(func.date(Customers.last_contact) >= start, 
+                          func.date(Customers.last_contact) < end)
+                  .scalar() or 0
+                  )
+        
+        stage_appointment =  ( db.query(func.count(Customers.cust_id))
+                  .filter(Customers.user_id == user_id)
+                  .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
+                  .filter(func.date(Customers.last_contact) >= start, 
+                          func.date(Customers.last_contact) < end)
                   .scalar() or 0
                   )
         
@@ -265,32 +280,41 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         total_bookings = ( db.query(func.count(Customers.cust_id))
                   .filter(Customers.user_id == user_id)
                   .filter(Customers.status == "Booking")
-                  .filter(func.date(Customers.last_contact) >= start, func.date(Customers.last_contact) < end)
+                  .filter(func.date(Customers.last_contact) >= start, 
+                          func.date(Customers.last_contact) < end)
+                  .scalar() or 0
+                  )
+        
+        stage_booking =  ( db.query(func.count(Customers.cust_id))
+                  .filter(Customers.user_id == user_id)
+                  .filter(Customers.status.in_(BOOKING_OR_BEYOND))
+                  .filter(func.date(Customers.last_contact) >= start, 
+                          func.date(Customers.last_contact) < end)
                   .scalar() or 0
                   )
         
         ######################## Total Leads ###########################
-        # total_leads = ( db.query(func.count(Customers.cust_id))
-        #            .filter(Customers.user_id == user_id)
-        #            .filter(func.date(SpeechAnalysis.created_at) >= start, func.date(SpeechAnalysis.created_at) < end)
-        #            .filter(func.date(Customers.last_contact) >= start, func.date(Customers.last_contact) < end)
-        #            .scalar() or 0
-        #            )
+        total_leads = ( db.query(func.count(Customers.cust_id))
+                   .filter(Customers.user_id == user_id)
+                   .filter(func.date(Customers.last_contact) >= start, 
+                           func.date(Customers.last_contact) < end)
+                   .scalar() or 0
+                   )
         
-        total_leads = (
-                    db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
-                    .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
-                    .filter(Customers.user_id == user_id)
-                    .filter(func.date(SpeechAnalysis.created_at) >= start)
-                    .filter(func.date(SpeechAnalysis.created_at) < end)
-                    .scalar() or 0
-                     )
+        # total_leads = (
+        #             db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
+        #             .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
+        #             .filter(Customers.user_id == user_id)
+        #             .filter(func.date(SpeechAnalysis.created_at) >= start)
+        #             .filter(func.date(SpeechAnalysis.created_at) < end)
+        #             .scalar() or 0
+        #              )
                         
         prev_calls = (
             db.query(func.count(SpeechAnalysis.id))
             .filter(SpeechAnalysis.user_id == user_id)
-            .filter(SpeechAnalysis.created_at >= prev_start,
-                    SpeechAnalysis.created_at < prev_end)
+            .filter(func.date(SpeechAnalysis.created_at) >= prev_start,
+                    func.date(SpeechAnalysis.created_at) < prev_end)
             .scalar() or 0
         )
 
@@ -299,8 +323,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id == user_id)
             .filter(Customers.status.in_(BOOKING_OR_BEYOND))
-            .filter(Customers.last_contact >= prev_start,
-                    Customers.last_contact < prev_end)
+            .filter(func.date(Customers.last_contact) >= prev_start,
+                    func.date(Customers.last_contact) < prev_end)
             .scalar() or 0
         )
 
@@ -308,8 +332,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id == user_id)
             .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
-            .filter(Customers.last_contact >= prev_start,
-                    Customers.last_contact < prev_end)
+            .filter(func.date(Customers.last_contact) >= prev_start,
+                    func.date(Customers.last_contact) < prev_end)
             .scalar() or 0
         )
 
@@ -353,7 +377,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         region_rows = ( db.query(Customers.location, func.count(Customers.cust_id).label("count"))
                     .filter(Customers.user_id == user_id)
                     .filter(Customers.location.isnot(None))
-                    .filter(func.date(Customers.last_contact) >= start, func.date(Customers.last_contact) < end)
+                    .filter(func.date(Customers.last_contact) >= start, 
+                            func.date(Customers.last_contact) < end)
                     .group_by(Customers.location)
                     .order_by(func.count(Customers.cust_id).desc()) 
                     .limit(5)
@@ -381,7 +406,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         objection_rows = ( db.query(Objection.objection_type, func.count(Objection.objection_id).label("count"))
                         .join(SpeechAnalysis, Objection.call_id == SpeechAnalysis.id)
                         .filter(SpeechAnalysis.user_id == user_id)
-                        .filter(func.date(SpeechAnalysis.created_at) >= start, func.date(SpeechAnalysis.created_at) < end)
+                        .filter(func.date(SpeechAnalysis.created_at) >= start, 
+                                func.date(SpeechAnalysis.created_at) < end)
                         .group_by(Objection.objection_type)
                         .order_by(func.count(Objection.objection_id).desc())
                         .limit(5)
@@ -439,8 +465,7 @@ async def get_agent_calls(db: db_dependency, user_id: uuid.UUID,
             db.query(func.date(SpeechAnalysis.created_at).label("call_date"),
                     func.count(SpeechAnalysis.id).label("call_count"))
             .filter(SpeechAnalysis.user_id == user_id, 
-                    SpeechAnalysis.created_at >= start,
-                    SpeechAnalysis.created_at < end)
+                    func.date(SpeechAnalysis.created_at) == start)
             .group_by(func.date(SpeechAnalysis.created_at))
             .order_by(func.date(SpeechAnalysis.created_at))
             .all()
@@ -466,8 +491,8 @@ async def get_agent_calls(db: db_dependency, user_id: uuid.UUID,
             db.query( func.extract("month", SpeechAnalysis.created_at).label("call_date"), 
                      func.count(SpeechAnalysis.id).label("call_count"))
             .filter(SpeechAnalysis.user_id == user_id, 
-                    SpeechAnalysis.created_at >= start,
-                    SpeechAnalysis.created_at < end)
+                    func.date(SpeechAnalysis.created_at) >= start,
+                    func.date(SpeechAnalysis.created_at) < end)
             .group_by(func.extract("month", SpeechAnalysis.created_at))
             .order_by(func.extract("month", SpeechAnalysis.created_at))
             .all()            
@@ -502,7 +527,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
     current_user = db.query(Users).filter(Users.user_id == user_id).first()
 
     if current_user is None:
-        raise(HTTPException(status_code=404, detail= "User not found"))
+        raise(HTTPException(status_code=404, detail= "No user data"))
     
     # --------------- get the customers under the agent ----------------------------
     team_members = db.query(Users).filter(Users.team_lead_id == user_id).all()
@@ -538,10 +563,15 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
         team_kpis = AgentStats(calls = 0, leads=0, followUps=0, appointments=0, bookings=0)
         team_overview = []
         total_agents = 0
-        team_leads = 0
-        team_bookings = 0
-        team_appointments = 0
+        # team_leads = 0
+        # team_bookings = 0
+        # team_appointments = 0
         team_regions = []
+        team_conversion = ConversionRate(
+            calls_change=0,
+            appointments_change=0,
+            bookings_change=0
+        )
         team_stats = TeamStats(
             team_kpis=team_kpis,
             team_regions=team_regions
@@ -552,14 +582,16 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
         team_calls = ( 
             db.query(func.count(SpeechAnalysis.id)) 
             .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
-            .filter(SpeechAnalysis.created_at >= start, SpeechAnalysis.created_at < end)
+            .filter(func.date(SpeechAnalysis.created_at) >= start, 
+                    func.date(SpeechAnalysis.created_at) < end)
             .scalar() or 0
             )
         
         team_leads = (
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
-            .filter(Customers.last_contact >= start, Customers.last_contact < end)
+            .filter(func.date(Customers.last_contact) >= start, 
+                    func.date(Customers.last_contact) < end)
             .scalar() or 0
         )
 
@@ -567,14 +599,16 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
             .filter(Customers.status.in_(PENDING_FOLLOWUPS))
-            .filter(Customers.last_contact >= start, Customers.last_contact < end)
+            .filter(func.date(Customers.last_contact) >= start, 
+                    func.date(Customers.last_contact) < end)
             .scalar() or 0
         )
 
         team_bookings = (
                     db.query(func.count(Customers.cust_id))
                     .filter(Customers.user_id.in_(team_agent_ids), Customers.status.in_(BOOKING_OR_BEYOND))
-                    .filter(Customers.last_contact >= start, Customers.last_contact < end)
+                    .filter(func.date(Customers.last_contact) >= start, 
+                            func.date(Customers.last_contact) < end)
                     .scalar() or 0
                 )
 
@@ -582,7 +616,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
             .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
-            .filter(Customers.last_contact >= start, Customers.last_contact < end)
+            .filter(func.date(Customers.last_contact) >= start, 
+                    func.date(Customers.last_contact) < end)
             .scalar() or 0
         )
 
@@ -590,7 +625,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
             .filter(Customers.status.in_(COMPLETED))
-            .filter(Customers.last_contact >= start, Customers.last_contact < end)
+            .filter(func.date(Customers.last_contact) >= start, 
+                    func.date(Customers.last_contact) < end)
             .scalar() or 0
         )
 
@@ -603,14 +639,16 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
             .filter(Customers.status.in_(BOOKING_OR_BEYOND))
-            .filter(Customers.last_contact >= prev_start, Customers.last_contact < prev_end)
+            .filter(func.date(Customers.last_contact) >= prev_start, 
+                    func.date(Customers.last_contact) < prev_end)
             .scalar() or 0
         )
 
         team_prev_calls = ( 
             db.query(func.count(SpeechAnalysis.id)) 
             .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
-            .filter(SpeechAnalysis.created_at >= prev_start, SpeechAnalysis.created_at < prev_end)
+            .filter(func.date(SpeechAnalysis.created_at) >= prev_start, 
+                    func.date(SpeechAnalysis.created_at) < prev_end)
             .scalar() or 0
             )
         
@@ -618,7 +656,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
             .filter(Customers.status.in_(APPOINTMENT_OR_BEYOND))
-            .filter(Customers.last_contact >= prev_start, Customers.last_contact < prev_end)
+            .filter(func.date(Customers.last_contact) >= prev_start, 
+                    func.date(Customers.last_contact) < prev_end)
             .scalar() or 0
         )
         
@@ -705,7 +744,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             lead_rows = (
                 db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
               
-                .filter(Customers.last_contact >= start, Customers.last_contact < end)
+                .filter(func.date(Customers.last_contact) >= start, 
+                        func.date(Customers.last_contact) < end)
                 .filter(Customers.user_id.in_(team_agent_ids))
                 .group_by(Customers.user_id)
                 .all()
@@ -716,7 +756,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             call_rows = (
                 db.query(SpeechAnalysis.user_id, func.count(SpeechAnalysis.id).label("count"))
                 .filter(SpeechAnalysis.user_id.in_(team_agent_ids))
-                .filter(SpeechAnalysis.created_at >= start, SpeechAnalysis.created_at < end)
+                .filter(func.date(SpeechAnalysis.created_at) >= start, 
+                        func.date(SpeechAnalysis.created_at) < end)
                 .group_by(SpeechAnalysis.user_id)
                 .all()
             )
@@ -730,7 +771,8 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
                         )
                         .filter(Customers.user_id.in_(team_agent_ids))
                         .filter(Customers.status.in_(PENDING_FOLLOWUPS))
-                        .filter(Customers.last_contact >= start, Customers.last_contact < end)
+                        .filter(func.date(Customers.last_contact) >= start, 
+                                func.date(Customers.last_contact) < end)
                         .group_by(Customers.user_id)
                         .all()
                         )
@@ -740,8 +782,9 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             appointment_rows = (
                 db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
                 .filter(Customers.user_id.in_(team_agent_ids))
-                .filter(func.lower(Customers.status) == "appointment")
-                .filter(Customers.last_contact >= start, Customers.last_contact < end)
+                .filter(Customers.status == "Appointment")
+                .filter(func.date(Customers.last_contact) >= start, 
+                        func.date(Customers.last_contact) < end)
                 .group_by(Customers.user_id)
                 .all()
             )
@@ -751,8 +794,9 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             bookings_rows = (
                 db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
                 .filter(Customers.user_id.in_(team_agent_ids))
-                .filter(func.lower(Customers.status) == "booking")
-                .filter(Customers.last_contact >= start, Customers.last_contact < end)
+                .filter(Customers.status == "Booking")
+                .filter(func.date(Customers.last_contact) >= start, 
+                        func.date(Customers.last_contact) < end)
                 .group_by(Customers.user_id)
                 .all()
             )
@@ -769,7 +813,7 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
                 bookings     = bookings_map.get(m.user_id, 0)
 
                 appt_rate    = round((appointments / leads) * 100, 1) if leads > 0 else 0.0
-                booking_rate = round((bookings / leads) * 100, 1) if leads > 0 else 0.0
+                booking_rate = round((bookings / leads) * 100, 1) if appointments > 0 else 0.0
 
                 if follow_ups > 0 and calls == 0:
                     status = "needs_attention"
