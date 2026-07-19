@@ -86,6 +86,8 @@ function AgentDashboard() {
     fetchKPIs();
   }, [profile, period, year, month, day]);
 
+  console.log(agent);
+
   // --- Call Volume fetch, separate effect ---
   useEffect(() => {
     if (!profile?.user_id) return;
@@ -103,6 +105,7 @@ function AgentDashboard() {
         const response = await api.get(
           `/dashboard/calls?user_id=${profile.user_id}&${params}`,
         );
+        console.log(response.data);
         setCalls(response.data);
       } catch (err) {
         setDcError(err.message);
