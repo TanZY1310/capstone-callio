@@ -1,6 +1,18 @@
+import os
+import time
 import uuid
 
-_demo_sessions: dict[str, str] = {}
+import jwt
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DEMO_JWT_SECRET = os.getenv("DEMO_JWT_SECRET", "")
+if not DEMO_JWT_SECRET:
+    raise RuntimeError("DEMO_JWT_SECRET environment variable is required")
+
+DEMO_JWT_ALGORITHM = "HS256"
+DEMO_JWT_EXPIRY_HOURS = 8
 
 DEMO_AGENT = {
     "email": "amir.hassan@callio-property.com",
@@ -56,13 +68,17 @@ SUB_AGENTS = [
 ]
 
 
-def generate_demo_token() -> str:
-    return f"DEMO_{uuid.uuid4().hex}"
+def generate_demo_jwt(firebase_uid: str, role: str) -> str:
+    now = int(time.time())
+    payload = {
+        "sub": firebase_uid,
+        "demo": True,
+        "role": role,
+        "iat": now,
+        "exp": now + DEMO_JWT_EXPIRY_HOURS * 3600,
+    }
+    return jwt.encode(payload, DEMO_JWT_SECRET, algorithm=DEMO_JWT_ALGORITHM)
 
 
-def register_session(token: str, firebase_uid: str):
-    _demo_sessions[token] = firebase_uid
-
-
-def get_session_uid(token: str) -> str | None:
-    return _demo_sessions.get(token)
+def verify_demo_jwt(token: str) -> dict:
+    return jwt.decode(token, DEMO_JWT_SECRET, algorithms=[DEMO_JWT_ALGORITHM])

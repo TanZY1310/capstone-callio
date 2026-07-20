@@ -8,7 +8,6 @@ import { resetForceLogoutFlag } from '../utils/api';
 const API_URL = import.meta.env.VITE_API_URL;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 300;
-const SESSION_REFRESH_KEY = 'callio_session_refreshed_at';
 
 function getInitialDemoState() {
   const demoToken = localStorage.getItem('demo_token');
@@ -28,24 +27,6 @@ function getInitialDemoState() {
   }
 }
 
-async function tryCookieRestore() {
-  try {
-    const response = await fetch(`${API_URL}/auth/session`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    if (response.ok) {
-      const profile = await response.json();
-      localStorage.setItem('userProfile', JSON.stringify(profile));
-      localStorage.setItem(SESSION_REFRESH_KEY, Date.now().toString());
-      return profile;
-    }
-  } catch {
-    // cookie restore failed silently — fall back to login
-  }
-  return null;
-}
-
 export function useAuth() {
   const initial = getInitialDemoState();
   const [user, setUser] = useState(
@@ -61,12 +42,11 @@ export function useAuth() {
   const loginDemo = async (role) => {
     try {
       setLoading(true);
-      const response = await axios.post(`${API_URL}/auth/demo-login`, { role }, { withCredentials: true });
+      const response = await axios.post(`${API_URL}/auth/demo-login`, { role });
       const { demo_token, user: profileData } = response.data;
 
       localStorage.setItem('demo_token', demo_token);
       localStorage.setItem('userProfile', JSON.stringify(profileData));
-      localStorage.setItem(SESSION_REFRESH_KEY, Date.now().toString());
 
       if (mountedRef.current) {
         setUser({ uid: profileData.firebase_uid, email: profileData.email });
@@ -85,7 +65,7 @@ export function useAuth() {
     }
   };
 
-  // Main auth effect — Firebase + cookie restore consolidated
+  // Main Firebase auth effect — only runs when not in demo mode
   useEffect(() => {
     if (isDemo) return;
 
@@ -95,6 +75,9 @@ export function useAuth() {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        setUser(firebaseUser);
+        setLoading(true);
+
         if (sessionStorage.getItem('callio_pending_registration')) {
           setProfile(null);
           setLoading(true);
@@ -113,13 +96,11 @@ export function useAuth() {
             const response = await axios.post(`${API_URL}/auth/session`, null, {
               headers: { Authorization: `Bearer ${idToken}` },
               signal: controller.signal,
-              withCredentials: true,
             });
             if (mountedRef.current) {
               setProfile(response.data);
               setAuthError(null);
               resetForceLogoutFlag();
-              localStorage.setItem(SESSION_REFRESH_KEY, Date.now().toString());
             }
             lastError = null;
             break;
@@ -144,18 +125,9 @@ export function useAuth() {
           }
         }
       } else {
-        // Firebase has no session — try cookie-based restore
-        const cookieProfile = await tryCookieRestore();
-        if (cookieProfile && mountedRef.current) {
-          setProfile(cookieProfile);
-          setUser({ uid: cookieProfile.firebase_uid, email: cookieProfile.email });
-          setAuthError(null);
-          resetForceLogoutFlag();
-        } else {
-          setUser(null);
-          setProfile(null);
-          setAuthError(null);
-        }
+        setUser(null);
+        setProfile(null);
+        setAuthError(null);
       }
 
       if (mountedRef.current) setLoading(false);
@@ -172,7 +144,6 @@ export function useAuth() {
     const handleForceLogout = () => {
       localStorage.removeItem('demo_token');
       localStorage.removeItem('userProfile');
-      localStorage.removeItem(SESSION_REFRESH_KEY);
       signOut(auth).catch(() => {});
       setUser(null);
       setProfile(null);
@@ -190,7 +161,6 @@ export function useAuth() {
     if (isDemo) {
       localStorage.removeItem('demo_token');
       localStorage.removeItem('userProfile');
-      localStorage.removeItem(SESSION_REFRESH_KEY);
       setIsDemo(false);
       setUser(null);
       setProfile(null);
@@ -198,7 +168,6 @@ export function useAuth() {
       return;
     }
     await signOut(auth);
-    localStorage.removeItem(SESSION_REFRESH_KEY);
   };
 
   return { user, profile, loading, logout, authError, loginDemo };
