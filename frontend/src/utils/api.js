@@ -1,24 +1,75 @@
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
+const API_URL = import.meta.env.VITE_API_URL;
+const SESSION_REFRESH_KEY = 'callio_session_refreshed_at';
+const REFRESH_INTERVAL_MS = 6 * 24 * 60 * 60 * 1000;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_URL,
+  withCredentials: true,
 });
 
 let forceLogoutDispatched = false;
+let isRefreshing = false;
+let refreshPromise = null;
 
-api.interceptors.request.use(async (config) => {
+async function refreshSessionCookie() {
   const demoToken = localStorage.getItem('demo_token');
   if (demoToken) {
-    config.headers.Authorization = `Bearer ${demoToken}`;
-    return config;
+    return axios.post(`${API_URL}/auth/refresh`, null, {
+      headers: { Authorization: `Bearer ${demoToken}` },
+      withCredentials: true,
+    });
   }
 
   const authInstance = getAuth();
   if (authInstance.currentUser) {
-    const token = await authInstance.currentUser.getIdToken();
-    config.headers.Authorization = `Bearer ${token}`;
+    const idToken = await authInstance.currentUser.getIdToken(true);
+    return axios.post(`${API_URL}/auth/refresh`, null, {
+      headers: { Authorization: `Bearer ${idToken}` },
+      withCredentials: true,
+    });
   }
+
+  throw new Error('No auth credentials available for session refresh');
+}
+
+api.interceptors.request.use(async (config) => {
+  if (config.url?.includes('/auth/refresh')) return config;
+
+  const demoToken = localStorage.getItem('demo_token');
+  if (demoToken) {
+    config.headers.Authorization = `Bearer ${demoToken}`;
+  } else {
+    const authInstance = getAuth();
+    if (authInstance.currentUser) {
+      const token = await authInstance.currentUser.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  const lastRefresh = localStorage.getItem(SESSION_REFRESH_KEY);
+  const now = Date.now();
+  if (!lastRefresh || now - parseInt(lastRefresh, 10) > REFRESH_INTERVAL_MS) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      refreshPromise = refreshSessionCookie()
+        .then(() => {
+          localStorage.setItem(SESSION_REFRESH_KEY, now.toString());
+          forceLogoutDispatched = false;
+        })
+        .catch(() => {})
+        .finally(() => {
+          isRefreshing = false;
+          refreshPromise = null;
+        });
+    }
+    if (refreshPromise) {
+      await refreshPromise;
+    }
+  }
+
   return config;
 });
 
@@ -27,8 +78,19 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && (originalRequest._retry || 0) < 2) {
-      if (localStorage.getItem('demo_token')) {
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      if (error.response?.status === 401 && !forceLogoutDispatched) {
+        forceLogoutDispatched = true;
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('demo_token');
+        window.dispatchEvent(new CustomEvent('force_logout'));
+      }
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401) {
+      const demoToken = localStorage.getItem('demo_token');
+      if (demoToken && (originalRequest._retry || 0) >= 1) {
         if (!forceLogoutDispatched) {
           forceLogoutDispatched = true;
           localStorage.removeItem('demo_token');
@@ -41,24 +103,24 @@ api.interceptors.response.use(
       originalRequest._retry = (originalRequest._retry || 0) + 1;
 
       try {
-        const authInstance = getAuth();
-        if (authInstance.currentUser) {
-          await authInstance.currentUser.getIdToken(true);
-          return api(originalRequest);
-        }
+        await refreshSessionCookie();
+        localStorage.setItem(SESSION_REFRESH_KEY, Date.now().toString());
+        forceLogoutDispatched = false;
+        return api(originalRequest);
       } catch {
-        // fall through to reject below
+        // fall through to force logout
+      }
+
+      if (!forceLogoutDispatched) {
+        forceLogoutDispatched = true;
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('demo_token');
+        window.dispatchEvent(new CustomEvent('force_logout'));
       }
     }
 
-    if (error.response?.status === 401 && !forceLogoutDispatched) {
-      forceLogoutDispatched = true;
-      localStorage.removeItem('userProfile');
-      window.dispatchEvent(new CustomEvent('force_logout'));
-    }
-
     return Promise.reject(error);
-  }
+  },
 );
 
 export function resetForceLogoutFlag() {

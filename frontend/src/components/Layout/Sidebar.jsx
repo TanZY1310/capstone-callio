@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Outlet, NavLink } from 'react-router-dom';
-import {
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Sun,
-  Moon,
-} from 'lucide-react';
+import { LogOut, PanelLeftClose, PanelLeftOpen, Sun, Moon } from 'lucide-react';
 import Navigation from './Navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../../hooks/useTheme';
@@ -50,7 +44,7 @@ function Sidebar({ logout, profile }) {
         <div
           className={`flex items-center border-b border-base-200 overflow-hidden ${isDrawerOpen ? 'gap-2 px-2 py-2' : 'gap-1 px-1 py-2'}`}
         >
-          <div className="shrink-0 rounded-xl bg-white p-1">
+          <div className="shrink-0 rounded-xl bg-base-100 p-1">
             <img
               src={callioLogo}
               alt="Callio"
@@ -59,6 +53,7 @@ function Sidebar({ logout, profile }) {
                 width: isDrawerOpen ? 'auto' : 48,
                 maxWidth: isDrawerOpen ? 224 : 48,
                 objectFit: 'contain',
+                mixBlendMode: 'multiply',
               }}
             />
           </div>
