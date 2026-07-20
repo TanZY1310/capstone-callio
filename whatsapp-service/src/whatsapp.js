@@ -152,7 +152,7 @@ async function initializeClient() {
         // Wait a few seconds, then initialize a new instance
         setTimeout(async () => {
             console.log('Re-initializing client in initializeClient...');
-            await initializeClient();
+            await handleCrashAndRestart(); //change back to initializeClient() if there's extra error
         }, 5000);
   });
 
@@ -180,7 +180,7 @@ async function initializeClient() {
     state.status = 'disconnected';
     setTimeout(async () => {
       console.log('Re-initializing client after failed initialize()...');
-      await initializeClient();
+      await handleCrashAndRestart();
     }, 5000);
   });
 }
