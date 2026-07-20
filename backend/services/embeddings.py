@@ -2,6 +2,7 @@ import os
 import time
 import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from operator import itemgetter
 from pathlib import Path
 from pypdf import PdfReader
@@ -15,6 +16,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
 from services.whatsapp_client import fetch_chat_messages
+from services.llm_tracker import extract_token_usage_from_langchain
 # this services layer needs to be imported into my langchain related router functions
 
 load_dotenv()
@@ -31,6 +33,7 @@ TRANSCRIPT_COLLECTION_NAME = "call_transcript_collection"
 TRANSCRIPT_INDEX_NAME = "transcript_index_1"
 EMBEDDING_DIMENSIONS = 768
 CHAT_HISTORY_LIMIT = 20
+LLM_THREAD_POOL_SIZE = 4
 
 _mongo_client = None
 _property_vector_store_doc = None
@@ -38,6 +41,21 @@ _property_vector_store_query = None
 _transcript_vector_store_doc = None
 _transcript_vector_store_query = None
 _llm = None
+_llm_executor = None
+
+def _get_llm_executor():
+    global _llm_executor
+    if _llm_executor is None:
+        _llm_executor = ThreadPoolExecutor(max_workers=LLM_THREAD_POOL_SIZE, thread_name_prefix="llm-")
+    return _llm_executor
+
+
+def shutdown_llm_executor():
+    global _llm_executor
+    if _llm_executor is not None:
+        _llm_executor.shutdown(wait=True)
+        _llm_executor = None
+
 
 def _ensure_vector_search_index(collection, vector_store, index_name, filters=None):
     """Creates the Atlas vector search index if it doesn't already exist."""
@@ -242,7 +260,7 @@ def format_transcript_history(transcript_history) -> str:
 
 # function: retrieval and generation - drafts a reply grounded in property info,
 # semantically-relevant past-call chunks, raw recent call transcripts, and chat history
-async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, transcript_history=None):
+async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, transcript_history=None, metadata_out=None):
     # for_query=True: querying at retrieval time needs the RETRIEVAL_QUERY-mode
     # embedding, not the RETRIEVAL_DOCUMENT-mode embedding used to index the docs
     _, _property_vector_store, _transcript_vector_store, _llm = get_or_create_client(MONGODB_URI, for_query=True)
@@ -261,6 +279,7 @@ async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, 
     Do not make up facts or use knowledge outside of the provided context.
     Prefer the call transcript context for the customer's stated preferences, and the property context for factual details.
     Keep the reply concise and directly relevant to what the customer last said.
+    Ensure there's no unnecssary dashes or hyphens in your response.
 
     PROPERTY CONTEXT:
     {property_context}
@@ -289,17 +308,30 @@ async def retrieval_and_generation(cust_id: str, phone: str, chat_history=None, 
         "input": itemgetter("input"),
     }
 
-    rag_chain = setup_and_retrieval | prompt | _llm | StrOutputParser()
+    rag_chain = setup_and_retrieval | prompt | _llm
     print("Querying Vector DB...")
     query = latest_customer_message(chat_history) or "Draft a helpful follow-up reply to this customer."
-    response = rag_chain.invoke({
-        "input": query,
-        "chat_history": format_chat_history(chat_history),
-        "recent_transcripts": format_transcript_history(transcript_history),
-    })
-    print(f"\nAI Response: {response}")
+    response = await asyncio.to_thread(
+        rag_chain.invoke,
+        {
+            "input": query,
+            "chat_history": format_chat_history(chat_history),
+            "recent_transcripts": format_transcript_history(transcript_history),
+        },
+    )
+    
+    if isinstance(metadata_out, dict):
+        metadata_out["tokens_used"] = extract_token_usage_from_langchain(response)
 
-    return response
+    final_content = response.content
+    if isinstance(final_content, list):
+        final_content = " ".join([block.get("text", "") if isinstance(block, dict) else str(block) for block in final_content])
+    elif not isinstance(final_content, str):
+        final_content = str(final_content)
+
+    print(f"\nAI Response: {final_content}")
+
+    return final_content
 
 # if __name__ == "__main__":
 #     get_or_create_client(MONGODB_URI)

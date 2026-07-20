@@ -7,42 +7,70 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 
 function SheetsCard() {
-  const [sheetsId, setSheetsId] = useState('');
+  const { profile } = useAuth();
+  const [sheetsId, setSheetsId] = useState(profile?.sheets_id || '');
   const [isLinked, setIsLinked] = useState(false);
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('2026-05-12 14:22:10');
 
-  const { user } = useAuth();
-
-  const fetchProfile = async () => {
-    if (user) {
-      try {
-        const response = await api.get('/user_profile/');
-        if (response.data.sheets_id) {
-          setSheetsId(response.data.sheets_id);
-        }
-
-        try {
-          const statusRes = await api.get('/sheets/status');
-          if (statusRes.data && statusRes.data.connected) {
-            setIsLinked(true);
-          } else {
-            setIsLinked(false);
-          }
-        } catch (statusErr) {
-          setIsLinked(false);
-          console.error('Failed to fetch Sheets status:', statusErr);
-        }
-      } catch (err) {
-        console.error('Failed to fetch profile data:', err);
+  const checkStatus = async () => {
+    try {
+      const statusRes = await api.get('/sheets/status');
+      if (statusRes.data && statusRes.data.connected) {
+        setIsLinked(true);
+      } else {
+        setIsLinked(false);
       }
+    } catch {
+      setIsLinked(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
-  }, [user]);
+    if (profile?.sheets_id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      checkStatus();
+      setSheetsId(profile.sheets_id);
+    }
+  }, [profile?.sheets_id]);
+
+  // Auto-sync every 30 seconds when connected
+  useEffect(() => {
+    let intervalId;
+    if (isLinked) {
+      intervalId = setInterval(async () => {
+        try {
+          setIsSyncing(true);
+          await api.post('/sheets/sync');
+          await api.post('/sheets/export');
+          
+          const now = new Date();
+          const formattedTime =
+            now.getFullYear() +
+            '-' +
+            String(now.getMonth() + 1).padStart(2, '0') +
+            '-' +
+            String(now.getDate()).padStart(2, '0') +
+            ' ' +
+            String(now.getHours()).padStart(2, '0') +
+            ':' +
+            String(now.getMinutes()).padStart(2, '0') +
+            ':' +
+            String(now.getSeconds()).padStart(2, '0');
+          setLastSyncTime(formattedTime);
+        } catch (err) {
+          console.error('Auto-sync error:', err);
+        } finally {
+          setIsSyncing(false);
+        }
+      }, 30000);
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isLinked]);
 
   const handleSync = async () => {
     if (!sheetsId || !sheetsId.trim()) {
@@ -53,14 +81,13 @@ function SheetsCard() {
     setIsSyncing(true);
 
     try {
-      if (user) {
-        await api.put('/user_profile/', { sheets_id: sheetsId });
-        await api.post('/sheets/sync');
-        setIsLinked(true);
-        toast.success(`Sync successful`);
-      }
+      await api.put('/user_profile/', { sheets_id: sheetsId });
+      await api.post('/sheets/sync');
+      await api.post('/sheets/export');
+      setIsLinked(true);
+      toast.success('Sync successful');
 
-      // Format current time: YYYY-MM-DD HH:mm:ss
+      // Format current time
       const now = new Date();
       const formattedTime =
         now.getFullYear() +
@@ -77,8 +104,7 @@ function SheetsCard() {
 
       setLastSyncTime(formattedTime);
 
-      // Fetch the updated profile and status after sync
-      await fetchProfile();
+      await checkStatus();
     } catch (err) {
       console.error(err);
       toast.error('Failed to sync Sheets ID.');

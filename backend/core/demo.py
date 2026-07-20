@@ -10,6 +10,7 @@ DEMO_AGENT = {
     "agency_branch": "Kuala Lumpur HQ",
     "registered_year": 2020,
     "license_number": "REN12345",
+    "sheets_id": "1eN1XOgQ7VbaXCCX2iUq0DJrglThdzGkdqjBb6L_z8E8",
 }
 
 DEMO_TEAM_LEAD = {
@@ -37,6 +38,20 @@ SUB_AGENTS = [
         "last_name": "Lim",
         "role": "agent",
         "agency_branch": "Cheras Branch",
+    },
+    {
+        "email": "aisha.rahman@callio-property.com",
+        "first_name": "Aisha",
+        "last_name": "Rahman",
+        "role": "agent",
+        "agency_branch": "Subang Jaya Branch",
+    },
+    {
+        "email": "daniel.wong@callio-property.com",
+        "first_name": "Daniel",
+        "last_name": "Wong",
+        "role": "agent",
+        "agency_branch": "Penang Branch",
     },
 ]
 

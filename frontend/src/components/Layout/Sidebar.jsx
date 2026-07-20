@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import {
   LogOut,
-  Building2,
   PanelLeftClose,
   PanelLeftOpen,
   Sun,
@@ -11,6 +10,7 @@ import {
 import Navigation from './Navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../../hooks/useTheme';
+import callioLogo from '../../assets/Callio LOGO.png';
 
 function Sidebar({ logout, profile }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
@@ -48,14 +48,21 @@ function Sidebar({ logout, profile }) {
 
         {/* ── Logo header ── */}
         <div
-          className={`flex items-center gap-2 px-4 py-4 border-b border-base-200 overflow-hidden`}
+          className={`flex items-center border-b border-base-200 overflow-hidden ${isDrawerOpen ? 'gap-2 px-2 py-2' : 'gap-1 px-1 py-2'}`}
         >
-          {/* Logo icon */}
-          <div className="bg-primary rounded-lg w-8 h-8 flex items-center justify-center shrink-0">
-            <Building2 size={16} />
+          <div className="shrink-0 rounded-xl bg-white p-1">
+            <img
+              src={callioLogo}
+              alt="Callio"
+              style={{
+                height: 48,
+                width: isDrawerOpen ? 'auto' : 48,
+                maxWidth: isDrawerOpen ? 224 : 48,
+                objectFit: 'contain',
+              }}
+            />
           </div>
 
-          {/* CALLIO text + theme toggle */}
           <AnimatePresence>
             {isDrawerOpen && (
               <motion.div
@@ -65,11 +72,13 @@ function Sidebar({ logout, profile }) {
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.15 }}
               >
-                <span className="font-bold tracking-widest text-sm text-base-content whitespace-nowrap">
+                <span
+                  className="uppercase tracking-[0.15em] text-lg text-base-content whitespace-nowrap"
+                  style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+                >
                   CALLIO
                 </span>
 
-                {/* ✅ Theme toggle right beside CALLIO */}
                 <motion.button
                   className="btn btn-ghost btn-xs btn-circle text-base-content/60 hover:text-base-content"
                   onClick={toggleTheme}
@@ -77,7 +86,7 @@ function Sidebar({ logout, profile }) {
                   whileTap={{ scale: 0.9 }}
                   aria-label="Toggle theme"
                 >
-                  {theme === 'lemonade' ? (
+                  {theme === 'corporate' ? (
                     <Moon size={15} />
                   ) : (
                     <Sun size={15} />

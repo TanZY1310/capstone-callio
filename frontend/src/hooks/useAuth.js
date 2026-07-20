@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import axios from 'axios';
+import { toast } from 'sonner';
+import { resetForceLogoutFlag } from '../utils/api';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1500;
+const RETRY_DELAY_MS = 300;
 
 function getInitialDemoState() {
   const demoToken = localStorage.getItem('demo_token');
@@ -51,6 +53,7 @@ export function useAuth() {
         setProfile(profileData);
         setIsDemo(true);
         setAuthError(null);
+        resetForceLogoutFlag();
       }
     } catch (err) {
       console.error('Demo login failed:', err);
@@ -86,15 +89,10 @@ export function useAuth() {
           try { setProfile(JSON.parse(cached)); } catch { /* ignore */ }
         }
 
-        await new Promise((r) => setTimeout(r, 2000));
-
         let lastError = null;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
             const idToken = await firebaseUser.getIdToken(attempt > 0);
-            if (attempt > 0) {
-              await new Promise((r) => setTimeout(r, 2000));
-            }
             const response = await axios.post(`${API_URL}/auth/session`, null, {
               headers: { Authorization: `Bearer ${idToken}` },
               signal: controller.signal,
@@ -102,6 +100,7 @@ export function useAuth() {
             if (mountedRef.current) {
               setProfile(response.data);
               setAuthError(null);
+              resetForceLogoutFlag();
             }
             lastError = null;
             break;
@@ -140,6 +139,23 @@ export function useAuth() {
       unsubscribe();
     };
   }, [isDemo]);
+
+  useEffect(() => {
+    const handleForceLogout = () => {
+      localStorage.removeItem('demo_token');
+      localStorage.removeItem('userProfile');
+      signOut(auth).catch(() => {});
+      setUser(null);
+      setProfile(null);
+      setIsDemo(false);
+      setLoading(false);
+      setAuthError(null);
+      toast.error('Session expired. Please log in again.', { duration: 3000 });
+    };
+
+    window.addEventListener('force_logout', handleForceLogout);
+    return () => window.removeEventListener('force_logout', handleForceLogout);
+  }, []);
 
   const logout = async () => {
     if (isDemo) {

@@ -173,4 +173,4 @@ async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> d
 async def fetch_status(spreadsheet_id: str):
     creds = _get_credentials()
     service = build("sheets", "v4", credentials=creds)
-    service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    await run_in_threadpool(service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute)

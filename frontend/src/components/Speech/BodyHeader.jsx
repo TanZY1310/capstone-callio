@@ -1,10 +1,8 @@
 import { AudioLines, Target } from 'lucide-react';
 import Header from '../Layout/Header';
 import { useRef } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import { toast } from 'sonner';
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 function BodyHeader({
   onUpload,
@@ -13,6 +11,7 @@ function BodyHeader({
   onAddToPipeline,
   taskId,
   isAnalysisComplete,
+  isPipelineLoading,
 }) {
   const fileInputRef = useRef(null);
 
@@ -33,7 +32,7 @@ function BodyHeader({
     }
 
     try {
-      const res = await axios.post(`${API_URL}/speech/transcribe`, formData);
+      const res = await api.post('/speech/transcribe', formData);
       onUpload?.(res.data);
       toast.success('Processing audio...');
     } catch (err) {
@@ -53,18 +52,22 @@ function BodyHeader({
       </div>
       <div className="flex items-center gap-3">
         {taskId && (
-          <button
-            onClick={onAddToPipeline}
-            disabled={!isAnalysisComplete}
-            className={`btn gap-2 ${
-              isAnalysisComplete
-                ? 'btn-primary'
-                : 'btn-outline border-base-content/20 text-base-content/40 cursor-not-allowed'
-            }`}
-          >
-            <Target size={16} />
-            Add to Lead Pipeline
-          </button>
+            <button
+              onClick={onAddToPipeline}
+              disabled={!isAnalysisComplete || isPipelineLoading}
+              className={`btn gap-2 ${
+                isAnalysisComplete && !isPipelineLoading
+                  ? 'btn-primary'
+                  : 'btn-outline border-base-content/20 text-base-content/40 cursor-not-allowed'
+              }`}
+            >
+              {isPipelineLoading ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <Target size={16} />
+              )}
+              {isPipelineLoading ? 'Adding...' : 'Add to Lead Pipeline'}
+            </button>
         )}
         <button onClick={handleUploadClick} className="btn btn-outline gap-2">
           <AudioLines />
