@@ -84,7 +84,7 @@ function LeadDetail() {
       }
     };
 
-    fetchChatHistory();
+    fetchChatHistory(); //setInterval + async (?) to ensure auto refresh on front-end after handleCrashAndRestart() on backend
   }, [showUser, platformStatus]);
 
   // Load AI response drafts when user changes
