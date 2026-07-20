@@ -1,18 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import TopCard from '../components/Metrics/TopCard';
+import { useState, useEffect } from 'react';
 import PerformanceCard from '../components/Metrics/PerformanceCard';
 import TeamConversionFunnel from '../components/Metrics/TeamConversionFunnel.jsx';
-import Objections from '../components/Metrics/Objections';
-import LeadsByRegion from '../components/Metrics/LeadsByRegion';
 import Header from '../components/Layout/Header';
-import { AlignRight } from 'lucide-react';
-import CallUpload from '../components/Metrics/CallUpload';
-import BudgetBreakdown from '../components/Metrics/BudgetBreakdown';
-import { CiSearch } from 'react-icons/ci';
 import { useAuth } from '../hooks/useAuth';
 import LeaderCard from '../components/Metrics/LeaderCard';
 import api from '../utils/api.js';
-import TeamLeadsRegion from '../components/Metrics/TeamLeadsRegion.jsx';
+import LocationHeatmap from '../components/Metrics/LocationHeatmap.jsx';
 
 function LeaderDashboard() {
   const [teamData, setTeamData] = useState(null);
@@ -117,7 +110,7 @@ function LeaderDashboard() {
             {/* Total Regions */}
 
             <div className="col-span-2 card  bg-base-100">
-              <TeamLeadsRegion regions={teamData.team_stats.team_regions} />
+              <LocationHeatmap locations={teamData.team_stats.team_regions} />
             </div>
 
             {/* Objections */}
