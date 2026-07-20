@@ -95,12 +95,11 @@ export function Navbar({ theme, toggleTheme }) {
             onClick={toggleTheme}
             aria-label="Toggle theme"
           >
-            {theme === 'lemonade' ? <Moon size={16} /> : <Sun size={16} />}
+            {theme === 'corporate' ? <Moon size={16} /> : <Sun size={16} />}
           </button>
           <Link to="/login" className="btn btn-ghost btn-sm text-sm">
             Log in
           </Link>
-
         </div>
       </div>
     </nav>
@@ -265,8 +264,6 @@ function Hero() {
                 See how it works
               </a>
             </motion.div>
-
-
           </motion.div>
 
           <motion.div
@@ -630,7 +627,6 @@ function Pricing() {
                     </li>
                   ))}
                 </ul>
-
               </div>
             </div>
 
@@ -929,7 +925,6 @@ function BottomCTA() {
               Book a demo
             </a>
           </div>
-
         </RevealSection>
       </div>
     </section>

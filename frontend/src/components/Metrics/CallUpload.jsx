@@ -10,6 +10,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import api from '../../utils/api';
 
 ChartJS.register(
   CategoryScale,
@@ -21,56 +22,94 @@ ChartJS.register(
   Legend,
 );
 
-function CallUpload({ daily_calls }) {
-  // if there is no data available yet
+function CallUpload({ calls, error, period, year, month, day }) {
+  const today = new Date();
 
-  if (!daily_calls) {
+  console.log(calls);
+
+  if (!calls) {
     return (
       <div className="card bg-base-100 border border-base-200 shadow-sm">
         <div className="card-body">
-          <h2 className="card-title text-base-content">Daily Call Volume</h2>
-          <p className="text-xs text-base-content/50">This month</p>
+          <h2 className="card-title text-base-content">Call Volume</h2>
+          <p className="text-xs text-base-content/50">No data available</p>
         </div>
       </div>
     );
   }
 
-  const countsByDate = {};
-  daily_calls.forEach((item) => {
-    countsByDate[item.call_date] = item.call_count;
-  });
-
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-
-  // JavaScript months are zero-indexed. January is 0
-  // The indexing start at 0
-
-  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-  // But day: 0 is a special JavaScript quirk: instead of erroring,
-  // it rolls backward to the last day of the previous month relative to whatever monthIndex you gave it.
-
-  const allDatesThisMonth = [];
-  for (let day = 1; day <= lastDayOfMonth; day++) {
-    const d = new Date(year, month, day);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    allDatesThisMonth.push(`${yyyy}-${mm}-${dd}`);
+  if (error) {
+    return (
+      <div className="card bg-base-100 border border-base-200 shadow-sm">
+        <div className="card-body">
+          <h2 className="card-title text-base-content">Daily Call Volume</h2>
+          <p className="text-xs text-error">{error}</p>
+        </div>
+      </div>
+    );
   }
 
-  const filledData = allDatesThisMonth.map((dateStr) => ({
-    call_date: dateStr,
-    call_count: countsByDate[dateStr] || 0,
-  }));
+  const MONTH_NAMES = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  let filledData = [];
+
+  // Setting up the labels for each period
+
+  if (period == 'daily') {
+    const activeYear = year ?? today.getFullYear();
+    const activeMonth = month ?? today.getMonth() + 1;
+    const countsByDate = {};
+
+    calls.forEach((item) => {
+      countsByDate[item.call_date] = item.call_count;
+    });
+
+    const lastDay = new Date(activeYear, activeMonth, 0).getDate();
+    // get Day 0 of the next month
+    // getDate() -> nak dapatkan haribulan sahaja
+
+    filledData = Array.from({ length: lastDay }, (_, index) => {
+      const day = new Date(activeYear, activeMonth - 1, index + 1);
+      // activeMonth - 1 because in JS, month start at 0 (January)
+      const dateString = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+
+      return {
+        call_date: dateString,
+        call_count: countsByDate[dateString] || 0,
+      };
+    });
+  } else if (period == 'monthly') {
+    const countsByMonths = {};
+
+    calls.forEach((item) => {
+      countsByMonths[item.call_date] = item.call_count;
+    });
+
+    filledData = Array.from({ length: 12 }, (_, index) => ({
+      call_date: MONTH_NAMES[index],
+      call_count: countsByMonths[index + 1] || 0,
+    }));
+  }
 
   // defining data into chart
   const lineChart = {
     labels: filledData.map((item) => item.call_date),
     datasets: [
       {
-        label: 'Total Calls Today',
+        label: 'Total Calls',
         data: filledData.map((item) => item.call_count),
         backgroundColor: '#1a3a7c',
         borderColor: '#1a3a7c',
@@ -83,28 +122,7 @@ function CallUpload({ daily_calls }) {
   const chartOptions = {
     maintainAspectRatio: false,
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          autoSkip: false,
-          callback: function (value, index, ticks) {
-            const date = this.getLabelForValue(value);
-            const day = parseInt(date.split('-')[2], 10);
-            // show only 1st, 8th, 15th, 22nd, end of month (roughly weekly/quarter-month marks)
-            if (
-              day === 1 ||
-              day === 8 ||
-              day === 15 ||
-              day === 22 ||
-              index === ticks.length - 1
-            ) {
-              return date.slice(5); // "MM-DD", drop the year for compactness
-            }
-            return null; // null = skip rendering this label, point still exists
-          },
-          maxRotation: 0,
-        },
-      },
+      x: { grid: { display: false }, ticks: { maxRotation: 0 } },
       y: { grid: { display: false }, min: 0, ticks: { display: false } },
     },
 
@@ -119,13 +137,20 @@ function CallUpload({ daily_calls }) {
     },
   };
 
+  const periodLabel = {
+    // This code creates a label text depending on the selected time period (daily, monthly, or yearly)
+    daily: `${day ?? today.getDate()} ${MONTH_NAMES[(month ?? today.getMonth() + 1) - 1]} ${year ?? today.getFullYear()}`,
+    monthly: `${MONTH_NAMES[(month ?? today.getMonth() + 1) - 1]} ${year ?? today.getFullYear()}`,
+    // yearly: `${year ?? today.getFullYear()}`,
+  }[period];
+
   // rendering
   return (
     <div className="card bg-base-100 border border-base-200 shadow-sm">
       <div className="card-body">
-        <h2 className="card-title text-base-content">Daily Call Volume</h2>
+        <h2 className="card-title text-base-content">Call Volume</h2>
 
-        <p className="text-xs text-base-content/50">This Month</p>
+        <p className="text-xs text-base-content/50">{periodLabel}</p>
 
         <div style={{ height: '300px' }}>
           <Line data={lineChart} options={chartOptions} />
@@ -135,42 +160,4 @@ function CallUpload({ daily_calls }) {
   );
 }
 
-// dropdown button code
-{
-  /* <div className="dropdown flex justify-end">
-  <div tabIndex={0} role="button" className="btn m-1">Click</div>
-  <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-    <li><a>Item 1</a></li>
-    <li><a>Item 2</a></li>
-  </ul>
-</div> */
-}
-
 export default CallUpload;
-
-///////////////////////////////////////////////////////////////////
-///////////////////// NOT IMPORTANT ///////////////////////////////
-///////////////////////////////////////////////////////////////////
-
-// const [call, setCall] = useState([
-//     { day: 'Monday', count: 0 },
-//     { day: 'Tuesday', count: 0 },
-//     { day: 'Wednesday', count: 0 },
-//     { day: 'Thursday', count: 0 },
-//     { day: 'Friday', count: 0 },
-//     { day: 'Saturday', count: 0 },
-//     { day: 'Sunday', count: 0 },
-//   ]);
-
-//   useEffect(() => {
-//     const data = [
-//       { day: 'Monday', count: 10 },
-//       { day: 'Tuesday', count: 20 },
-//       { day: 'Wednesday', count: 10 },
-//       { day: 'Thursday', count: 50 },
-//       { day: 'Friday', count: 60 },
-//       { day: 'Saturday', count: 60 },
-//       { day: 'Sunday', count: 20 },
-//     ];
-//     setCall(data);
-//   }, []);

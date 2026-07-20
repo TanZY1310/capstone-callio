@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import create_tables
@@ -6,11 +7,15 @@ from database import create_tables
 from routers import customers, auth, sheets, user_profile, whatsapp, speech, users, metrics, rag
 
 app = FastAPI()
-create_tables()
+
+if os.getenv("ENV") != "production" or os.getenv("AUTO_MIGRATE", "").lower() == "true":
+    create_tables()
+
+frontend_urls = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
 
 app.add_middleware(
     CORSMiddleware, 
-    allow_origins=["*"],
+    allow_origins=frontend_urls,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

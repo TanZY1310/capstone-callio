@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import CustomerListings from '../components/Home/CustomerListings';
+import HomePageLoader from '../components/Home/HomePageLoader';
 import StatusCards from '../components/Home/StatusCards';
 import Header from '../components/Layout/Header';
 import { STATUS_NAME } from '../data/constants';
@@ -18,7 +19,7 @@ function HomePage() {
     const initialize = async () => {
       try {
         const [customerResponse, sheetsStatusResponse] = await Promise.all([
-          api.get('/customers'),
+          api.get('/customers/all'),
           api.get('/sheets/status'),
         ]);
 
@@ -80,12 +81,7 @@ function HomePage() {
     },
   };
 
-  if (initialLoading)
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-base-200/50">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
+  if (initialLoading) return <HomePageLoader />;
 
   return (
     <>
@@ -129,6 +125,7 @@ function HomePage() {
           <CustomerListings
             customerData={customerData}
             onStatusChange={handleStatusChange}
+            loading={initialLoading}
           />
         </motion.div>
       </div>

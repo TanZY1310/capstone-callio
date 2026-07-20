@@ -1,8 +1,8 @@
 import httpx
+import os
 from services.client_manager import get_shared_client
-# consider if there's better ways to pass the url into httpxasyncclient object request functions later
 
-NODE_BASE_URL = "http://localhost:3001"  # Your Node.js server address
+NODE_BASE_URL = os.getenv("WHATSAPP_SERVICE_URL", "http://localhost:3001")
 
 async def fetch_connection_status():
     print("\nfetching connection status...")
