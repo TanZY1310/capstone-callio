@@ -1,7 +1,10 @@
+import traceback
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, status, Depends, Request, Response
+import jwt
+
+from fastapi import APIRouter, HTTPException, status, Depends, Header
 from fastapi.concurrency import run_in_threadpool
 from firebase_admin import auth as firebase_auth
 from sqlalchemy import select
@@ -11,21 +14,15 @@ from core.demo import (
     DEMO_AGENT,
     DEMO_TEAM_LEAD,
     SUB_AGENTS,
-    generate_demo_token,
-    get_session_uid,
-    register_session,
+    generate_demo_jwt,
+    verify_demo_jwt,
 )
 from database import db_dependency
 from models.user import Users
 from schemas.user import UserCreate, UserResponse
 from seed_data import seed_demo_data
-from services.jwt_helper import (
-    create_session_jwt,
-    verify_session_jwt,
-    set_session_cookie,
-    COOKIE_NAME,
-)
 
+# Initialize firebase from firebase_admin.py
 init_firebase()
 
 router = APIRouter(
@@ -33,70 +30,69 @@ router = APIRouter(
     tags=["auth"]
 )
 
+async def verify_firebase_token(authorization: Annotated[str, Header()]) -> dict:
+    """
+    Dependency — extracts and verifies the Firebase ID token from the
+    Authorization header. Returns the decoded token payload.
 
-async def verify_firebase_token(request: Request) -> dict:
-    cookie_payload = _verify_cookie(request)
-    if cookie_payload:
-        return cookie_payload
+    Header format: Authorization: Bearer <firebase_id_token>
 
-    authorization = request.headers.get("Authorization", "")
+    Also accepts DEMO_ prefixed tokens for presentation demo mode.
+    """
+    print("[AUTH] verify_firebase_token called")
+    print(f"[AUTH] Authorization header starts with Bearer: {authorization.startswith('Bearer ') if authorization else 'NO HEADER'}")
+
     if not authorization.startswith("Bearer "):
+        print("[AUTH] ERROR: Invalid auth header format")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authorization header format. Expected: Bearer <token>",
         )
 
     token = authorization.removeprefix("Bearer ")
+    print(f"[AUTH] Token length: {len(token)} chars")
 
-    demo_uid = get_session_uid(token)
-    if token.startswith("DEMO_"):
-        if demo_uid:
-            return {"uid": demo_uid, "demo": True, "email": "demo@callio.demo"}
+    # Demo mode — try JWT verification for self-signed demo tokens
+    try:
+        payload = verify_demo_jwt(token)
+        print(f"[AUTH] Demo JWT accepted. UID: {payload['sub']}, Role: {payload.get('role')}")
+        return {"uid": payload["sub"], "demo": True, "role": payload.get("role"), "email": "demo@callio.demo"}
+    except jwt.ExpiredSignatureError:
+        print("[AUTH] ERROR: Demo JWT expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Demo session expired. Please log in again.",
         )
+    except jwt.PyJWTError:
+        pass  # Not a valid demo JWT, fall through to Firebase verification
 
     try:
+        # verify_id_token is blocking (JWKS fetch on first call) — run in threadpool
         decoded = await run_in_threadpool(firebase_auth.verify_id_token, token)
+        print(f"[AUTH] Token verified successfully. UID: {decoded.get('uid')}, Project: {decoded.get('aud')}")
     except firebase_auth.ExpiredIdTokenError:
+        print("[AUTH] ERROR: Token expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired. Please sign in again.",
         )
     except firebase_auth.InvalidIdTokenError as e:
+        print(f"[AUTH] ERROR: Invalid token - {e}")
+        print(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token.",
         )
     except Exception as e:
+        print(f"[AUTH] ERROR: Unexpected Firebase token verification error: {type(e).__name__}: {e}")
+        print(f"[AUTH] Full traceback:\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Token verification failed: {type(e).__name__}: {str(e)}",
         )
     return decoded
 
-
-def _verify_cookie(request: Request) -> dict | None:
-    cookie_token = request.cookies.get(COOKIE_NAME)
-    if not cookie_token:
-        return None
-    return verify_session_jwt(cookie_token)
-
-
-def _set_auth_cookie(response: Response, user: Users):
-    jwt_token = create_session_jwt(
-        firebase_uid=user.firebase_uid,
-        user_id=user.user_id,
-        role=user.role,
-        email=user.email,
-    )
-    set_session_cookie(response, jwt_token)
-    return jwt_token
-
-
 FirebaseToken = Annotated[dict, Depends(verify_firebase_token)]
-
 
 @router.post(
     "/session",
@@ -104,8 +100,13 @@ FirebaseToken = Annotated[dict, Depends(verify_firebase_token)]
     summary="Restore session",
     description="Called on app load. Verifies the Firebase ID token and returns the matching DB user profile.",
 )
-async def get_session(token: FirebaseToken, db: db_dependency, response: Response) -> Users:
+async def get_session(token: FirebaseToken, db: db_dependency,) -> Users:
+    """
+    Called by useAuth.js on every app load via onAuthStateChanged.
+    Looks up the DB user by firebase_uid and returns their profile.
+    """
     uid = token["uid"]
+    print("UID in get session", uid)
 
     result = db.execute(select(Users).where(Users.firebase_uid == uid))
     user = result.scalar_one_or_none()
@@ -116,31 +117,7 @@ async def get_session(token: FirebaseToken, db: db_dependency, response: Respons
             detail="User profile not found. Please complete registration.",
         )
 
-    _set_auth_cookie(response, user)
     return user
-
-
-@router.post(
-    "/refresh",
-    response_model=UserResponse,
-    summary="Refresh session cookie",
-    description="Accepts Firebase ID token or demo token, verifies it, and issues/refreshes the session cookie.",
-)
-async def refresh_session(token: FirebaseToken, db: db_dependency, response: Response) -> Users:
-    uid = token["uid"]
-
-    result = db.execute(select(Users).where(Users.firebase_uid == uid))
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User profile not found.",
-        )
-
-    _set_auth_cookie(response, user)
-    return user
-
 
 @router.post(
     "/register",
@@ -149,10 +126,15 @@ async def refresh_session(token: FirebaseToken, db: db_dependency, response: Res
     summary="Register user profile",
     description="Creates the DB user profile after Firebase account creation. Called once from RegisterForm.",
 )
-async def register_user(payload: UserCreate, token: FirebaseToken, db: db_dependency, response: Response) -> Users:
+async def register_user(payload: UserCreate, token: FirebaseToken, db: db_dependency,) -> Users:
+    """
+    Called by RegisterForm.jsx after createUserWithEmailAndPassword succeeds.
+    Firebase owns the credential — this endpoint only creates the DB profile row.
+    """
     uid = token["uid"]
     email = token.get("email")
 
+    # Guard against duplicate registration (e.g. user hits submit twice)
     result = db.execute(select(Users).where(Users.firebase_uid == uid))
     if result.scalar_one_or_none():
         raise HTTPException(
@@ -176,7 +158,6 @@ async def register_user(payload: UserCreate, token: FirebaseToken, db: db_depend
     db.commit()
     db.refresh(new_user)
 
-    _set_auth_cookie(response, new_user)
     return new_user
 
 
@@ -186,7 +167,7 @@ async def register_user(payload: UserCreate, token: FirebaseToken, db: db_depend
     summary="Demo login (presentation mode)",
     description="Creates or finds a demo user and returns a session token. Bypasses Firebase auth.",
 )
-async def demo_login(payload: dict, db: db_dependency, response: Response):
+async def demo_login(payload: dict, db: db_dependency):
     role = payload.get("role", "agent")
 
     if role == "team_lead":
@@ -260,10 +241,7 @@ async def demo_login(payload: dict, db: db_dependency, response: Response):
     else:
         await run_in_threadpool(seed_demo_data, db, user.user_id, set_index=0)
 
-    demo_token = generate_demo_token()
-    register_session(demo_token, user.firebase_uid)
-
-    _set_auth_cookie(response, user)
+    demo_token = generate_demo_jwt(user.firebase_uid, role)
 
     return {
         "demo_token": demo_token,
