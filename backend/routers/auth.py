@@ -20,7 +20,6 @@ from core.demo import (
 from database import db_dependency
 from models.user import Users
 from schemas.user import UserCreate, UserResponse
-from seed_data import seed_demo_data
 
 # Initialize firebase from firebase_admin.py
 init_firebase()
@@ -234,12 +233,6 @@ async def demo_login(payload: dict, db: db_dependency):
                 ).scalar_one_or_none()
                 if agent:
                     sub_users.append(agent)
-
-    if role == "team_lead":
-        for idx, sub_user in enumerate(sub_users):
-            await run_in_threadpool(seed_demo_data, db, sub_user.user_id, set_index=idx)
-    else:
-        await run_in_threadpool(seed_demo_data, db, user.user_id, set_index=0)
 
     demo_token = generate_demo_jwt(user.firebase_uid, role)
 

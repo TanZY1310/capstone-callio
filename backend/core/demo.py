@@ -37,34 +37,6 @@ DEMO_TEAM_LEAD = {
 
 SUB_AGENTS = [
     DEMO_AGENT,
-    {
-        "email": "sarah.chen@callio-property.com",
-        "first_name": "Sarah",
-        "last_name": "Chen",
-        "role": "agent",
-        "agency_branch": "Petaling Jaya Branch",
-    },
-    {
-        "email": "james.lim@callio-property.com",
-        "first_name": "James",
-        "last_name": "Lim",
-        "role": "agent",
-        "agency_branch": "Cheras Branch",
-    },
-    {
-        "email": "aisha.rahman@callio-property.com",
-        "first_name": "Aisha",
-        "last_name": "Rahman",
-        "role": "agent",
-        "agency_branch": "Subang Jaya Branch",
-    },
-    {
-        "email": "daniel.wong@callio-property.com",
-        "first_name": "Daniel",
-        "last_name": "Wong",
-        "role": "agent",
-        "agency_branch": "Penang Branch",
-    },
 ]
 
 
