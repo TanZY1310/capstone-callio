@@ -1,65 +1,45 @@
-import { MdCall } from 'react-icons/md';
-import { IoPersonSharp } from 'react-icons/io5';
-import { IoChatboxEllipsesSharp } from 'react-icons/io5';
+import { MdCall, MdDoneAll } from 'react-icons/md';
 import { TiTick } from 'react-icons/ti';
 import { RiTeamFill } from 'react-icons/ri';
-import { FaRegCalendarAlt } from 'react-icons/fa';
-import { TfiStatsUp } from 'react-icons/tfi';
 import { IoWarningSharp } from 'react-icons/io5';
 
 function LeaderCard({
-  agents,
   calls,
+  leads,
   followUps,
   bookings,
+  completed,
   callsDeltaPct,
+  leadsDeltaPct,
   bookingsDeltaPct,
+  completedDeltaPct,
 }) {
   const periodLabel = 'vs last month';
 
   const formatDelta = (delta) => {
-    // delta is always a number now — never null
-    const prefix =
-      delta > 0 ? `+${prefix}${delta}% ${periodLabel}` : 'This month';
-    return prefix;
+    if (delta === null || delta === undefined) return '—';
+    if (delta === 0) return 'This month';
+    const sign = delta > 0 ? '+' : '';
+    return `${sign}${delta}% ${periodLabel}`;
   };
 
   const deltaColor = (delta) => {
+    if (delta === null || delta === undefined) return 'text-slate-400';
     if (delta > 0) return 'text-green-600';
     if (delta < 0) return 'text-red-500';
-    return 'text-slate-400'; // exactly zero — neutral
+    return 'text-slate-400';
   };
 
   const METRIC_CARDS = [
     {
-      label: 'Total Agents',
-      key: 'agents',
-      value: agents,
+      label: 'Active Leads',
+      key: 'leads',
+      value: leads,
       icon: RiTeamFill,
       iconBg: 'bg-indigo-100',
       iconColor: 'text-indigo-600',
-      // subtext: 'Overall',
-      // subtextColor: 'text-slate-400',
-    },
-    {
-      label: 'Team Calls',
-      key: 'calls',
-      value: calls,
-      icon: MdCall,
-      iconBg: 'bg-cyan-100',
-      iconColor: 'text-cyan-600',
-      // subtext: formatDelta(callsDeltaPct),
-      // subtextColor: deltaColor(callsDeltaPct),
-    },
-    {
-      label: 'Pending Follow-Ups',
-      key: 'pendingFollowUps',
-      value: followUps,
-      icon: IoWarningSharp,
-      iconBg: 'bg-red-100',
-      iconColor: 'text-red-500',
-      // subtext: followUps > 0 ? 'Action required' : 'All caught up',
-      // subtextColor: followUps > 0 ? 'text-red-500' : 'text-green-600',
+      subtext: formatDelta(leadsDeltaPct),
+      subtextColor: deltaColor(leadsDeltaPct),
     },
     {
       label: 'Team Bookings',
@@ -68,9 +48,39 @@ function LeaderCard({
       icon: TiTick,
       iconBg: 'bg-emerald-100',
       iconColor: 'text-emerald-600',
-      // subtext: formatDelta(bookingsDeltaPct),
-      // subtextColor: deltaColor(bookingsDeltaPct),
+      subtext: formatDelta(bookingsDeltaPct),
+      subtextColor: deltaColor(bookingsDeltaPct),
     },
+    {
+      label: 'Team Calls',
+      key: 'calls',
+      value: calls,
+      icon: MdCall,
+      iconBg: 'bg-cyan-100',
+      iconColor: 'text-cyan-600',
+      subtext: formatDelta(callsDeltaPct),
+      subtextColor: deltaColor(callsDeltaPct),
+    },
+    {
+      label: 'Pending Follow-Ups',
+      key: 'pendingFollowUps',
+      value: followUps,
+      icon: IoWarningSharp,
+      iconBg: 'bg-red-100',
+      iconColor: 'text-red-500',
+      // deliberately no MTD subtext — live snapshot, not a period comparison
+    },
+
+    // {
+    //   label: 'Completed',
+    //   key: 'completed',
+    //   value: completed,
+    //   icon: MdDoneAll,
+    //   iconBg: 'bg-violet-100',
+    //   iconColor: 'text-violet-600',
+    //   subtext: formatDelta(completedDeltaPct),
+    //   subtextColor: deltaColor(completedDeltaPct),
+    // },
   ];
 
   return (
