@@ -72,7 +72,7 @@ body {
 
   /* Page subtitle — used in Header component p prop */
   .text-page-subtitle {
-    @apply text-sm text-base-content/50;
+    @apply text-sm text-base-content/70;
   }
 
   /* Card title — used in card headers across all components */
@@ -82,7 +82,7 @@ body {
 
   /* Card subtitle / description */
   .text-card-subtitle {
-    @apply text-xs text-base-content/40;
+    @apply text-xs text-base-content/60;
   }
 
   /* Section heading — used inside cards for sub-sections */
@@ -97,12 +97,12 @@ body {
 
   /* Small / helper text */
   .text-helper {
-    @apply text-xs text-base-content/50;
+    @apply text-xs text-base-content/65;
   }
 
   /* Table header text */
   .text-table-header {
-    @apply text-xs font-medium text-base-content/40 uppercase tracking-wider;
+    @apply text-xs font-medium text-base-content/60 uppercase tracking-wider;
   }
 
   /* Table cell text */
@@ -117,7 +117,7 @@ body {
 
   /* Stat label */
   .text-stat-label {
-    @apply text-sm text-base-content/60;
+    @apply text-sm text-base-content/70;
   }
 
   /* Auth heading — login/register page titles */

@@ -9,7 +9,7 @@ const steps = [
 ];
 
 function ProgressBar({ step = -1, awaitingApproval = false }) {
-  const fillPercent = step >= 0 ? (step / 5) * 80 : 0;
+  const fillPercent = step >= 0 ? (step / (steps.length - 1)) * 80 : 0;
 
   return (
     <div className="flex flex-col w-full">
@@ -34,7 +34,7 @@ function ProgressBar({ step = -1, awaitingApproval = false }) {
             <div key={i} className="relative flex-1 flex justify-center">
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center z-10 ${
-                  done || isAwaitingStep
+                  done || isAwaitingStep || (active && i === steps.length - 1)
                     ? 'bg-primary border-2 border-primary'
                     : active
                       ? 'bg-warning border-2 border-warning'
@@ -68,7 +68,7 @@ function ProgressBar({ step = -1, awaitingApproval = false }) {
               <span
                 className={`text-[11px] leading-snug ${
                   done || active || isAwaitingStep
-                    ? 'text-[#2D3748] font-semibold'
+                    ? 'text-base-content font-semibold'
                     : 'text-base-content/40'
                 }`}
               >
