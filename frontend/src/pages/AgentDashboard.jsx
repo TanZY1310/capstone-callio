@@ -181,7 +181,7 @@ function AgentDashboard() {
             <div className="col-span-3 card bg-base-100">
               <ConversionFunnel
                 stages={[
-                  { label: 'Leads Contacted', count: agent.kpis.leads },
+                  { label: 'Active Leads', count: agent.kpis.leads },
                   // { label: 'Follow Ups', count: agent.kpis.followUps },
                   { label: 'Appointments Set', count: agent.kpis.appointments },
                   { label: 'Bookings Confirmed', count: agent.kpis.bookings },

@@ -4,14 +4,17 @@ import { CiSearch } from 'react-icons/ci';
 const status_label = {
   needs_attention: {
     label: 'Needs Attention',
-    className: 'badge badge-sm badge-success',
+    className: 'badge badge-sm badge-warning',
   },
   follow_ups_needed: {
     label: 'Follow Up Needed',
-    className: 'badge badge-sm badge-warning',
+    className: 'badge badge-sm badge-info',
   },
   on_track: { label: 'On Track', className: 'badge badge-sm badge-success' },
-  no_activity: { label: 'No Activity', className: 'badge badge-sm badge-info' },
+  no_activity: {
+    label: 'No Activity',
+    className: 'badge badge-sm badge-error',
+  },
 };
 
 const STATUS_OPTIONS = [
@@ -162,9 +165,9 @@ function PerformanceCard({ teamTable, period, onPeriodChange }) {
               <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
                 Booking Rate
               </th>
-              <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
+              {/* <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
                 Completion Rate
-              </th>
+              </th> */}
               <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
                 Pending Follow-Ups
               </th>
@@ -217,7 +220,7 @@ function PerformanceCard({ teamTable, period, onPeriodChange }) {
                     </span>
                   </div>
                 </td>
-                <td className="text-center">
+                {/* <td className="text-center">
                   <div className="flex items-center justify-center gap-1">
                     <span className="text-sm text-base-content/70">
                       {agent.completed ?? 0}
@@ -230,7 +233,7 @@ function PerformanceCard({ teamTable, period, onPeriodChange }) {
                         : '—'}
                     </span>
                   </div>
-                </td>
+                </td> */}
                 <td className="text-base-content text-center">
                   {agent.followUps}
                 </td>
