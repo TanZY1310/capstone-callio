@@ -118,7 +118,7 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         "agent: Starting from RM650k. We have a show unit this Saturday.\n"
         "buyer: Bagus (great), can I book for Saturday?\n\n"
         "Output:\n"
-        '{"sentiment":{"overallSentiment":"Positive","intentScore":82,"urgency":"Medium","emotions":["interested","proactive"],"objections":[],"interestTags":["3-bedroom","bukit jalil","rm650k","weekend viewing"]},"nextActions":["book saturday viewing","prepare 3-bedroom unit details","send project brochure"],"preferences":{"preferences":"Interested in a 3-bedroom unit in Bukit Jalil","preferenceNote":"Price inquiry made, show unit viewing requested","signals":["requested viewing","specific unit type","price inquiry"],"budgetValue":"RM650k+","budgetNote":"Starting price acceptable, no negotiation mentioned","location":"Bukit Jalil","locationNote":"Actively looking at Bukit Jalil project","purpose":"Looking to purchase a 3-bedroom unit"},"objections":[],"customerStatus":"Appointment","summary":"Buyer is actively interested in a 3-bedroom unit at the Bukit Jalil project starting from RM650k. Weekend viewing booked."}\n\n'
+           '{"sentiment":{"overallSentiment":"Positive","intentScore":82,"urgency":"Medium","dealReadiness":{"purchaseIntent":82,"purchaseUrgency":50,"financialReadiness":75,"locationAlignment":40,"callSentiment":84},"scoreReasoning":{"purchaseIntent":{"keyQuote":"Buyer: Yes, I\'m interested in a 3-bedroom unit. Brapa harga (what\'s the price)?","reasoning":"Buyer specified exact unit type and actively asked about pricing, showing clear purchase intent."},"purchaseUrgency":{"keyQuote":"Buyer: Bagus (great), can I book for Saturday?","reasoning":"Buyer immediately requested a specific viewing date without hesitation, indicating urgency."},"financialReadiness":{"keyQuote":"Buyer: Starting from RM650k. That sounds reasonable.","reasoning":"Buyer acknowledged the price point and responded positively, suggesting budget alignment."},"locationAlignment":{"keyQuote":"Buyer: Yes, I\'ve been looking at Bukit Jalil properties.","reasoning":"Buyer confirmed sustained interest in the specific project location."},"callSentiment":{"keyQuote":"Buyer: Bagus (great), can I book for Saturday?","reasoning":"Buyer maintained an enthusiastic and cooperative tone throughout, building good rapport with agent."}},"emotions":["interested","proactive"],"objections":[],"interestTags":["3-bedroom","bukit jalil","rm650k","weekend viewing"]},"nextActions":["book saturday viewing","prepare 3-bedroom unit details","send project brochure"],"preferences":{"preferences":"Interested in a 3-bedroom unit in Bukit Jalil","preferenceNote":"Price inquiry made, show unit viewing requested","signals":["requested viewing","specific unit type","price inquiry"],"budgetValue":"RM650k+","budgetNote":"Starting price acceptable, no negotiation mentioned","location":"Bukit Jalil","locationNote":"Actively looking at Bukit Jalil project","purpose":"Looking to purchase a 3-bedroom unit"},"objections":[],"customerStatus":"Appointment","transcriptSummary":{"buyerInquiry":"Buyer called regarding a 3-bedroom unit in Bukit Jalil starting from RM650k.","keyFrictionPoint":"First-time buyer seeking price confirmation and show unit availability.","agreedOutcome":"Buyer agreed to a Saturday viewing and requested project brochure."},"summary":"Buyer is actively interested in a 3-bedroom unit at the Bukit Jalil project starting from RM650k. Weekend viewing booked."}\n\n'
 
         "--- Example 2 (Neutral / Objections) ---\n"
         "Transcript:\n"
@@ -127,7 +127,7 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         "agent: The facilities justify the fee, and the area is developing fast.\n"
         "buyer: Mungkin (maybe), but I want to banding (compare) with other options first.\n\n"
         "Output:\n"
-        '{"sentiment":{"overallSentiment":"Neutral","intentScore":35,"urgency":"Low","emotions":["hesitant","price-sensitive","uncertain"],"objections":["maintenance fee too high","unsure about location","wants to compare options"],"interestTags":["seri kembangan","facilities-aware","comparing options"]},"nextActions":["send comparison of maintenance fees in area","share area development plans","follow up in 2 weeks"],"preferences":{"preferences":"Considering Seri Kembangan but has concerns","preferenceNote":"Concerned about maintenance fee and location","signals":["still considering","raised specific concerns","open to comparison"],"budgetValue":"not specified","budgetNote":"Not mentioned, but sensitive to ongoing costs","location":"Seri Kembangan","locationNote":"Has doubts about the location","purpose":"Evaluating property with concerns about costs and location"},"objections":["maintenance fee too high","unsure about location","wants to compare options"],"customerStatus":"Might Keep In Touch","summary":"Buyer is hesitant about the Seri Kembangan property due to high maintenance fees and location concerns, wants to explore other options before deciding."}\n\n'
+           '{"sentiment":{"overallSentiment":"Neutral","intentScore":35,"urgency":"Low","dealReadiness":{"purchaseIntent":35,"purchaseUrgency":20,"financialReadiness":30,"locationAlignment":25,"callSentiment":45},"scoreReasoning":{"purchaseIntent":{"keyQuote":"Buyer: Mungkin (maybe), but I want to banding (compare) with other options first.","reasoning":"Buyer deflected commitment and wants to explore alternatives, indicating low intent."},"purchaseUrgency":{"keyQuote":"Buyer: Saya sudah fikir (I\'ve been thinking), but the maintenance fee is quite tinggi (high).","reasoning":"Buyer has been deliberating without decisiveness, showing no urgency to move forward."},"financialReadiness":{"keyQuote":"Buyer: the maintenance fee is quite tinggi (high).","reasoning":"Buyer raised concern about ongoing costs, indicating financial sensitivity."},"locationAlignment":{"keyQuote":"Buyer: Also lokasi (location) not sure.","reasoning":"Buyer expressed uncertainty about the location, showing poor alignment."},"callSentiment":{"keyQuote":"Buyer: Mungkin (maybe), but I want to banding (compare) with other options first.","reasoning":"Buyer was polite but non-committal, reflecting neutral-to-guarded sentiment."}},"emotions":["hesitant","price-sensitive","uncertain"],"objections":["maintenance fee too high","unsure about location","wants to compare options"],"interestTags":["seri kembangan","facilities-aware","comparing options"]},"nextActions":["send comparison of maintenance fees in area","share area development plans","follow up in 2 weeks"],"preferences":{"preferences":"Considering Seri Kembangan but has concerns","preferenceNote":"Concerned about maintenance fee and location","signals":["still considering","raised specific concerns","open to comparison"],"budgetValue":"not specified","budgetNote":"Not mentioned, but sensitive to ongoing costs","location":"Seri Kembangan","locationNote":"Has doubts about the location","purpose":"Evaluating property with concerns about costs and location"},"objections":["maintenance fee too high","unsure about location","wants to compare options"],"customerStatus":"Might Keep In Touch","transcriptSummary":{"buyerInquiry":"Buyer is considering the Seri Kembangan property but has reservations.","keyFrictionPoint":"Concerned about high maintenance fees and unsure about location.","agreedOutcome":"Buyer wants to compare other options first before deciding."},"summary":"Buyer is hesitant about the Seri Kembangan property due to high maintenance fees and location concerns, wants to explore other options before deciding."}\n\n'
 
         "--- Now analyze this transcript ---\n\n"
         f"{transcript_text}\n\n"
@@ -136,21 +136,52 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         "- What languages are used in each utterance?\n"
         "- What is the buyer's emotional state and sentiment?\n"
         "- Are there any objections, hesitations, or concerns?\n"
-        "- What signals indicate the buyer's intent level (price checks, viewing requests, comparisons)?\n"
-        "- What should the agent do next to move the deal forward?\n\n"
+"- What signals indicate the buyer's intent level (price checks, viewing requests, comparisons)?\n"
+"- For each dealReadiness dimension, identify the single most relevant quote from the transcript that influenced that score and briefly explain why.\n"
+"- What should the agent do next to move the deal forward?\n"
+        "- What is a concise 3-point narrative summary of the call?\n\n"
 
         "- For the 'location' field, extract ONLY the place name (e.g. 'Shah Alam', 'Kg Kayu Ara', 'Bukit Jalil'). Do not include travel time, proximity notes, or any qualifiers.\n\n"
         "Then output your final answer as a JSON code block with this exact structure:\n"
         "```json\n"
         "{\n"
-        '  "sentiment": {\n'
-        '    "overallSentiment": "Positive|Neutral|Negative",\n'
-        '    "intentScore": 0-100,\n'
-        '    "urgency": "Low|Medium|High",\n'
-        '    "emotions": ["emotion1", "emotion2"],\n'
-        '    "objections": ["objection1"],\n'
-        '    "interestTags": ["tag1"]\n'
-        "  },\n"
+         '  "sentiment": {\n'
+         '    "overallSentiment": "Positive|Neutral|Negative",\n'
+         '    "intentScore": 0-100,\n'
+         '    "urgency": "Low|Medium|High",\n'
+          '    "dealReadiness": {\n'
+          '      "purchaseIntent": "0-100 (active search & spec clarity)",\n'
+          '      "purchaseUrgency": "0-100 (move-in timeline & readiness to view)",\n'
+          '      "financialReadiness": "0-100 (budget alignment & financing pre-approval)",\n'
+          '      "locationAlignment": "0-100 (proximity & commute satisfaction)",\n'
+          '      "callSentiment": "0-100 (agent rapport & overall trust level)"\n'
+           '    },\n'
+           '    "scoreReasoning": {\n'
+           '      "purchaseIntent": {\n'
+           '        "keyQuote": "Exact transcript quote influencing purchaseIntent (max 150 chars)",\n'
+           '        "reasoning": "Why this quote affected the score (1-2 sentences)"\n'
+           '      },\n'
+           '      "purchaseUrgency": {\n'
+           '        "keyQuote": "Exact transcript quote influencing purchaseUrgency",\n'
+           '        "reasoning": "Why this quote affected the score"\n'
+           '      },\n'
+           '      "financialReadiness": {\n'
+           '        "keyQuote": "Exact transcript quote influencing financialReadiness",\n'
+           '        "reasoning": "Why this quote affected the score"\n'
+           '      },\n'
+           '      "locationAlignment": {\n'
+           '        "keyQuote": "Exact transcript quote influencing locationAlignment",\n'
+           '        "reasoning": "Why this quote affected the score"\n'
+           '      },\n'
+           '      "callSentiment": {\n'
+           '        "keyQuote": "Exact transcript quote influencing callSentiment",\n'
+           '        "reasoning": "Why this quote affected the score"\n'
+           '      }\n'
+           '    },\n'
+          '    "emotions": ["emotion1", "emotion2"],\n'
+          '    "objections": ["objection1"],\n'
+          '    "interestTags": ["tag1"]\n'
+          "  },\n"
         '  "nextActions": ["action1", "action2"],\n'
         '  "preferences": {\n'
         '    "preferences": "summary of what buyer wants",\n'
@@ -164,8 +195,13 @@ def analyze_transcript(transcript: list, progress_callback=None) -> dict:
         "  },\n"
         '  "objections": ["same as sentiment.objections"],\n'
         f'  "customerStatus": "choose from {customer_statuses}",\n'
-        '  "summary": "2-3 sentence summary covering preferences, next actions, and sentiment"\n'
-        "}\n"
+         '  "transcriptSummary": {\n'
+         '    "buyerInquiry": "What the buyer asked about (1 sentence)",\n'
+         '    "keyFrictionPoint": "Main concern or objection raised (1 sentence)",\n'
+         '    "agreedOutcome": "What was agreed or next step (1 sentence)"\n'
+         '  },\n'
+         '  "summary": "2-3 sentence summary covering preferences, next actions, and sentiment"\n'
+         "}\n"
         "```"
     )
 

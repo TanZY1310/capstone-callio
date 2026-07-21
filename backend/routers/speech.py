@@ -279,6 +279,7 @@ async def _analyze_phase(db:db_dependency, task_id: str):
             "budget": budget,
             "location": location,
             "propertySuggestions": property_suggestions,
+            "transcriptSummary": analysis.get("transcriptSummary", {}),
         }
 
     except Exception as e:

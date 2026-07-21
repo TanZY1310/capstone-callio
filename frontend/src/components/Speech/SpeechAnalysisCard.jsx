@@ -13,6 +13,8 @@ function SpeechAnalysisCard({
   audioUrl,
   sentiment,
   nextActions,
+  preferences,
+  transcriptSummary,
   propertySuggestions,
   progressStep,
   progressMessage,
@@ -70,7 +72,7 @@ function SpeechAnalysisCard({
                 />
               )}
               {activeTab === 'sentiment' && (
-                <SentimentTab data={sentimentData} loading={isAnalyzing} />
+                <SentimentTab data={sentimentData} preferences={preferences} transcriptSummary={transcriptSummary} loading={isAnalyzing} />
               )}
               {activeTab === 'next_action' && (
                 <NextAction data={nextActionData} loading={isAnalyzing} />
