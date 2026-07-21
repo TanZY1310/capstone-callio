@@ -101,6 +101,25 @@ function LeaderDashboard() {
             completedDeltaPct={teamData.team_conversion.completed_change}
           />
 
+          <div className="col-span-2 card bg-base-100">
+            <TeamConversionFunnel
+              stages={[
+                {
+                  label: 'Active Leads',
+                  count: teamData.team_stats.team_kpis.leads,
+                },
+                {
+                  label: 'Appointments Set',
+                  count: teamData.team_stats.team_kpis.appointments,
+                },
+                {
+                  label: 'Bookings Confirmed',
+                  count: teamData.team_stats.team_kpis.bookings,
+                },
+              ]}
+            />
+          </div>
+
           <PerformanceCard
             teamTable={tableData}
             period={period}
@@ -108,7 +127,7 @@ function LeaderDashboard() {
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="col-span-2 card bg-base-100">
+            {/* <div className="col-span-2 card bg-base-100">
               <TeamConversionFunnel
                 stages={[
                   {
@@ -125,13 +144,13 @@ function LeaderDashboard() {
                   },
                 ]}
               />
-            </div>
+            </div> */}
 
             {/* Total Regions */}
-
+            {/* 
             <div className="col-span-2 card  bg-base-100">
               <LocationHeatmap locations={teamData.team_stats.team_regions} />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

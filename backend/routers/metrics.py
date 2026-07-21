@@ -166,7 +166,7 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         pending_follow_ups = ( db.query(func.count(Customers.cust_id))
                   .filter(Customers.user_id == user_id)
                   .filter(Customers.status.in_(PENDING_FOLLOWUPS))
-                  .filter(func.date(Customers.last_contact) == start)
+                #   .filter(func.date(Customers.last_contact) == start)
                   .scalar() or 0
                   )
 
@@ -249,8 +249,8 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
         pending_follow_ups = ( db.query(func.count(Customers.cust_id))
                   .filter(Customers.user_id == user_id)
                   .filter(Customers.status.in_(PENDING_FOLLOWUPS))
-                  .filter(func.date(Customers.last_contact) >= start,
-                          func.date(Customers.last_contact) < end)
+                #   .filter(func.date(Customers.last_contact) >= start,
+                #           func.date(Customers.last_contact) < end)
                   .scalar() or 0
                   )
 
@@ -569,8 +569,8 @@ async def get_leader_team_overview(
         db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
         .filter(Customers.user_id.in_(team_agent_ids))
         .filter(Customers.status.in_(PENDING_FOLLOWUPS))
-        .filter(func.date(Customers.last_contact) >= start,
-                func.date(Customers.last_contact) < end)
+        # .filter(func.date(Customers.last_contact) >= start,
+        #         func.date(Customers.last_contact) < end)
         .group_by(Customers.user_id)
         .all()
     )
@@ -623,7 +623,7 @@ async def get_leader_team_overview(
         booking_rate = round((bookings / leads) * 100, 1) if appointments > 0 else 0.0
         completion_rate = round((completed / leads) * 100, 1) if leads > 0 else 0.0  # NEW
 
-        if follow_ups > 0 and calls == 0:
+        if follow_ups > 0 and leads == 0:
             status = "needs_attention"
         elif follow_ups > 0 and calls > 0:
             status = "follow_ups_needed"
