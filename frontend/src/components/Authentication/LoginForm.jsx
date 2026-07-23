@@ -107,7 +107,7 @@ function LoginForm({ onDemoLogin }) {
         <div
           className="hidden lg:flex flex-col justify-between p-12 bg-neutral text-neutral-content"
           style={{
-            backgroundImage: "url('/Menara118.jpg')",
+            backgroundImage: "url('/Menara Gamuda.jpeg')",
             backgroundSize: 'cover',
           }}
         >
