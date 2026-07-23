@@ -262,7 +262,7 @@ function RegisterForm() {
         <div
           className="hidden lg:flex flex-col justify-between p-12 bg-neutral text-neutral-content"
           style={{
-            backgroundImage: "url('/Menara118.jpg')",
+            backgroundImage: "url('Menara Gamuda.jpeg')",
             backgroundSize: 'cover',
           }}
         >
@@ -318,20 +318,54 @@ function RegisterForm() {
                 <div className="w-full">
                   <legend className="fieldset-legend mt-2">Role</legend>
                   <div className="dropdown w-full">
-                    <div tabIndex={0} role="button" className="select select-bordered w-full flex items-center gap-2">
-                      <UserKey size={15} className="text-base-content/40 shrink-0" />
+                    <div
+                      tabIndex={0}
+                      role="button"
+                      className="select select-bordered w-full flex items-center gap-2"
+                    >
+                      <UserKey
+                        size={15}
+                        className="text-base-content/40 shrink-0"
+                      />
                       <span className="grow text-left">
-                        {state.role === 'team_lead' ? 'Team Lead' : state.role === 'agent' ? 'Agent' : 'Pick a role'}
+                        {state.role === 'team_lead'
+                          ? 'Team Lead'
+                          : state.role === 'agent'
+                            ? 'Agent'
+                            : 'Pick a role'}
                       </span>
                     </div>
-                    <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-30 w-full shadow-sm mt-2 p-2">
+                    <ul
+                      tabIndex={0}
+                      className="dropdown-content menu bg-base-100 rounded-box z-30 w-full shadow-sm mt-2 p-2"
+                    >
                       <li>
-                        <button type="button" onClick={() => { dispatch({ type: ACTIONS.SET_FIELD, field: 'role', value: 'team_lead' }); document.activeElement?.blur(); }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            dispatch({
+                              type: ACTIONS.SET_FIELD,
+                              field: 'role',
+                              value: 'team_lead',
+                            });
+                            document.activeElement?.blur();
+                          }}
+                        >
                           Team Lead
                         </button>
                       </li>
                       <li>
-                        <button type="button" onClick={() => { dispatch({ type: ACTIONS.SET_FIELD, field: 'role', value: 'agent' }); document.activeElement?.blur(); }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            dispatch({
+                              type: ACTIONS.SET_FIELD,
+                              field: 'role',
+                              value: 'agent',
+                            });
+                            document.activeElement?.blur();
+                          }}
+                        >
                           Agent
                         </button>
                       </li>
@@ -347,18 +381,44 @@ function RegisterForm() {
                   <div className="w-full">
                     <legend className="fieldset-legend mt-2">Team Lead</legend>
                     <div className="dropdown w-full">
-                      <div tabIndex={0} role="button" className="select select-bordered w-full flex items-center gap-2">
-                        <Users size={15} className="text-base-content/40 shrink-0" />
+                      <div
+                        tabIndex={0}
+                        role="button"
+                        className="select select-bordered w-full flex items-center gap-2"
+                      >
+                        <Users
+                          size={15}
+                          className="text-base-content/40 shrink-0"
+                        />
                         <span className="grow text-left">
                           {state.team_lead_id
-                            ? teamLead.find(l => l.user_id === state.team_lead_id)?.first_name + ' ' + teamLead.find(l => l.user_id === state.team_lead_id)?.last_name
+                            ? teamLead.find(
+                                (l) => l.user_id === state.team_lead_id,
+                              )?.first_name +
+                              ' ' +
+                              teamLead.find(
+                                (l) => l.user_id === state.team_lead_id,
+                              )?.last_name
                             : 'Select your team lead'}
                         </span>
                       </div>
-                      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-30 w-full shadow-sm mt-2 p-2">
+                      <ul
+                        tabIndex={0}
+                        className="dropdown-content menu bg-base-100 rounded-box z-30 w-full shadow-sm mt-2 p-2"
+                      >
                         {teamLead.map((lead) => (
                           <li key={lead.user_id}>
-                            <button type="button" onClick={() => { dispatch({ type: ACTIONS.SET_FIELD, field: 'team_lead_id', value: lead.user_id }); document.activeElement?.blur(); }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                dispatch({
+                                  type: ACTIONS.SET_FIELD,
+                                  field: 'team_lead_id',
+                                  value: lead.user_id,
+                                });
+                                document.activeElement?.blur();
+                              }}
+                            >
                               {lead.first_name} {lead.last_name}
                             </button>
                           </li>
