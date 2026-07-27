@@ -160,6 +160,9 @@ function PerformanceCard({ teamTable, period, onPeriodChange }) {
                 Calls This {period === 'yearly' ? 'Year' : 'Month'}
               </th>
               <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
+                Pending Follow-Ups
+              </th>
+              <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
                 Appointment Rate
               </th>
               <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
@@ -168,9 +171,7 @@ function PerformanceCard({ teamTable, period, onPeriodChange }) {
               {/* <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
                 Completion Rate
               </th> */}
-              <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
-                Pending Follow-Ups
-              </th>
+
               <th className="text-indigo-100 font-medium tracking-wider py-3 px-3 text-center">
                 Status
               </th>
@@ -192,6 +193,9 @@ function PerformanceCard({ teamTable, period, onPeriodChange }) {
                 </td>
                 <td className="text-base-content text-center">{agent.leads}</td>
                 <td className="text-base-content text-center">{agent.calls}</td>
+                <td className="text-base-content text-center">
+                  {agent.followUps}
+                </td>
                 <td className="text-center">
                   <div className="flex items-center justify-center gap-1">
                     <span className="text-sm text-base-content/70">
@@ -234,9 +238,7 @@ function PerformanceCard({ teamTable, period, onPeriodChange }) {
                     </span>
                   </div>
                 </td> */}
-                <td className="text-base-content text-center">
-                  {agent.followUps}
-                </td>
+
                 <td className="text-base-content text-center">
                   {(() => {
                     const config =

@@ -74,7 +74,7 @@ function LeaderCard({
     },
 
     {
-      label: 'Completion Rate',
+      label: 'Team Completion',
       key: 'completion',
       value: completed,
       icon: FaPercentage,
