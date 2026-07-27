@@ -24,6 +24,7 @@ function LeadHeader({ user, users, onHeaderChange }) {
           <Select
             unstyled
             classNames={{
+              container: () => 'w-50',
               control: () =>
                 'bg-base-100 border border-base-300 rounded-lg px-2',
               menu: () => 'bg-base-100 border border-base-300 rounded-lg mt-1',

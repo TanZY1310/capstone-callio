@@ -99,7 +99,7 @@ function AIResponseReview({
                     <textarea
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full h-32 p-2 border border-gray-300 rounded"
                     />
                   ) : (
                     <div className="chat-bubble chat-bubble-primary opacity-100 p-4 m-1">
