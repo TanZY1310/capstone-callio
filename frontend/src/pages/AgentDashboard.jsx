@@ -86,6 +86,8 @@ function AgentDashboard() {
     fetchKPIs();
   }, [profile, period, year, month, day]);
 
+  console.log(agent);
+
   // --- Call Volume fetch, separate effect ---
   useEffect(() => {
     if (!profile?.user_id) return;
@@ -103,6 +105,7 @@ function AgentDashboard() {
         const response = await api.get(
           `/dashboard/calls?user_id=${profile.user_id}&${params}`,
         );
+        console.log(response.data);
         setCalls(response.data);
       } catch (err) {
         setDcError(err.message);
@@ -178,7 +181,7 @@ function AgentDashboard() {
             <div className="col-span-3 card bg-base-100">
               <ConversionFunnel
                 stages={[
-                  { label: 'Leads Contacted', count: agent.kpis.leads },
+                  { label: 'Active Leads', count: agent.kpis.leads },
                   // { label: 'Follow Ups', count: agent.kpis.followUps },
                   { label: 'Appointments Set', count: agent.kpis.appointments },
                   { label: 'Bookings Confirmed', count: agent.kpis.bookings },

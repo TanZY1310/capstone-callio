@@ -79,8 +79,8 @@ function LoadingSkeleton() {
       <thead>
         <tr className="text-xs uppercase tracking-wider text-base-content/60 border-b-2 border-base-300">
           {tableHeader.map((h) => (
-            <th key={h.id} className="px-6 py-3 text-left font-semibold">
-              <div className="flex items-center gap-1.5 text-base-content/50">
+            <th key={h.id} className={`px-6 py-3 font-semibold ${h.align === 'center' ? 'text-center' : 'text-left'}`}>
+              <div className={`flex items-center gap-1.5 text-base-content/50 ${h.align === 'center' ? 'justify-center' : ''}`}>
                 {HEADER_ICONS[h.name] &&
                   (() => {
                     const Icon = HEADER_ICONS[h.name];
@@ -260,7 +260,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
             </div>
             <ul
               tabIndex={0}
-              className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
+              className="dropdown-content menu bg-base-100 rounded-box z-30 w-56 p-2 shadow-sm"
             >
               <li>
                 <button
@@ -340,9 +340,9 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                 {tableHeader.map((eachHeader) => (
                   <th
                     key={eachHeader.id}
-                    className="px-6 py-3 text-left font-semibold"
+                    className={`px-6 py-3 font-semibold ${eachHeader.align === 'center' ? 'text-center' : 'text-left'}`}
                   >
-                    <div className="flex items-center gap-1.5 text-base-content/50">
+                    <div className={`flex items-center gap-1.5 text-base-content/50 ${eachHeader.align === 'center' ? 'justify-center' : ''}`}>
                       {HEADER_ICONS[eachHeader.name] &&
                         (() => {
                           const Icon = HEADER_ICONS[eachHeader.name];
@@ -361,12 +361,12 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                   variants={rowVariants}
                   className="border-b border-base-200 hover:bg-base-200 transition-colors"
                 >
-                  <td className="px-6 py-3">
+                  <td className="px-6 py-3 align-middle">
                     <span className="text-sm font-medium text-base-content">
                       {customer.cust_name}
                     </span>
                   </td>
-                  <td className="px-6 py-3">
+                  <td className="px-6 py-3 align-middle">
                     <motion.button
                       className="btn btn-link btn-sm text-success-icon normal-case no-underline justify-start px-0"
                       onClick={() => sendCustomerDetails('/whatsapp', customer)}
@@ -377,19 +377,21 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                       <span className="text-sm text-success">{customer.phone}</span>
                     </motion.button>
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="text-sm text-base-content/70">
-                      {customer.location ?? (
-                        <span className="italic text-base-content/30">-</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-base-content/40">
-                      {customer.budget ?? (
-                        <span className="italic text-base-content/30">-</span>
-                      )}
+                  <td className="px-6 py-3 align-middle">
+                    <div className="flex flex-col items-center">
+                      <div className="text-sm text-base-content/70">
+                        {customer.location ?? (
+                          <span className="italic text-base-content/30">-</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-base-content/40">
+                        {customer.budget ?? (
+                          <span className="italic text-base-content/30">-</span>
+                        )}
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-3">
+                  <td className="px-6 py-3 align-middle">
                     <div
                       className={`dropdown dropdown-end ${activeDropdown === customer.cust_id ? 'dropdown-open' : ''}`}
                       data-dropdown-container
@@ -409,7 +411,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                       </div>
                       <ul
                         tabIndex={0}
-                        className="dropdown-content menu bg-base-100 rounded-box z-1 w-56 p-2 shadow-sm"
+                        className="dropdown-content menu bg-base-100 rounded-box z-30 w-56 p-2 shadow-sm"
                       >
                         {statusList.map((s) => (
                           <li key={s.id}>
@@ -434,35 +436,35 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                       </ul>
                     </div>
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="text-sm text-base-content/70">
-                      {customer.last_contact ? (
-                        formatDate(customer.last_contact)
-                      ) : (
-                        <span className="italic text-base-content/30">-</span>
-                      )}
-                    </div>
-                    {customer.last_contact &&
-                      getRelativeTime(customer.last_contact) && (
-                        <div className="text-xs text-base-content/40">
-                          {getRelativeTime(customer.last_contact)}
-                        </div>
-                      )}
-                  </td>
-                  <td className="px-6 py-3">
-                    <div className="flex items-center gap-2">
-                      <motion.button
-                        name="micButton"
-                        className="btn btn-sm btn-ghost border border-success-icon/30 hover:bg-success-icon/10"
-                        onClick={() => sendCustomerDetails('/speech', customer)}
-                        whileHover={{ scale: 1.15 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Mic size={15} />
-                      </motion.button>
+                  <td className="px-6 py-3 align-middle">
+                    <div className="flex flex-col items-center">
+                      <div className="text-sm text-base-content/70">
+                        {customer.last_contact ? (
+                          formatDate(customer.last_contact)
+                        ) : (
+                          <span className="italic text-base-content/30">-</span>
+                        )}
+                      </div>
+                      {customer.last_contact &&
+                        getRelativeTime(customer.last_contact) && (
+                          <div className="text-xs text-base-content/40">
+                            {getRelativeTime(customer.last_contact)}
+                          </div>
+                        )}
                     </div>
                   </td>
-                  <td className="px-6 py-3 text-base-content/60 max-w-xs">
+                  <td className="px-6 py-3 align-middle text-center">
+                    <motion.button
+                      name="micButton"
+                      className="btn btn-sm btn-ghost border border-success-icon/30 hover:bg-success-icon/10"
+                      onClick={() => sendCustomerDetails('/speech', customer)}
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Mic size={15} />
+                    </motion.button>
+                  </td>
+                  <td className="px-6 py-3 text-base-content/60 max-w-xs align-middle">
                     {customer.remarks?.speechAnalysis ? (
                       <>
                         <p className="line-clamp-2 mb-1 text-sm">

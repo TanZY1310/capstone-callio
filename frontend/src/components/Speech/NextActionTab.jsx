@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Building, MapPin, DollarSign, Sparkles, X } from 'lucide-react';
 
 function matchBadgeStyle(score) {
-  if (score >= 80) return 'bg-emerald-50 text-emerald-700';
-  if (score >= 60) return 'bg-blue-50 text-blue-700';
-  return 'bg-amber-50 text-amber-700';
+  if (score >= 80) return 'bg-success/30 text-success-content';
+  if (score >= 60) return 'bg-info/30 text-info-content';
+  return 'bg-warning/40 text-warning-content';
 }
 
 function NextAction({ data, loading = false }) {
@@ -82,7 +82,7 @@ function NextAction({ data, loading = false }) {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <span className="loading loading-spinner loading-md text-primary" />
-              <span className="text-sm font-medium text-base-content/60">
+              <span className="text-sm font-medium text-base-content/75">
                 Generating tailored recommendations...
               </span>
             </div>
@@ -101,8 +101,8 @@ function NextAction({ data, loading = false }) {
               <Sparkles size={28} className="text-base-content/30" />
             </div>
             <div className="flex flex-col gap-1">
-              <h3 className="font-bold text-base text-[#2D3748]">No Analysis Yet</h3>
-              <p className="text-sm text-[#2D3748]/60 max-w-sm">
+              <h3 className="font-bold text-base text-base-content">No Analysis Yet</h3>
+              <p className="text-sm text-base-content/85 max-w-sm">
                 Analysis pending. Review the transcript and click 'Approve' to extract next actions and property matches.
               </p>
             </div>
@@ -127,7 +127,7 @@ function NextAction({ data, loading = false }) {
             <Sparkles size={16} className="text-primary mt-0.5 shrink-0" />
             <div className="flex flex-col gap-1 flex-1">
               <span className="font-bold text-sm text-base-content">AI Workflow Suggestion</span>
-              <span className="text-sm text-base-content/60 leading-relaxed">
+              <span className="text-sm text-base-content/75 leading-relaxed">
                 Complete all recommended follow-up actions within the next 24 hours
                 to maximize conversion probability and maintain buyer engagement.
               </span>
@@ -157,9 +157,9 @@ function NextAction({ data, loading = false }) {
                   <span className={`text-sm leading-relaxed break-words ${
                     completedActions.has(i)
                       ? 'line-through text-base-content/30'
-                      : 'text-base-content/60'
+                      : 'text-base-content/75'
                   }`}>
-                    {action}
+                    {action.charAt(0).toUpperCase() + action.slice(1)}
                   </span>
                 </div>
                 <input
@@ -202,19 +202,19 @@ function NextAction({ data, loading = false }) {
                       </div>
                     )}
                     {prop.location && (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-base-content/70">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-base-content/85">
                         <MapPin size={14} />
                         <span>{prop.location}</span>
                       </div>
                     )}
                   </div>
 
-                  <span className="text-sm text-base-content/70 leading-relaxed break-words">{prop.reason}</span>
+                  <span className="text-sm text-base-content/85 leading-relaxed break-words">{prop.reason}</span>
 
                   {prop.highlights?.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {prop.highlights.map((h, j) => (
-                        <span key={j} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-xs">
+                        <span key={j} className="px-3 py-1 bg-base-300/50 text-base-content/80 rounded-md text-xs">
                           {h}
                         </span>
                       ))}
@@ -231,7 +231,7 @@ function NextAction({ data, loading = false }) {
             <span className="text-info text-sm">📋</span>
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-bold text-info-content">No matching properties found</span>
-              <span className="text-sm text-base-content/60">Try uploading more property brochures via Agent Profile.</span>
+              <span className="text-sm text-base-content/75">Try uploading more property brochures via Agent Profile.</span>
             </div>
           </div>
         )}

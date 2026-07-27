@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import { toast } from 'sonner';
 import BodyHeader from '../components/Speech/BodyHeader';
-import Preferencecard from '../components/Speech/PreferenceCard';
 import SpeechAnalysisCard from '../components/Speech/SpeechAnalysisCard';
 import AudioPlaybackCard from '../components/Speech/AudioPlayCard';
 import ProgressBar from '../components/Speech/ProgressBar';
@@ -18,6 +17,7 @@ function Speech() {
   const [sentiment, setSentiment] = useState(null);
   const [nextActions, setNextActions] = useState(null);
   const [preferences, setPreferences] = useState(null);
+  const [transcriptSummary, setTranscriptSummary] = useState(null);
   const [propertySuggestions, setPropertySuggestions] = useState(null);
   const [isPipelineLoading, setIsPipelineLoading] = useState(false);
   const [progressStep, setProgressStep] = useState(-1);
@@ -60,11 +60,13 @@ function Speech() {
             setAwaitingApproval(true);
           } else if (task.status === 'complete') {
             stopPolling();
+            setProgressStep(4);
             setAudioUrl(`${API_URL}${audioUrl}`);
             setTranscription(task.data.transcription);
             setSentiment(task.data.sentiment);
             setNextActions(task.data.nextActions);
             setPreferences(task.data.preferences);
+            setTranscriptSummary(task.data.transcriptSummary);
             setPropertySuggestions(task.data.propertySuggestions);
             toast.success('Analysis complete');
           } else if (task.status === 'error') {
@@ -91,6 +93,7 @@ function Speech() {
     setSentiment(null);
     setNextActions(null);
     setPreferences(null);
+    setTranscriptSummary(null);
     setAudioUrl(null);
     setProgressMessage('');
     startPolling(data.task_id, data.audio_url);
@@ -114,6 +117,7 @@ function Speech() {
     setSentiment(null);
     setNextActions(null);
     setPreferences(null);
+    setTranscriptSummary(null);
     setPropertySuggestions(null);
     setAudioUrl(null);
     setAudioFile(null);
@@ -138,6 +142,7 @@ function Speech() {
       await api.post(`/speech/pipeline/${taskId}`, {
         customer_id: customer?.cust_id || null,
       });
+      setProgressStep(4);
       toast.success('Successfully added to lead pipeline');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to add to pipeline');
@@ -167,32 +172,23 @@ function Speech() {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-1 min-h-0">
-        <div className="flex-1 min-h-0">
-          <SpeechAnalysisCard
-            data={null}
-            transcription={transcription}
-            audioUrl={audioUrl}
-            sentiment={sentiment}
-            nextActions={nextActions}
-            propertySuggestions={propertySuggestions}
-            progressStep={progressStep}
-            progressMessage={progressMessage}
-            audioFile={audioFile}
-            awaitingApproval={awaitingApproval}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
-        </div>
-        <div className="w-full lg:w-96 flex">
-          <div
-            className={`card bg-base-100 border border-base-200 shadow-sm rounded-2xl w-full ${isAnalysisLoading ? 'animate-pulse' : ''}`}
-          >
-            <div className="card-body p-6">
-              <Preferencecard data={preferences} loading={isAnalysisLoading} />
-            </div>
-          </div>
-        </div>
+      <div className="flex-1 min-h-0">
+        <SpeechAnalysisCard
+          data={null}
+          transcription={transcription}
+          audioUrl={audioUrl}
+          sentiment={sentiment}
+          nextActions={nextActions}
+          preferences={preferences}
+          transcriptSummary={transcriptSummary}
+          propertySuggestions={propertySuggestions}
+          progressStep={progressStep}
+          progressMessage={progressMessage}
+          audioFile={audioFile}
+          awaitingApproval={awaitingApproval}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       </div>
     </div>
   );

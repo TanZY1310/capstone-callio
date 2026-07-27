@@ -12,7 +12,7 @@ from typing import Optional
 class Period(StrEnum):
     DAILY = "daily"
     MONTHLY = "monthly"
-    # YEARLY = "yearly"
+    YEARLY = "yearly"
 
 # Enum means FastAPI can read it directly from a query parameter — 
 # when the frontend sends ?period=monthly, FastAPI automatically validates it against these three values 
@@ -28,11 +28,14 @@ class AgentStats(BaseModel):
     followUps: int
     appointments: int
     bookings: int
+    completed: int
     
 class ConversionRate(BaseModel):
     calls_change: int
+    leads_change: int
     appointments_change: int
     bookings_change: int
+    completed_change: int
 
 
 class CallCount(BaseModel):
@@ -62,13 +65,15 @@ class AgentDashboardResponse(BaseModel):
 class AgentTable(BaseModel):
     agent_id: uuid.UUID  # user id
     agent_name: str # user first name and last name
-    calls: int 
+    calls: int
     leads: int
     followUps: int
     appointments: int
     appointment_rate: float
     bookings: int
     booking_rate: float
+    completed: int
+    completion_rate: float
     status: str
 
 class TeamStats(BaseModel):

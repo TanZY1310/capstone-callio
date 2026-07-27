@@ -19,6 +19,12 @@ import {
   Sun,
   Moon,
   ChevronRight,
+  Mail,
+  Upload,
+  Sparkles,
+  CheckCircle2,
+  RefreshCw,
+  Handshake,
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 
@@ -57,12 +63,14 @@ function RevealSection({ children, className = '' }) {
 }
 
 const NAV_LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'For Teams', href: '#teams' },
+  { label: 'How it works', href: '/#how-it-works' },
+  { label: 'Features', href: '/#features' },
+  { label: 'Integrations', href: '/#integrations' },
+  { label: 'Pricing', href: '/#pricing' },
+  { label: 'For Teams', href: '/#teams' },
 ];
 
-function Navbar({ theme, toggleTheme }) {
+export function Navbar({ theme, toggleTheme }) {
   return (
     <nav className="sticky top-0 z-50 bg-base-100/80 backdrop-blur-md border-b border-base-200">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -104,6 +112,7 @@ function Navbar({ theme, toggleTheme }) {
   );
 }
 
+// Placeholder mockup — swap for a real product screenshot once available.
 function HeroVisual() {
   return (
     <div className="relative">
@@ -211,8 +220,8 @@ function HeroVisual() {
             Call analysed
           </span>
         </div>
-        <p className="text-[10px] text-base-content/50 leading-relaxed">
-          &quot;Mixed BM-English detected. Sentiment: Positive. Follow up on
+        <p className="text-xs text-base-content/60 leading-relaxed">
+          &quot;Mixed BM/English detected. Sentiment: Positive. Follow up on
           Mont Kiara unit.&quot;
         </p>
       </motion.div>
@@ -235,7 +244,7 @@ function Hero() {
             <motion.div variants={fadeInUp} className="mb-5">
               <span className="badge badge-primary badge-outline gap-1.5 text-xs">
                 <Zap size={12} />
-                Built for Malaysian property agents
+                Built for every agent
               </span>
             </motion.div>
 
@@ -250,15 +259,25 @@ function Hero() {
 
             <motion.p
               variants={fadeInUp}
-              className="text-base text-base-content/60 max-w-lg mb-8 leading-relaxed"
+              className="text-base text-base-content/60 max-w-lg mb-4 leading-relaxed"
             >
-              Callio brings your WhatsApp chats, call recordings, and lead
-              tracking into one workspace. AI-powered analysis that understands
-              BM, English, and Mandarin — even in the same call.
+              Agents field 80–120 calls a day and log every one by hand, and
+              that costs 1.5–3 hours of admin that could go into selling
+              instead. Callio listens in after the call ends, turns it into a
+              structured lead update, and syncs it to your CRM before the next
+              call comes in.
+            </motion.p>
+
+            <motion.p
+              variants={fadeInUp}
+              className="text-sm font-medium text-primary mb-8"
+            >
+              Works after the call ends. Coexists with the agent instead of
+              replacing them.
             </motion.p>
 
             <motion.div variants={fadeInUp} className="flex flex-wrap gap-3">
-              <a href="#features" className="btn btn-outline gap-2">
+              <a href="#how-it-works" className="btn btn-outline gap-2">
                 See how it works
               </a>
             </motion.div>
@@ -280,23 +299,128 @@ function Hero() {
 
 function StatsBar() {
   const stats = [
-    { value: '3x', label: 'Faster lead follow-up' },
-    { value: '34%', label: 'Average conversion lift' },
-    { value: '3', label: 'Languages in one call' },
-    { value: '127+', label: 'Agents already onboard' },
+    { value: '80–120', label: 'Calls an agent logs by hand, every day' },
+    { value: '1.5–3h', label: 'Daily admin that eats into selling time' },
+    { value: '3', label: 'Languages understood in a single call' },
+    { value: '5', label: 'Steps from call to CRM, automatically' },
   ];
 
   return (
-    <section className="py-12 bg-base-200/50 border-y border-base-200">
+    <section className="py-16 bg-base-200/50 border-y border-base-200">
       <div className="max-w-6xl mx-auto px-6">
         <RevealSection>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
-                <p className="text-3xl font-bold text-primary mb-1">
+                <p className="text-4xl lg:text-5xl font-bold text-primary mb-2">
                   {stat.value}
                 </p>
-                <p className="text-xs text-base-content/50">{stat.label}</p>
+                <p className="text-sm text-base-content/70">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+function Differentiator() {
+  return (
+    <section className="py-14 bg-primary/5 border-y border-primary/10">
+      <div className="max-w-3xl mx-auto px-6">
+        <RevealSection className="text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
+            <Handshake size={22} className="text-primary" />
+          </div>
+          <p className="text-xl lg:text-2xl font-semibold text-base-content leading-snug">
+            Callio works after the call ends. It coexists with the agent
+            instead of replacing them.
+          </p>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+const FLOW_STEPS = [
+  {
+    step: '01',
+    icon: Upload,
+    title: 'Upload',
+    description:
+      'Drop in the call recording, or let Callio capture it automatically once the call ends.',
+  },
+  {
+    step: '02',
+    icon: Mic,
+    title: 'Transcribe',
+    description:
+      'Speech-to-text converts the call to text across BM, English, and Mandarin, even mixed in one call.',
+  },
+  {
+    step: '03',
+    icon: Sparkles,
+    title: 'Extract',
+    description:
+      'NLP pulls out the lead details, sentiment, and next step. No manual note taking.',
+  },
+  {
+    step: '04',
+    icon: CheckCircle2,
+    title: 'Confirm',
+    description:
+      'Review the summary in seconds and approve it, or edit anything that needs a fix.',
+  },
+  {
+    step: '05',
+    icon: RefreshCw,
+    title: 'Sync',
+    description:
+      'Approved entries push straight to your Sheet or CRM. Nothing to copy, nothing to retype.',
+  },
+];
+
+function HowItWorks() {
+  return (
+    <section
+      id="how-it-works"
+      className="py-20 bg-base-200/50 border-y border-base-200"
+    >
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection className="mb-14 text-center">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            How it works
+          </p>
+          <h2 className="text-3xl font-bold text-base-content mb-3">
+            From call recording to CRM update, automatically
+          </h2>
+          <p className="text-base-content/70 max-w-xl mx-auto">
+            Five steps, most of them handled for you. The agent just confirms.
+          </p>
+        </RevealSection>
+
+        <RevealSection>
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-6 px-6 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-5 sm:overflow-visible">
+            {FLOW_STEPS.map((item) => (
+              <div
+                key={item.step}
+                className="card bg-base-100 border border-base-200 shrink-0 w-64 snap-center sm:w-auto"
+              >
+                <div className="card-body p-5">
+                  <span className="text-xs font-mono text-base-content/40 mb-3 block">
+                    {item.step}
+                  </span>
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                    <item.icon size={18} className="text-primary" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-base-content mb-1.5">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-base-content/70 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -309,9 +433,9 @@ function StatsBar() {
 const FEATURES = [
   {
     icon: MessageSquare,
-    title: 'WhatsApp where you work',
+    title: 'WhatsApp, all in one place',
     description:
-      'Link your WhatsApp, review AI-drafted replies before sending, and keep every conversation attached to the right lead. No switching between apps.',
+      'View the full chat history for every lead in one place, no page-hopping between chats. Callio reads the thread and the call together, then drafts the follow-up so you just review and send.',
     accent: 'text-success',
     bg: 'bg-success/5',
   },
@@ -352,7 +476,7 @@ function Features() {
           <h2 className="text-3xl font-bold text-base-content mb-3">
             Everything you need to close faster
           </h2>
-          <p className="text-base-content/50 max-w-xl">
+          <p className="text-base-content/70 max-w-xl">
             Stop juggling five apps. Callio puts your leads, conversations, and
             call insights in one place — so you spend less time admin and more
             time selling.
@@ -372,7 +496,7 @@ function Features() {
                   <h3 className="text-lg font-semibold text-base-content mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-base-content/50 leading-relaxed">
+                  <p className="text-sm text-base-content/70 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -385,6 +509,65 @@ function Features() {
   );
 }
 
+const INTEGRATIONS = [
+  {
+    icon: MessageSquare,
+    name: 'WhatsApp',
+    description:
+      'Every conversation attaches to its lead automatically. Callio reads the full thread and suggests what to send next, so there is no scrolling back to find where you left off.',
+  },
+  {
+    icon: Sheet,
+    name: 'Google Sheets',
+    description:
+      'Already tracking leads in a spreadsheet? Callio syncs both ways so nothing needs to be re-entered by hand.',
+  },
+];
+
+function Integrations() {
+  return (
+    <section id="integrations" className="py-20 bg-base-200/50 border-y border-base-200">
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection className="mb-14">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            Integrations
+          </p>
+          <h2 className="text-3xl font-bold text-base-content mb-3">
+            Works with the tools you already use
+          </h2>
+          <p className="text-base-content/70 max-w-xl">
+            No need to change how your team communicates or tracks leads
+            today — Callio plugs into it.
+          </p>
+        </RevealSection>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          {INTEGRATIONS.map((integration) => (
+            <RevealSection key={integration.name}>
+              <div className="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors">
+                <div className="card-body p-6 flex-row items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <integration.icon size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-base-content mb-2">
+                      {integration.name}
+                    </h3>
+                    <p className="text-sm text-base-content/70 leading-relaxed">
+                      {integration.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </RevealSection>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Placeholder mockup — swap for a real product screenshot once available.
 function Spotlight() {
   return (
     <section className="py-20 bg-base-200/50">
@@ -398,7 +581,7 @@ function Spotlight() {
               <h2 className="text-3xl font-bold text-base-content mb-4">
                 One call. Four languages. Zero missed context.
               </h2>
-              <p className="text-base-content/50 mb-6 leading-relaxed">
+              <p className="text-base-content/70 mb-6 leading-relaxed">
                 Malaysian property conversations don&apos;t stick to one
                 language. A prospect might open in BM, switch to English for
                 pricing, and throw in Mandarin for numbers. Callio&apos;s AI
@@ -433,7 +616,7 @@ function Spotlight() {
                 <div className="flex gap-3">
                   <div className="w-1 h-full bg-primary/20 rounded-full shrink-0" />
                   <div>
-                    <p className="text-xs text-base-content/40 mb-1">
+                    <p className="text-xs text-base-content/50 mb-1">
                       Agent — BM + English
                     </p>
                     <p className="text-sm text-base-content/80">
@@ -446,7 +629,7 @@ function Spotlight() {
                 <div className="flex gap-3">
                   <div className="w-1 h-full bg-warning/20 rounded-full shrink-0" />
                   <div>
-                    <p className="text-xs text-base-content/40 mb-1">
+                    <p className="text-xs text-base-content/50 mb-1">
                       Prospect — English + Mandarin
                     </p>
                     <p className="text-sm text-base-content/80">
@@ -459,7 +642,7 @@ function Spotlight() {
                 <div className="flex gap-3">
                   <div className="w-1 h-full bg-success/20 rounded-full shrink-0" />
                   <div>
-                    <p className="text-xs text-base-content/40 mb-1">
+                    <p className="text-xs text-base-content/50 mb-1">
                       AI Analysis
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -487,76 +670,53 @@ function Spotlight() {
   );
 }
 
-function Pricing() {
-  const addons = [
-    {
-      name: 'AI Call Analysis',
-      price: 'RM 49',
-      unit: '/month',
-      description:
-        '100 call recordings with full transcription and sentiment analysis',
-    },
-    {
-      name: 'Extra Team Seats',
-      price: 'RM 29',
-      unit: '/seat/month',
-      description: 'Add agents to your workspace as your team grows',
-    },
-    {
-      name: 'Priority Support',
-      price: 'RM 99',
-      unit: '/month',
-      description: 'Dedicated account manager and 4-hour response SLA',
-    },
-  ];
+const PRICING_FEATURES = [
+  'Call capture, transcription, and lead updates',
+  'WhatsApp chat history and AI-drafted follow-ups',
+  'Google Sheets and CRM sync',
+  'Team dashboards for leads and agencies',
+];
 
+function Pricing() {
   return (
     <section id="pricing" className="py-20 bg-base-100">
       <div className="max-w-6xl mx-auto px-6">
-        <RevealSection className="mb-12">
+        <RevealSection className="mb-12 text-center">
           <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
             Pricing
           </p>
           <h2 className="text-3xl font-bold text-base-content mb-3">
-            One plan. Add what you need.
+            Simple, per-agent pricing
           </h2>
-          <p className="text-base-content/50 max-w-xl">
-            Start with the base plan and scale up as your pipeline grows. No
-            hidden fees, no long-term contracts.
+          <p className="text-base-content/70 max-w-xl mx-auto">
+            One plan, everything included. No hidden fees, no long term
+            contracts.
           </p>
         </RevealSection>
 
         <RevealSection>
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="max-w-md mx-auto">
             <div className="card bg-base-100 border-2 border-primary">
-              <div className="card-body p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-base-content">
-                      Callio Base
-                    </h3>
-                    <p className="text-xs text-base-content/40 mt-1">
-                      Everything you need to manage leads
-                    </p>
-                  </div>
-                  <span className="badge badge-primary">Popular</span>
-                </div>
+              <div className="card-body p-8 text-center">
+                <h3 className="text-lg font-semibold text-base-content mb-6">
+                  Callio for agents
+                </h3>
 
-                <div className="mb-6">
+                <div className="mb-2">
                   <span className="text-4xl font-bold text-base-content">
-                    RM 79
+                    RM 249–299
                   </span>
-                  <span className="text-base-content/40 text-sm">/month</span>
+                  <span className="text-base-content/60 text-sm block mt-1">
+                    per agent / month
+                  </span>
                 </div>
+                <p className="text-xs text-base-content/50 mb-6">
+                  Most agencies land around RM 275/agent. Final price depends
+                  on team size.
+                </p>
 
-                <ul className="space-y-3 mb-8">
-                  {[
-                    'Unlimited lead management',
-                    'WhatsApp integration with AI reply review',
-                    'Google Sheets two-way sync',
-                    'Agent dashboard with key metrics',
-                    'Customer status tracking',
-                  ].map((item) => (
+                <ul className="space-y-3 mb-8 text-left max-w-xs mx-auto">
+                  {PRICING_FEATURES.map((item) => (
                     <li key={item} className="flex items-center gap-3">
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <Check size={12} className="text-primary" />
@@ -567,44 +727,14 @@ function Pricing() {
                     </li>
                   ))}
                 </ul>
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <p className="text-sm font-medium text-base-content/60 mb-2">
-                Scale with add-ons
-              </p>
-              {addons.map((addon) => (
-                <div
-                  key={addon.name}
-                  className="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors"
-                >
-                  <div className="card-body p-5 flex-row items-center gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-base-content">
-                        {addon.name}
-                      </h4>
-                      <p className="text-xs text-base-content/40 mt-0.5">
-                        {addon.description}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-lg font-bold text-base-content">
-                        {addon.price}
-                      </span>
-                      <span className="text-xs text-base-content/40">
-                        {addon.unit}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <div className="pt-4">
-                <a href="#contact" className="btn btn-outline btn-block gap-2">
-                  Book a demo for your agency
+                <a href="#contact" className="btn btn-primary btn-block gap-2">
+                  Book a demo
                   <ChevronRight size={16} />
                 </a>
+                <p className="text-sm text-base-content/60 mt-3">
+                  Running a team? Talk to us about agency pricing.
+                </p>
               </div>
             </div>
           </div>
@@ -693,7 +823,7 @@ function TeamSection() {
               <h2 className="text-3xl font-bold text-base-content mb-4">
                 Lead your team with data, not guesswork
               </h2>
-              <p className="text-base-content/50 mb-6 leading-relaxed">
+              <p className="text-base-content/70 mb-6 leading-relaxed">
                 See who&apos;s calling, who&apos;s converting, and where your
                 pipeline is stuck. Team leader dashboards give you the metrics
                 to coach effectively and scale your agency.
@@ -714,6 +844,130 @@ function TeamSection() {
                 ))}
               </ul>
             </div>
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+const TEAM_MEMBERS = [
+  { name: 'Ze Yan', role: 'Team Lead' },
+  { name: 'Izzat', role: 'Team Member' },
+  { name: 'Yong Hong', role: 'Team Member' },
+  { name: 'Dhanesh', role: 'Team Member' },
+  { name: 'Solehah', role: 'Team Member' },
+  { name: 'Yang', role: 'Team Member' },
+];
+
+function About() {
+  return (
+    <section id="about" className="py-20 bg-base-100">
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection className="mb-14">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            About
+          </p>
+          <h2 className="text-3xl font-bold text-base-content mb-3">
+            Why we built Callio
+          </h2>
+          <p className="text-base-content/70 max-w-2xl leading-relaxed">
+            Malaysian property agents juggle WhatsApp, spreadsheets, and
+            phone calls just to keep track of a single lead. Callio brings
+            all of that into one workspace — so agents spend less time on
+            admin and more time closing deals. This page exists to show you
+            what Callio does and how to get started with your own team.
+          </p>
+        </RevealSection>
+
+        <RevealSection>
+          <p className="text-sm font-medium text-base-content/60 mb-4">
+            The team
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {TEAM_MEMBERS.map((member) => (
+              <div
+                key={member.name}
+                className="card bg-base-100 border border-base-200"
+              >
+                <div className="card-body p-4 flex-row items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold shrink-0">
+                    {member.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content">
+                      {member.name}
+                    </p>
+                    <p className="text-xs text-base-content/50">
+                      {member.role}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+function ContactSection() {
+  return (
+    <section id="contact" className="py-20 bg-base-200/50 border-y border-base-200">
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection className="text-center">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+            Contact
+          </p>
+          <h2 className="text-3xl font-bold text-base-content mb-3">
+            Talk to us
+          </h2>
+          <p className="text-base-content/70 max-w-xl mx-auto mb-8">
+            Questions about Callio, or want to book a demo for your agency?
+            Reach out directly.
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <a
+              href="mailto:jane@gmail.com"
+              className="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors"
+            >
+              <div className="card-body p-5 flex-row items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Mail size={16} className="text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-base-content/50">Email</p>
+                  <p className="text-sm font-medium text-base-content">
+                    jane@gmail.com
+                  </p>
+                </div>
+              </div>
+            </a>
+
+            <a
+              href="https://wa.me/60123456789"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors"
+            >
+              <div className="card-body p-5 flex-row items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <MessageSquare size={16} className="text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-base-content/50">WhatsApp</p>
+                  <p className="text-sm font-medium text-base-content">
+                    012-345 6789
+                  </p>
+                </div>
+              </div>
+            </a>
           </div>
         </RevealSection>
       </div>
@@ -747,7 +1001,7 @@ function BottomCTA() {
   );
 }
 
-function Footer() {
+export function Footer() {
   return (
     <footer className="bg-base-100 border-t border-base-200 py-12">
       <div className="max-w-6xl mx-auto px-6">
@@ -759,7 +1013,7 @@ function Footer() {
               </div>
               <span className="font-bold tracking-widest text-sm">CALLIO</span>
             </div>
-            <p className="text-sm text-base-content/50 max-w-sm">
+            <p className="text-sm text-base-content/70 max-w-sm">
               The CRM built for Malaysian property agents. Manage leads, analyse
               calls, and grow your pipeline — all in one workspace.
             </p>
@@ -770,18 +1024,22 @@ function Footer() {
               Product
             </h4>
             <ul className="space-y-2">
-              {['Features', 'Pricing', 'For Teams', 'Integrations'].map(
-                (link) => (
-                  <li key={link}>
-                    <a
-                      href={`#${link.toLowerCase().replace(' ', '-')}`}
-                      className="text-sm text-base-content/50 hover:text-base-content transition-colors"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ),
-              )}
+              {[
+                { label: 'How it works', href: '/#how-it-works' },
+                { label: 'Features', href: '/#features' },
+                { label: 'Pricing', href: '/#pricing' },
+                { label: 'For Teams', href: '/#teams' },
+                { label: 'Integrations', href: '/#integrations' },
+              ].map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    className="text-sm text-base-content/70 hover:text-base-content transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -790,22 +1048,44 @@ function Footer() {
               Company
             </h4>
             <ul className="space-y-2">
-              {['About', 'Contact', 'Privacy', 'Terms'].map((link) => (
-                <li key={link}>
-                  <a
-                    href={`#${link.toLowerCase()}`}
-                    className="text-sm text-base-content/50 hover:text-base-content transition-colors"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
+              <li>
+                <a
+                  href="/#about"
+                  className="text-sm text-base-content/70 hover:text-base-content transition-colors"
+                >
+                  About
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/#contact"
+                  className="text-sm text-base-content/70 hover:text-base-content transition-colors"
+                >
+                  Contact
+                </a>
+              </li>
+              <li>
+                <Link
+                  to="/privacy"
+                  className="text-sm text-base-content/70 hover:text-base-content transition-colors"
+                >
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms"
+                  className="text-sm text-base-content/70 hover:text-base-content transition-colors"
+                >
+                  Terms
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-base-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-base-content/40">
+          <p className="text-xs text-base-content/50">
             &copy; {new Date().getFullYear()} Callio. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
@@ -838,10 +1118,15 @@ function LandingPage() {
       <Navbar theme={theme} toggleTheme={toggleTheme} />
       <Hero />
       <StatsBar />
+      <Differentiator />
+      <HowItWorks />
       <Features />
+      <Integrations />
       <Spotlight />
       <Pricing />
       <TeamSection />
+      <About />
+      <ContactSection />
       <BottomCTA />
       <Footer />
     </div>

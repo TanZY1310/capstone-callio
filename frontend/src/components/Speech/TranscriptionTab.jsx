@@ -31,7 +31,7 @@ function TranscriptionTab({ data, loading = false, progressMessage = '' }) {
         <div className="card-body">
           <div className="flex flex-col gap-1 mb-4">
             <h2 className="text-section-heading">Call Transcription</h2>
-            <p className="text-xs text-[#2D3748]/60">
+            <p className="text-xs text-base-content/85">
               AI-processed conversation between agent and buyer
             </p>
           </div>
@@ -103,7 +103,7 @@ function TranscriptionTab({ data, loading = false, progressMessage = '' }) {
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#2D3748]/60">
+            <p className="text-xs text-base-content/85">
               AI-processed conversation between agent and buyer
             </p>
           </div>
@@ -124,15 +124,15 @@ function TranscriptionTab({ data, loading = false, progressMessage = '' }) {
                   </div>
                   <div className={`flex flex-col gap-1 ${isAgent ? '' : 'items-end'}`}>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#2D3748]/70 capitalize">
+                      <span className="text-xs font-bold text-base-content/85 capitalize">
                         {item.speaker}
                       </span>
                     </div>
                     <div
                       className={`px-5 py-3.5 rounded-xl text-sm leading-normal break-words ${
                         isAgent
-                          ? 'bg-[#F1F5F9] text-[#2D3748] rounded-tl-sm'
-                          : 'bg-[#E0F2FE] text-[#2D3748] rounded-tr-sm'
+                          ? 'bg-[#F1F5F9] text-base-content rounded-tl-sm'
+                          : 'bg-[#E0F2FE] text-base-content rounded-tr-sm'
                       }`}
                     >
                       {item.text}

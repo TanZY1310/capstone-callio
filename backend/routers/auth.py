@@ -2,6 +2,8 @@ import traceback
 import uuid
 from typing import Annotated
 
+import jwt
+
 from fastapi import APIRouter, HTTPException, status, Depends, Header
 from fastapi.concurrency import run_in_threadpool
 from firebase_admin import auth as firebase_auth
@@ -12,14 +14,12 @@ from core.demo import (
     DEMO_AGENT,
     DEMO_TEAM_LEAD,
     SUB_AGENTS,
-    generate_demo_token,
-    get_session_uid,
-    register_session,
+    generate_demo_jwt,
+    verify_demo_jwt,
 )
 from database import db_dependency
 from models.user import Users
 from schemas.user import UserCreate, UserResponse
-from seed_data import seed_demo_data
 
 # Initialize firebase from firebase_admin.py
 init_firebase()
@@ -51,17 +51,19 @@ async def verify_firebase_token(authorization: Annotated[str, Header()]) -> dict
     token = authorization.removeprefix("Bearer ")
     print(f"[AUTH] Token length: {len(token)} chars")
 
-    # Demo mode bypass — accept DEMO_ prefixed tokens
-    demo_uid = get_session_uid(token)
-    if token.startswith("DEMO_"):
-        if demo_uid:
-            print(f"[AUTH] Demo token accepted. UID: {demo_uid}")
-            return {"uid": demo_uid, "demo": True, "email": "demo@callio.demo"}
-        print("[AUTH] ERROR: Demo token expired or invalid")
+    # Demo mode — try JWT verification for self-signed demo tokens
+    try:
+        payload = verify_demo_jwt(token)
+        print(f"[AUTH] Demo JWT accepted. UID: {payload['sub']}, Role: {payload.get('role')}")
+        return {"uid": payload["sub"], "demo": True, "role": payload.get("role"), "email": "demo@callio.demo"}
+    except jwt.ExpiredSignatureError:
+        print("[AUTH] ERROR: Demo JWT expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Demo session expired. Please log in again.",
         )
+    except jwt.PyJWTError:
+        pass  # Not a valid demo JWT, fall through to Firebase verification
 
     try:
         # verify_id_token is blocking (JWKS fetch on first call) — run in threadpool
@@ -232,14 +234,7 @@ async def demo_login(payload: dict, db: db_dependency):
                 if agent:
                     sub_users.append(agent)
 
-    if role == "team_lead":
-        for idx, sub_user in enumerate(sub_users):
-            await run_in_threadpool(seed_demo_data, db, sub_user.user_id, set_index=idx)
-    else:
-        await run_in_threadpool(seed_demo_data, db, user.user_id, set_index=0)
-
-    demo_token = generate_demo_token()
-    register_session(demo_token, user.firebase_uid)
+    demo_token = generate_demo_jwt(user.firebase_uid, role)
 
     return {
         "demo_token": demo_token,
