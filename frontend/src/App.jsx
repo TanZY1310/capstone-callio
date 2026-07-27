@@ -53,28 +53,37 @@ function App() {
           }
         >
           <Routes>
-            <Route
-              path="/landing"
-              element={<Navigate to="/" replace />}
-            />
+            <Route path="/landing" element={<Navigate to="/" replace />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route
               path="/register"
               element={
-                loading && !user ? null : profile ? <Navigate to="/home" replace /> : <Register />
+                loading && !user ? null : profile ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Register />
+                )
               }
             />
             <Route
               path="/login"
               element={
-                loading && !user ? null : profile ? <Navigate to="/home" replace /> : <Login onDemoLogin={loginDemo} />
+                loading && !user ? null : profile ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Login onDemoLogin={loginDemo} />
+                )
               }
             />
             <Route
               path="/"
               element={
-                loading ? null : !profile ? <LandingPage /> : <Navigate to="/home" replace />
+                loading ? null : !profile ? (
+                  <LandingPage />
+                ) : (
+                  <Navigate to="/home" replace />
+                )
               }
             />
             <Route
@@ -90,13 +99,62 @@ function App() {
               }
             >
               {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
-              <Route path="home" element={<Suspense fallback={contentFallback}><HomePage /></Suspense>} />
-              <Route path="whatsapp" element={<Suspense fallback={contentFallback}><LeadDetail /></Suspense>} />
-              <Route path="agent-dashboard" element={<Suspense fallback={contentFallback}><AgentDashboard /></Suspense>} />
-              <Route path="team-dashboard" element={<Suspense fallback={contentFallback}><LeaderDashboard /></Suspense>} />
-              <Route path="speech" element={<Suspense fallback={contentFallback}><Speech /></Suspense>} />
-              <Route path="profile" element={<Suspense fallback={contentFallback}><UserProfile /></Suspense>} />
-              <Route path="profile-setting" element={<Suspense fallback={contentFallback}><ProfileSetting /></Suspense>} />
+              <Route
+                path="home"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <HomePage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="whatsapp"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <LeadDetail />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="agent-dashboard"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <AgentDashboard />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="team-dashboard"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <LeaderDashboard />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="speech"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <Speech />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="profile"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <UserProfile />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="profile-setting"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <ProfileSetting />
+                  </Suspense>
+                }
+              />
             </Route>
           </Routes>
         </Suspense>
