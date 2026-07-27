@@ -1,0 +1,176 @@
+import json
+import os
+import uuid
+import google.auth
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from fastapi import HTTPException, status
+from fastapi.concurrency import run_in_threadpool
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import select, func
+
+from database import db_dependency
+from models.customer import Customers
+from models.user import Users
+from schemas.customer import CustomerSheetRow, SyncResult
+
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+SERVICE_ACCOUNT_FILE = "sheets_credentials.json"
+
+def _get_credentials():
+    if os.path.exists(SERVICE_ACCOUNT_FILE):
+        return service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES
+        )
+    creds, _ = google.auth.default(scopes=SCOPES)
+    return creds
+
+SHEET_RANGE = "Sheet1!A2:G"                 # skip header row, 7 columns, Sheet1 follow name of sheet below
+SHEET_HEADER_RANGE = "Sheet1!A1:H"          # header + data range for export
+
+# Column order expected in the sheet:
+# Cust_Name | Phone | Budget | Location | Status | Last_Contact | UserID
+
+MISSING_MSG = "No spreadsheet ID configured. Go to Profile > Sheets Card to add your spreadsheet ID."
+
+EXPORT_HEADERS = ["Cust_Name", "Phone", "Budget", "Location", "Status", "Last_Contact", "Remarks"]
+
+def _get_user_sheets_id(db: db_dependency, user_id: uuid.UUID) -> str:
+    user = db.query(Users).filter(Users.user_id == user_id).first()
+    if not user or not user.sheets_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"SHEETS_ID_MISSING:{MISSING_MSG}",
+        )
+    return user.sheets_id
+
+def _fetch_sheet_rows(spreadsheet_id: str) -> list[dict]:
+    """Sync Google Sheets call — runs in threadpool."""
+    creds = _get_credentials()
+    service = build("sheets", "v4", credentials=creds)
+    result = (
+        service.spreadsheets()
+        .values()
+        .get(spreadsheetId=spreadsheet_id, range=SHEET_RANGE)
+        .execute()
+    )
+    rows = result.get("values", [])
+    headers = ["cust_name", "phone", "budget", "location", "status", "last_contact"]
+
+    parsed = []
+    for row in rows:
+        # Pad short rows with None for missing optional columns
+        padded = row + [None] * (len(headers) - len(row))
+        parsed.append(dict(zip(headers, padded)))
+    return parsed
+
+
+async def sync_customers_from_sheets(db: db_dependency, user_id: uuid.UUID) -> SyncResult:
+    sheets_id = _get_user_sheets_id(db, user_id)
+    raw_rows = await run_in_threadpool(_fetch_sheet_rows, sheets_id)
+
+    synced = 0
+    skipped = 0
+
+    for row in raw_rows:
+        try:
+            validated = CustomerSheetRow(**row)
+        except Exception as e:
+            print(f"Skipped row {row} — reason: {e}")
+            skipped += 1
+            continue
+
+        stmt = (
+            insert(Customers)
+            .values(
+                cust_id=uuid.uuid4(),
+                cust_name=validated.cust_name,
+                phone=validated.phone,
+                budget=validated.budget,
+                location=validated.location,
+                status=validated.status or "Not Yet Call", #If no status default is "Not Yet Call"
+                last_contact=validated.last_contact,
+                user_id=user_id,
+            )
+            .on_conflict_do_update(
+                index_elements=["phone"],
+                set_={
+                    "cust_name": validated.cust_name,
+                    "budget": validated.budget,
+                    "location": validated.location,
+                    "status": validated.status or "Not Yet Call",
+                    "last_contact": validated.last_contact,
+                    "updated_at": func.now(),
+                },
+            )
+        )
+
+        db.execute(stmt)
+        synced += 1
+
+    db.commit()
+    return SyncResult(synced=synced, skipped=skipped, total=len(raw_rows))
+
+def _write_rows_to_sheet(rows: list[list], spreadsheet_id: str) -> dict:
+    """Sync Google Sheets write call — runs in threadpool."""
+    creds = _get_credentials()
+    service = build("sheets", "v4", credentials=creds)
+
+    # Write header row
+    service.spreadsheets().values().update(
+        spreadsheetId=spreadsheet_id,
+        range="Sheet1!A1",
+        valueInputOption="USER_ENTERED",
+        body={"values": [EXPORT_HEADERS]},
+    ).execute()
+
+    # Clear existing data (preserve header row by clearing from A2)
+    service.spreadsheets().values().clear(
+        spreadsheetId=spreadsheet_id,
+        range="Sheet1!A2:H",
+    ).execute()
+
+    if not rows:
+        return {"updatedRows": 0}
+
+    body = {"values": rows}
+    result = (
+        service.spreadsheets()
+        .values()
+        .update(
+            spreadsheetId=spreadsheet_id,
+            range="Sheet1!A2",
+            valueInputOption="USER_ENTERED",
+            body=body,
+        )
+        .execute()
+    )
+    return result
+
+
+async def export_customers_to_sheets(db: db_dependency, user_id: uuid.UUID) -> dict:
+    sheets_id = _get_user_sheets_id(db, user_id)
+    stmt = select(Customers).where(Customers.user_id == user_id)
+    customers = db.execute(stmt).scalars().all()
+
+    rows = []
+    for c in customers:
+        rows.append([
+            c.cust_name,
+            c.phone,
+            c.budget if c.budget is not None else "",
+            c.location or "",
+            c.status,
+            c.last_contact.isoformat() if c.last_contact else "",
+            json.dumps(c.remarks) if c.remarks is not None else "",
+        ])
+
+    result = await run_in_threadpool(_write_rows_to_sheet, rows, sheets_id)
+    return {"exported": len(rows), "updatedCells": result.get("updatedCells", 0)}
+
+
+async def fetch_status(spreadsheet_id: str):
+    creds = _get_credentials()
+    service = build("sheets", "v4", credentials=creds)
+    await run_in_threadpool(service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute)
