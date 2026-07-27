@@ -221,7 +221,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
   };
 
   return (
-    <div className="dashboard-card overflow-visible">
+    <div className="dashboard-card flex flex-col min-h-0">
       <div className="flex items-center justify-between px-6 py-4 border-b border-base-200">
         <div className="shrink-0">
           <p className="font-semibold text-sm text-base-content">
@@ -253,9 +253,10 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
               onClick={() => setFilterDropdownOpen((prev) => !prev)}
             >
               <span
-                className={`badge ${filters.status === 'all' ? 'badge-ghost' : getBadgeClass(filters.status)}`}
+                className={`badge min-w-48 justify-center ${filters.status === 'all' ? 'badge-ghost' : getBadgeClass(filters.status)} gap-1`}
               >
                 {filters.status === 'all' ? 'All Status' : filters.status}
+                <ChevronDown size={10} />
               </span>
             </div>
             <ul
@@ -271,7 +272,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                   }
                   onClick={() => handleFilterSelect('all')}
                 >
-                  <span className="badge badge-ghost w-full justify-start">
+                  <span className="badge badge-ghost min-w-48 justify-center">
                     All Status
                   </span>
                 </button>
@@ -289,7 +290,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                       onClick={() => handleFilterSelect(status)}
                     >
                       <span
-                        className={`badge ${getBadgeClass(status)} w-full justify-start`}
+                        className={`badge ${getBadgeClass(status)} min-w-48 justify-center`}
                       >
                         {status}
                       </span>
@@ -333,7 +334,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="table w-full table-sm">
             <thead className="sticky top-0 bg-base-100 z-10 shadow-sm">
               <tr className="text-xs uppercase tracking-wider text-base-content/60 border-b-2 border-base-300">
@@ -403,7 +404,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                         onClick={() => handleDropdownClick(customer.cust_id)}
                       >
                         <span
-                          className={`badge ${getBadgeClass(customer.status)} gap-1`}
+                          className={`badge min-w-48 justify-center ${getBadgeClass(customer.status)} gap-1`}
                         >
                           {customer.status}
                           <ChevronDown size={10} />
@@ -426,7 +427,7 @@ function CustomerListings({ customerData, onStatusChange, loading }) {
                               }
                             >
                               <span
-                                className={`badge ${getBadgeClass(s.name)} w-full justify-start`}
+                                className={`badge ${getBadgeClass(s.name)} min-w-48 justify-center`}
                               >
                                 {s.name}
                               </span>
