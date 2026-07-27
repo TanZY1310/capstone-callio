@@ -85,9 +85,9 @@ function HomePage() {
 
   return (
     <>
-      <div className="flex min-h-screen bg-base-200/50">
+      <div className="flex flex-col h-full bg-base-200/50">
         <motion.div
-          className="flex-1 overflow-y-auto px-8 py-6 space-y-6"
+          className="flex-1 px-8 py-6 space-y-6 flex flex-col min-h-0"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
