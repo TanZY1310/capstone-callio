@@ -101,7 +101,7 @@ function LeaderDashboard() {
             completedDeltaPct={teamData.team_conversion.completed_change}
           />
 
-          <div className="col-span-2 card bg-base-100">
+          {/* <div className="col-span-2 card bg-base-100">
             <TeamConversionFunnel
               stages={[
                 {
@@ -118,7 +118,7 @@ function LeaderDashboard() {
                 },
               ]}
             />
-          </div>
+          </div> */}
 
           <PerformanceCard
             teamTable={tableData}

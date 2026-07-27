@@ -2,6 +2,7 @@ import { MdCall, MdDoneAll } from 'react-icons/md';
 import { TiTick } from 'react-icons/ti';
 import { RiTeamFill } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
+import { FaPercentage } from 'react-icons/fa';
 
 function LeaderCard({
   calls,
@@ -42,16 +43,6 @@ function LeaderCard({
       subtextColor: deltaColor(leadsDeltaPct),
     },
     {
-      label: 'Team Bookings',
-      key: 'bookings',
-      value: bookings,
-      icon: TiTick,
-      iconBg: 'bg-emerald-100',
-      iconColor: 'text-emerald-600',
-      subtext: formatDelta(bookingsDeltaPct),
-      subtextColor: deltaColor(bookingsDeltaPct),
-    },
-    {
       label: 'Team Calls',
       key: 'calls',
       value: calls,
@@ -71,6 +62,28 @@ function LeaderCard({
       // deliberately no MTD subtext — live snapshot, not a period comparison
     },
 
+    {
+      label: 'Team Bookings',
+      key: 'bookings',
+      value: bookings,
+      icon: TiTick,
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      subtext: formatDelta(bookingsDeltaPct),
+      subtextColor: deltaColor(bookingsDeltaPct),
+    },
+
+    {
+      label: 'Completion Rate',
+      key: 'completion',
+      value: completed,
+      icon: FaPercentage,
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      subtext: formatDelta(completedDeltaPct),
+      subtextColor: deltaColor(completedDeltaPct),
+    },
+
     // {
     //   label: 'Completed',
     //   key: 'completed',
@@ -84,7 +97,7 @@ function LeaderCard({
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
       {METRIC_CARDS.map((item) => (
         <div
           key={item.key}
