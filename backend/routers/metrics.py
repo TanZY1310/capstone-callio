@@ -193,12 +193,11 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
                   )
 
         total_leads = (
-                    db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
-                    .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
-                    .filter(Customers.user_id == user_id)
-                    .filter(func.date(SpeechAnalysis.created_at) == start)
-                    .scalar() or 0
-                     )
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id == user_id)
+            .filter(func.date(Customers.last_contact) == start)
+            .scalar() or 0
+        )
 
         prev_calls = (
             db.query(func.count(SpeechAnalysis.id))
@@ -280,13 +279,12 @@ async def get_agent_dashboard(db: db_dependency, user_id: uuid.UUID,
                   )
 
         total_leads = (
-                    db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
-                    .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
-                    .filter(Customers.user_id == user_id)
-                    .filter(func.date(SpeechAnalysis.created_at) >= start)
-                    .filter(func.date(SpeechAnalysis.created_at) < end)
-                    .scalar() or 0
-                     )
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id == user_id)
+            .filter(func.date(Customers.last_contact) >= start,
+                    func.date(Customers.last_contact) < end)
+            .scalar() or 0
+        )
 
         prev_calls = (
             db.query(func.count(SpeechAnalysis.id))
@@ -545,11 +543,10 @@ async def get_leader_team_overview(
     start, end, prev_start, prev_end = get_leader_period(period=period, year=year, month=month)
 
     lead_rows = (
-        db.query(Customers.user_id, func.count(func.distinct(SpeechAnalysis.customer_id)).label("count"))
-        .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
+        db.query(Customers.user_id, func.count(Customers.cust_id).label("count"))
         .filter(Customers.user_id.in_(team_agent_ids))
-        .filter(func.date(SpeechAnalysis.created_at) >= start)
-        .filter(func.date(SpeechAnalysis.created_at) < end)
+        .filter(func.date(Customers.last_contact) >= start,
+                func.date(Customers.last_contact) < end)
         .group_by(Customers.user_id)
         .all()
     )
@@ -697,13 +694,12 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
             )
 
         team_leads = (
-                    db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
-                    .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
-                    .filter(Customers.user_id.in_(team_agent_ids))
-                    .filter(func.date(SpeechAnalysis.created_at) >= start,
-                            func.date(SpeechAnalysis.created_at) < end)
-                    .scalar() or 0
-                     )
+            db.query(func.count(Customers.cust_id))
+            .filter(Customers.user_id.in_(team_agent_ids))
+            .filter(func.date(Customers.last_contact) >= start,
+                    func.date(Customers.last_contact) < end)
+            .scalar() or 0
+        )
 
         team_followUps = (
             db.query(func.count(Customers.cust_id))
@@ -767,11 +763,10 @@ async def get_leader_dashboard(db: db_dependency, user_id: uuid.UUID):
         )
 
         team_prev_leads = (
-            db.query(func.count(func.distinct(SpeechAnalysis.customer_id)))
-            .join(Customers, SpeechAnalysis.customer_id == Customers.cust_id)
+            db.query(func.count(Customers.cust_id))
             .filter(Customers.user_id.in_(team_agent_ids))
-            .filter(func.date(SpeechAnalysis.created_at) >= prev_start,
-                    func.date(SpeechAnalysis.created_at) < prev_end)
+            .filter(func.date(Customers.last_contact) >= prev_start,
+                    func.date(Customers.last_contact) < prev_end)
             .scalar() or 0
         )
 
