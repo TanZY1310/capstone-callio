@@ -1,122 +1,166 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { lazy, Suspense, useEffect } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
+import { Toaster, toast } from 'sonner';
+import { useAuth } from './hooks/useAuth';
+
+// Include page or component imports here
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Register = lazy(() => import('./components/Authentication/RegisterForm'));
+const Login = lazy(() => import('./components/Authentication/LoginForm'));
+const ProtectedRoute = lazy(
+  () => import('./components/Authentication/ProtectedRoute'),
+);
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LeadDetail = lazy(() => import('./pages/LeadDetail'));
+const AgentDashboard = lazy(() => import('./pages/AgentDashboard'));
+const LeaderDashboard = lazy(() => import('./pages/LeaderDashboard'));
+const Speech = lazy(() => import('./pages/Speech'));
+const Sidebar = lazy(() => import('./components/Layout/Sidebar'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
+const ProfileSetting = lazy(() => import('./pages/ProfileSettings'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user, profile, loading, logout, authError, loginDemo } = useAuth();
+
+  useEffect(() => {
+    if (authError) {
+      toast.error(authError, { duration: 6000 });
+    }
+  }, [authError]);
+
+  const contentFallback = (
+    <div className="flex-1 flex items-center justify-center">
+      <span className="loading loading-spinner loading-lg"></span>
+    </div>
+  );
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+      <Router>
+        <Toaster position="top-right" richColors />
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-base-100">
+              <span className="loading loading-spinner loading-lg"></span>
+            </div>
+          }
         >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+          <Routes>
+            <Route path="/landing" element={<Navigate to="/" replace />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route
+              path="/register"
+              element={
+                loading && !user ? null : profile ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Register />
+                )
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                loading && !user ? null : profile ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Login onDemoLogin={loginDemo} />
+                )
+              }
+            />
+            <Route
+              path="/"
+              element={
+                loading ? null : !profile ? (
+                  <LandingPage />
+                ) : (
+                  <Navigate to="/home" replace />
+                )
+              }
+            />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute
+                  user={user}
+                  loading={loading}
+                  redirectTo="/login"
                 >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+                  <Sidebar logout={logout} profile={profile} />
+                </ProtectedRoute>
+              }
+            >
+              {/* Child routes render into <Outlet /> inside Sidebar.jsx */}
+              <Route
+                path="home"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <HomePage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="whatsapp"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <LeadDetail />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="agent-dashboard"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <AgentDashboard />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="team-dashboard"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <LeaderDashboard />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="speech"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <Speech />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="profile"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <UserProfile />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="profile-setting"
+                element={
+                  <Suspense fallback={contentFallback}>
+                    <ProfileSetting />
+                  </Suspense>
+                }
+              />
+            </Route>
+          </Routes>
+        </Suspense>
+      </Router>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

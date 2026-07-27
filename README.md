@@ -1,6 +1,6 @@
-# sixth-sense-callio
+# Callio
 
-
+**sixth-sense-callio** — an AI-powered CRM for real estate agents with WhatsApp integration, call transcription, and intelligent lead analysis.
 
 ## Getting started
 
@@ -10,8 +10,8 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ## Add your files
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+- [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
+- [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
 
 ```
 cd existing_repo
@@ -22,72 +22,258 @@ git push -uf origin main
 
 ## Integrate with your tools
 
-* [Set up project integrations](https://gitlab.gamuda.app/tanzeyan/sixth-sense-callio/-/settings/integrations)
+- [Set up project integrations](https://gitlab.gamuda.app/tanzeyan/sixth-sense-callio/-/settings/integrations)
 
 ## Collaborate with your team
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+- [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
+- [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
+- [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
+- [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
+- [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
 
 ## Test and Deploy
 
 Use the built-in continuous integration in GitLab.
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
+- [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
+- [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
+- [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
+- [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
 
-***
+---
+
+## Description
+
+Callio helps real estate agents manage leads, communicate via WhatsApp, and analyze sales calls using AI. Key features:
+
+- **Lead Management**: Track customers with status, budget, location, and remarks. Sync from Google Sheets or add manually.
+- **WhatsApp Integration**: Connect your WhatsApp account, view chat history, send messages, and get AI-generated reply drafts.
+- **Call Analysis**: Upload call recordings → transcribe via Gemini AI → extract sentiment, buyer stage, objections, preferences, and next actions.
+- **AI Insights**: Automatic buyer stage classification (Awareness → Ready to close), sentiment scoring, objection tracking.
+- **Dashboards**: Agent dashboard (daily calls, leads, follow-ups, appointments) + Team Leader dashboard (team performance, agent rankings).
+- **Google Sheets Sync**: Import/export customer data to keep spreadsheets in sync.
+
+Built for real estate teams who want to close more deals with less manual work.
+
+## Installation
+
+This is a multi-service monorepo. Each service runs independently.
+
+### Prerequisites
+
+- Node.js 18+ (for frontend and whatsapp-service)
+- Python 3.12.7 (for backend)
+- PostgreSQL 14+
+- Google Cloud account (for Firebase, Gemini, Google Sheets)
+- WhatsApp account (for whatsapp-service)
+
+### Backend (FastAPI)
+
+```bash
+# Navigate to backend
+cd backend
+
+# Create and activate virtual environment
+python -m venv myenv
+myenv\Scripts\activate  # Windows
+# source myenv/bin/activate  # Linux/Mac
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables (create backend/.env)
+# DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+# FIREBASE_PROJECT_ID
+# GEMINI_API_KEY
+
+# Set up Google Sheets credentials
+# Place your service account JSON at backend/sheets_credentials.json
+
+# Set up Firebase Admin SDK (Application Default Credentials)
+gcloud auth application-default login
+
+# Run the server
+uvicorn main:app --reload
+```
+
+Backend runs on `http://localhost:8000`.
+
+### Frontend (Vite + React)
+
+```bash
+# Navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+
+# Set up environment variables (create frontend/.env)
+# VITE_API_URL=http://localhost:8000
+# VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID
+# VITE_FIREBASE_STORAGE_BUCKET, VITE_FIREBASE_MESSAGING_SENDER_ID, VITE_FIREBASE_APP_ID
+
+# Run dev server
+npm run dev
+```
+
+Frontend runs on `http://localhost:5173`.
+
+### WhatsApp Service (Express + whatsapp-web.js)
+
+```bash
+# Navigate to whatsapp-service
+cd whatsapp-service
+
+# Install dependencies
+npm install
+
+# Run the service
+npm start
+```
+
+WhatsApp service runs on `http://localhost:3001`. On first run, scan the QR code in the terminal to link your WhatsApp account.
+
+**Important**: All three services must run on their default ports (5173, 3001, 8000) because they hard-code each other's addresses.
+
+## Usage
+
+### Getting Started
+
+1. **Start all three services** (backend, frontend, whatsapp-service) in separate terminals.
+2. **Open the frontend** at `http://localhost:5173`.
+3. **Register or log in** using Firebase Auth (email/password or Google sign-in).
+4. **Connect WhatsApp** (optional): Go to Profile Settings → Social → Connect WhatsApp. Scan the QR code.
+5. **Sync customers from Google Sheets** (optional): Go to Profile Settings → Sheets → enter your Google Sheets ID → Sync.
+
+### Core Workflows
+
+**Managing Leads**:
+
+- View all customers on the Home page.
+- Update lead status (e.g., "follow-up", "appointment", "closed").
+- Click a lead to see details, remarks, and speech analysis results.
+
+**WhatsApp Messaging**:
+
+- Go to a lead's detail page → WhatsApp tab.
+- View chat history, send messages, or generate AI reply drafts.
+- Edit AI drafts before sending.
+
+**Call Analysis**:
+
+- Go to the Speech page.
+- Upload a call recording (WAV, MP3, M4A, OGG, FLAC, WebM).
+- Review the transcription, then approve to trigger AI analysis.
+- View extracted insights: buyer stage, sentiment, objections, preferences, next actions.
+- Add analysis results to a customer's remarks.
+
+**Dashboards**:
+
+- **Agent Dashboard**: See your daily calls, total leads, pending follow-ups, appointments, daily call trends, top regions, and common objections.
+- **Team Leader Dashboard** (team leads only): View team-wide stats and individual agent performance.
+
+### Deployment
+
+Frontend deploys to Firebase Hosting:
+
+```bash
+cd frontend
+npm run build
+firebase deploy
+```
+
+Backend and whatsapp-service can be deployed to any Node/Python hosting (e.g., Google Cloud Run, Railway, Render).
+
+## Tech Stack
+
+**Backend**:
+
+- FastAPI, SQLAlchemy, PostgreSQL
+- Firebase Admin SDK (auth)
+- LangChain + Google Gemini (AI analysis)
+- Google Cloud Speech (transcription)
+- gspread (Google Sheets integration)
+
+**Frontend**:
+
+- React 19, Vite, React Router
+- Tailwind CSS v4, daisyUI v5
+- Firebase client SDK
+- Recharts, Chart.js (dashboards)
+- Axios
+
+**WhatsApp Service**:
+
+- Express 5, whatsapp-web.js (Puppeteer-based)
+- CORS restricted to frontend origin
+
+## Project Structure
+
+```
+.
+├── backend/              # FastAPI server
+│   ├── main.py          # Entry point
+│   ├── routers/         # API endpoints
+│   ├── models/          # SQLAlchemy models
+│   ├── schemas/         # Pydantic schemas
+│   ├── services/        # Business logic (AI, WhatsApp, Sheets)
+│   └── core/            # Firebase Admin setup
+├── frontend/            # Vite + React SPA
+│   ├── src/
+│   │   ├── pages/       # Route pages
+│   │   ├── components/  # Reusable UI
+│   │   ├── hooks/       # Custom hooks (useAuth)
+│   │   └── services/    # API clients
+│   └── firebase.json    # Firebase Hosting config
+└── whatsapp-service/    # Express + whatsapp-web.js
+    └── src/
+        ├── index.js     # Entry point
+        ├── routes/      # WhatsApp endpoints
+        └── whatsapp.js  # WhatsApp client logic
+```
+
+## Environment Variables
+
+**Backend** (`backend/.env`):
+
+- `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_NAME` — PostgreSQL connection
+- `FIREBASE_PROJECT_ID` — Firebase project ID
+- `GEMINI_API_KEY` — Google Gemini API key
+
+**Frontend** (`frontend/.env`):
+
+- `VITE_API_URL` — Backend URL (default: `http://localhost:8000`)
+- `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID` — Firebase client config
+
+**WhatsApp Service**: No env vars required (uses default port 3001).
+
+## Troubleshooting
+
+**WhatsApp won't connect**:
+
+- Ensure whatsapp-service is running on port 3001.
+- Check that `.wwebjs_auth/` exists (session persisted after first QR scan).
+- Delete `.wwebjs_auth/` and restart to re-link.
+
+**Backend can't connect to database**:
+
+- Verify PostgreSQL is running and credentials in `.env` are correct.
+- Database is auto-created on first run if it doesn't exist.
+
+**Frontend shows "Network Error"**:
+
+- Ensure backend is running on port 8000.
+- Check `VITE_API_URL` in `frontend/.env`.
+
+**Gemini API errors**:
+
+- Verify `GEMINI_API_KEY` is set in `backend/.env`.
+- Check Google Cloud project has Gemini API enabled.
+
+---
 
 # Editing this README
 
 When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
