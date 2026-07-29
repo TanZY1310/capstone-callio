@@ -10,7 +10,7 @@ function UserProfile() {
   const { profile } = useAuth();
 
   return (
-    <div className="p-5 w-full flex flex-col gap-6 box-border">
+    <div className="h-full overflow-y-auto p-5 w-full flex flex-col gap-6 box-border">
       <ProfileCard
         first_name={profile?.first_name || ''}
         last_name={profile?.last_name || ''}
